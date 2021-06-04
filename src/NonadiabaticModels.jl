@@ -226,8 +226,8 @@ include("adiabatic/harmonic.jl")
 include("adiabatic/diatomic_harmonic.jl")
 include("adiabatic/darling_holloway_elbow.jl")
 
-include("friction/friction_harmonic.jl")
-include("friction/free_constant_friction.jl")
+include("friction/constant_friction.jl")
+include("friction/random_friction.jl")
 
 include("diabatic/double_well.jl")
 include("diabatic/tully_models.jl")

@@ -69,6 +69,6 @@ end
 end
 
 @testset "FrictionModels" begin
-    test_model(FrictionHarmonic(), 1, 3)
-    test_model(FreeConstantFriction(1), 1, 3)
+    test_model(ConstantFriction(Free(), 1), 1, 3)
+    test_model(RandomFriction(Free()), 1, 3)
 end
