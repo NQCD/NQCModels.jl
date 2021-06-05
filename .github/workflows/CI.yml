@@ -14,6 +14,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
 
+      - name: Add NonadiabaticRegistry
+        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="git@github.com:maurergroup/NonadiabaticRegistry.git"))'
       - name: Add JuliaMolSim registry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
 

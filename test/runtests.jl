@@ -1,4 +1,5 @@
 using Test
+using NonadiabaticDynamicsBase
 using NonadiabaticModels
 using LinearAlgebra
 using FiniteDiff
@@ -71,4 +72,12 @@ end
 @testset "FrictionModels" begin
     test_model(ConstantFriction(Free(), 1), 1, 3)
     test_model(RandomFriction(Free()), 1, 3)
+end
+
+@testset "JuLIP" begin
+    import JuLIP
+    atoms = Atoms([:H, :H])
+    vecs = [10 0 0; 0 10 0; 0 0 10]
+    model = JuLIPModel(atoms, PeriodicCell(vecs), JuLIP.StillingerWeber())
+    test_model(model, 3, 2)
 end

@@ -1,5 +1,6 @@
 """
-Models define the potentials and derivatives that govern the dynamics of the particles.
+NonadiabaticModels define the potentials and derivatives that
+govern the dynamics of the particles.
 These can exist as analytic models or as interfaces to other codes. 
 """
 module NonadiabaticModels
@@ -8,6 +9,8 @@ using Unitful, UnitfulAtomic
 using LinearAlgebra
 using Parameters
 using ReverseDiff
+using Requires
+using NonadiabaticDynamicsBase
 
 export Model
 export AdiabaticModel
@@ -46,16 +49,16 @@ Base.broadcastable(model::Model) = Ref(model)
 # Example
 
 ```jldoctest
-struct MyModel{P} <: Models.AdiabaticModel
+struct MyModel{P} <: NonadiabaticModels.AdiabaticModel
     param::P
 end
 
-Models.potential!(model::MyModel, V, R) = V .= model.param*sum(R.^2)
-Models.derivative!(model::MyModel, D, R) = D .= model.param*2R
+NonadiabaticModels.potential!(model::MyModel, V, R) = V .= model.param*sum(R.^2)
+NonadiabaticModels.derivative!(model::MyModel, D, R) = D .= model.param*2R
 
 model = MyModel(10)
 
-Models.potential(model, [1 2; 3 4])
+NonadiabaticModels.potential(model, [1 2; 3 4])
 
 # output
 
@@ -80,19 +83,19 @@ and each entry must have `size = (n_states, n_states)`.
 # Example
 
 ```jldoctest
-struct MyModel <: Models.DiabaticModel
+struct MyModel <: NonadiabaticModels.DiabaticModel
     n_states::Int # Mandatory `n_states` field.
     MyModel() = new(2)
 end
 
-function Models.potential!(::MyModel, V, R) 
+function NonadiabaticModels.potential!(::MyModel, V, R) 
     V[1,1] = sum(R)
     V[2,2] = -sum(R)
     V.data[1,2] = 1 # Must use `.data` to set off-diagonal elements of `Hermitian`.
     return V
 end
 
-function Models.derivative!(::MyModel, D, R)
+function NonadiabaticModels.derivative!(::MyModel, D, R)
     for d in eachindex(D)
         D[d][1,1] = 1
         D[d][2,2] = -1
@@ -101,7 +104,7 @@ function Models.derivative!(::MyModel, D, R)
 end
 
 model = MyModel()
-Models.potential(model, [1 2; 3 4])
+NonadiabaticModels.potential(model, [1 2; 3 4])
 
 # output
 
@@ -236,5 +239,9 @@ include("diabatic/spin_boson.jl")
 include("diabatic/1D_scattering.jl")
 include("diabatic/ouyang_models.jl")
 include("diabatic/gates_holloway_elbow.jl")
+
+function __init__()
+    @require JuLIP="945c410c-986d-556a-acb1-167a618e0462" @eval include("adiabatic/julip.jl")
+end
 
 end # module
