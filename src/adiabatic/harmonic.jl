@@ -10,13 +10,13 @@ julia> using Symbolics;
 
 julia> @variables x, m, ω, r₀;
 
-julia> model = Models.Harmonic(m=m, ω=ω, r₀=r₀);
+julia> model = Harmonic(m=m, ω=ω, r₀=r₀);
 
-julia> Models.potential(model, hcat(x))
+julia> potential(model, hcat(x))
 1-element Vector{Num}:
  0.5m*(ω^2)*((x - r₀)^2)
 
-julia> Models.derivative(model, hcat(x))
+julia> derivative(model, hcat(x))
 1×1 Matrix{Num}:
  m*(x - r₀)*(ω^2)
 ```
