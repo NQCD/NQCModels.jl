@@ -67,10 +67,10 @@ end
 Bosonic bath with Debye spectral density.
 Useful for sampling the bath uncoupled from the spin for spin-boson dynamics.
 """
-struct DebyeBosonBath{W} <: AdiabaticModel
+struct DebyeBosonBath{WC,WJ} <: AdiabaticModel
     n_states::UInt8
-    ωᶜ::W
-    ωⱼ::Vector{W}
+    ωᶜ::WC
+    ωⱼ::Vector{WJ}
 end
 
 function DebyeBosonBath(Nᵇ; ωᶜ=2.5)
