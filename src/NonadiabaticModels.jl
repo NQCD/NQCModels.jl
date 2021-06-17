@@ -10,6 +10,7 @@ using LinearAlgebra
 using Parameters
 using ReverseDiff
 using Requires
+using SparseArrays
 using NonadiabaticDynamicsBase
 
 export Model
@@ -116,6 +117,13 @@ NonadiabaticModels.potential(model, [1 2; 3 4])
 abstract type DiabaticModel <: Model end
 
 """
+    SparseDiabaticModel <: DiabaticModel
+
+Same as diabatic model but uses sparse arrays to store potentials and derivatives.
+"""
+abstract type SparseDiabaticModel <: DiabaticModel end
+
+"""
     DiabaticFrictionModel <: DiabaticModel
 
 `DiabaticFrictionModel`s are defined identically to the `DiabaticModel`.
@@ -175,6 +183,7 @@ function friction! end
 
 zero_potential(::AdiabaticModel, R) = zeros(eltype(R), 1)
 zero_potential(model::DiabaticModel, R) = Hermitian(zeros(eltype(R), model.n_states, model.n_states))
+zero_potential(model::SparseDiabaticModel, R) = Hermitian(spzeros(eltype(R), model.n_states, model.n_states))
 
 zero_derivative(::AdiabaticModel, R) = zero(R)
 zero_derivative(model::DiabaticModel, R) = [zero_potential(model, R) for _ in CartesianIndices(R)]
@@ -239,6 +248,7 @@ include("diabatic/spin_boson.jl")
 include("diabatic/1D_scattering.jl")
 include("diabatic/ouyang_models.jl")
 include("diabatic/gates_holloway_elbow.jl")
+include("diabatic/subotnik.jl")
 
 function __init__()
     @require JuLIP="945c410c-986d-556a-acb1-167a618e0462" @eval include("adiabatic/julip.jl")
