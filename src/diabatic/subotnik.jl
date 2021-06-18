@@ -84,12 +84,12 @@ end
 """
 @with_kw struct MiaoSubotnik <: SparseDiabaticModel
     m::Float64 = 2000
-    om::Float64 = 2e-3
+    om::Float64 = 2e-4
     g::Float64 = 20.6097
-    DG::Float64 = -0.0038
-    Gamma::Float64 = 1e-4
-    W::Float64 = 1e-3
-    n_states::UInt64 = 20
+    DG::Float64 = -3.8e-3
+    Gamma::Float64 = 6.4e-3
+    W::Float64 = 10*Gamma
+    n_states::UInt64 = 40
 end
 
 function potential!(model::MiaoSubotnik, V::Hermitian, R::AbstractMatrix)
@@ -104,30 +104,29 @@ function potential!(model::MiaoSubotnik, V::Hermitian, R::AbstractMatrix)
     # weighted metal-molecule coupling between the diabates
     V_couple=sqrt(model.Gamma*2*model.W/(2*pi*n_states))
     
-    
     # Set up the Hamiltonian
-    V[1,1] = V_0(R[1])
-    V[2,2] = V_1(R[1])
-    spacing = 2*model.W/n_states
+    V[1,1] = V_1(R[1])
+    spacing = 2*model.W/(n_states-2)
     # The Fermi Level is assumed to be zero
     # Since half of the state will be filled with electrons, this puts the 
     # onset of the states at half the bandwidth.
-    ei = -model.W
-    for i=3:n_states-1
-        ei = ei + spacing
-        V[i,i] = ei
+    V[2,2] = -model.W + V_0(R[1])
+    V.data[1,2] = V_couple
+    for i=3:n_states
+        V[i,i] = V[i-1,i-1] + spacing
         V.data[1,i] = V_couple
-        V.data[2,i] = V_couple
     end
-    V[end, end] = model.W
-    V.data[1,end] = V_couple
-    V.data[2,end] = V_couple
+    return V
 end
 
 function derivative!(model::MiaoSubotnik, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
     
     q = R[1]
-    derivative[1][1,1] = model.m*model.om^2*q
-    derivative[1][2,2] =model.m*model.om^2*(q-model.g)
-    
+    derivative[1][1,1] = model.m*model.om^2*(q-model.g)
+    derivative[1][2,2] = model.m*model.om^2*q
+    for i=3:model.n_states
+        derivative[1][i,i] = derivative[1][2,2]
+    end
+
+    return derivative
 end
