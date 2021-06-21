@@ -84,47 +84,46 @@ end
 """
 @with_kw struct MiaoSubotnik <: SparseDiabaticModel
     m::Float64 = 2000
-    om::Float64 = 2e-4
+    ω::Float64 = 2e-4
     g::Float64 = 20.6097
-    DG::Float64 = -3.8e-3
-    Gamma::Float64 = 6.4e-3
-    W::Float64 = 10*Gamma
-    n_states::UInt64 = 40
+    ΔG::Float64 = -3.8e-3
+    Γ::Float64 = 6.4e-3
+    W::Float64 = 5Γ
+    M::Int = 40
+    ρ::Float64 = M/2W
+    increment::Float64 = 1/ρ
+    n_states::Int = M+1
 end
 
 function potential!(model::MiaoSubotnik, V::Hermitian, R::AbstractMatrix)
-    # Note that for the purpose of this model, n_states includes V1 and V0
-    #pi=3.14159265359
-    n_states=model.n_states
-    # Higher potential well
-    V_0(r) = (model.m*model.om^2*r^2)/2.0
-    # Loweer energy potential well
-    V_1(r) = (model.m*model.om^2*(r-model.g)^2)/2.0 + model.DG
-    #println(R[1]," " , V_0(R[1]), " ", V_1(R[1]))
-    # weighted metal-molecule coupling between the diabates
-    V_couple=sqrt(model.Gamma*2*model.W/(2*pi*n_states))
+    @unpack m, ω, g, ΔG, Γ, ρ, increment, n_states = model
+
+    U0(x) = (m*ω^2*x^2)/2
+    U1(x) = (m*ω^2*(x-g)^2)/2 + ΔG
     
-    # Set up the Hamiltonian
-    V[1,1] = V_1(R[1])
-    spacing = 2*model.W/(n_states-2)
-    # The Fermi Level is assumed to be zero
-    # Since half of the state will be filled with electrons, this puts the 
-    # onset of the states at half the bandwidth.
-    V[2,2] = -model.W + V_0(R[1])
-    V.data[1,2] = V_couple
+    V[1,1] = U1(R[1])
+
+    Vₙ = sqrt(Γ/(2π*ρ))
+    V.data[1,2:end] .= Vₙ
+
+    V[2,2] = -model.W + U0(R[1])
     for i=3:n_states
-        V[i,i] = V[i-1,i-1] + spacing
-        V.data[1,i] = V_couple
+        V[i,i] = V[i-1,i-1] + increment
     end
+
     return V
 end
 
 function derivative!(model::MiaoSubotnik, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+    @unpack m, ω, g, n_states = model
+
+    dU0(x) = m*ω^2*x
+    dU1(x) = m*ω^2*(x-g)
     
-    q = R[1]
-    derivative[1][1,1] = model.m*model.om^2*(q-model.g)
-    derivative[1][2,2] = model.m*model.om^2*q
-    for i=3:model.n_states
+    derivative[1][1,1] = dU1(R[1])
+    derivative[1][2,2] = dU0(R[1])
+
+    for i=3:n_states
         derivative[1][i,i] = derivative[1][2,2]
     end
 
