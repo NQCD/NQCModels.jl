@@ -3,36 +3,31 @@ using RecipesBase
 using Unitful, UnitfulRecipes
 
 @recipe function f(x, model::AdiabaticModel)
-    V = [0.0]
-    D = hcat(0.0)
-    potential = zeros(size(x))
-    derivative = zeros(size(x))
+    V = zeros(size(x))
+    D = zeros(size(x))
     for i=1:length(x)
-        potential!(model, V, hcat(x[i]))
-        derivative!(model, D, hcat(x[i]))
-        potential[i] = V[1]
-        derivative[i] = D[1]
+        V[i] = potential(model, hcat(x[i]))
+        D[i] = derivative(model, hcat(x[i]))[1]
     end
 
     xguide --> "r"
 
     @series begin
         label := "V(r)"
-        x .* u"bohr", potential .* u"hartree"
+        x .* u"bohr", V .* u"hartree"
     end
 
     @series begin
         label := "dV(r)dr"
-        x .* u"bohr", derivative .* u"hartree / bohr"
+        x .* u"bohr", D .* u"hartree / bohr"
     end
 end
 
 @recipe function f(x, model::DiabaticModel; adiabats=true, diabats=true)
-    V = Hermitian(zeros(model.n_states, model.n_states))
     eigs = zeros(length(x), model.n_states)
     diabatic = zeros(length(x), model.n_states)
     for i=1:length(x)
-        potential!(model, V, hcat(x[i]))
+        V = potential(model, hcat(x[i]))
         eigs[i,:] .= eigvals(V)
         diabatic[i,:] .= diag(V)
     end
