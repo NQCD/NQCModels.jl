@@ -25,17 +25,20 @@ mutable struct JuLIPModel{T,A<:NamedTuple,B<:NamedTuple} <: AdiabaticModel
     end
 end
 
-function potential!(model::JuLIPModel, V::AbstractVector, R::AbstractMatrix)
+function potential(model::JuLIPModel, R::AbstractMatrix)
     JuLIP.set_positions!(model.atoms, au_to_ang.(R))
     try
-        V[1] = JuLIP.energy!(model.tmp, model.atoms.calc, model.atoms)
+        V = JuLIP.energy!(model.tmp, model.atoms.calc, model.atoms)
+        return eV_to_au(V)
     catch e
         if e isa BoundsError
             model.tmp = JuLIP.alloc_temp(model.atoms.calc, model.atoms)
-            V[1] = JuLIP.energy!(model.tmp, model.atoms.calc, model.atoms)
+            V = JuLIP.energy!(model.tmp, model.atoms.calc, model.atoms)
+            return eV_to_au(V)
+        else
+            throw(e)
         end
     end
-    V[1] = eV_to_au(V[1])
 end
 
 function derivative!(model::JuLIPModel, D::AbstractMatrix, R::AbstractMatrix)

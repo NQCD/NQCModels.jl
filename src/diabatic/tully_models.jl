@@ -14,24 +14,27 @@ Tully's simple avoided crossing model from [J. Chem. Phys. 93, 1061 (1990)](http
     d::D = 1.0
 end
 
-function potential!(model::TullyModelOne, V::Hermitian, R::AbstractMatrix)
+function potential(model::TullyModelOne, R::AbstractMatrix)
     @unpack a, b, c, d = model
     q = R[1]
     if q > 0
-        V[1,1] = a * (1 - exp(-b*q))
+        V11 = a * (1 - exp(-b*q))
     else
-        V[1,1] = -a * (1 - exp(b*q))
+        V11 = -a * (1 - exp(b*q))
     end
-    V[2,2] = -V[1,1]
-    V.data[1,2] = c * exp(-d*q^2) # sets both off-diagonals as V is Hermitian
+    V22 = -V11
+    V12 = c * exp(-d*q^2) # sets both off-diagonals as V is Hermitian
+    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
 function derivative!(model::TullyModelOne, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
     @unpack a, b, c, d = model
     q = R[1]
-    derivative[1][1,1] = a * b * exp(-b * abs(q))
-    derivative[1][2,2] = -derivative[1][1,1]
-    derivative[1].data[1,2] = -2 * c * d * q * exp(-d*q^2)
+    D11 = a * b * exp(-b * abs(q))
+    D22 = -D11
+    D12 = -2 * c * d * q * exp(-d*q^2)
+    derivative[1] = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+    return derivative
 end
 
 """
@@ -48,18 +51,22 @@ Tully's dual avoided crossing model from [J. Chem. Phys. 93, 1061 (1990)](https:
     e::E = 0.05
 end
 
-function potential!(model::TullyModelTwo, V::Hermitian, R::AbstractMatrix)
+function potential(model::TullyModelTwo, R::AbstractMatrix)
     @unpack a, b, c, d, e = model
     q = R[1]
-    V[1,1] = 0
-    V[2,2] = -a*exp(-b*q^2) + e
-    V.data[1,2]= c * exp(-d*q^2)
+    V11 = 0
+    V22 = -a*exp(-b*q^2) + e
+    V12 = c * exp(-d*q^2)
+    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
 function derivative!(model::TullyModelTwo, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
     @unpack a, b, c, d  = model
     q = R[1]
-    derivative[1][1,1] = 0
-    derivative[1][2,2] = 2*a*b*q*exp(-b*q^2)
-    derivative[1].data[1,2] = -2*c*d*q*exp(-d*q^2)
+    D11 = 0
+    D22 = 2*a*b*q*exp(-b*q^2)
+    D12 = -2*c*d*q*exp(-d*q^2)
+
+    derivative[1] = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+    return derivative
 end

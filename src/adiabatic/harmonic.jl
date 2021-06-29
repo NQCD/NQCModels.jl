@@ -27,8 +27,8 @@ julia> derivative(model, hcat(x))
     r₀::R = 0.0
 end
 
-function potential!(model::Harmonic, V::Vector, R::AbstractMatrix)
-    V .= sum(0.5 * model.m* model.ω^2 .* (R .- model.r₀) .^2)
+function potential(model::Harmonic, R::AbstractMatrix)
+    return sum(0.5 * model.m* model.ω^2 .* (R .- model.r₀) .^2)
 end
 
 function derivative!(model::Harmonic, D::AbstractMatrix, R::AbstractMatrix) 

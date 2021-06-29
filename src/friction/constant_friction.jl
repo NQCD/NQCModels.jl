@@ -7,9 +7,7 @@ struct ConstantFriction{M,T} <: AdiabaticFrictionModel
     γ::T
 end
 
-function potential!(model::ConstantFriction, V::AbstractVector, R::AbstractMatrix)
-    potential!(model.model, V, R)
-end
+potential(model::ConstantFriction, R::AbstractMatrix) = potential(model.model, R)
 
 function derivative!(model::ConstantFriction, D::AbstractMatrix, R::AbstractMatrix)
     derivative!(model.model, D, R)

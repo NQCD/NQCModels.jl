@@ -8,10 +8,10 @@ module NonadiabaticModels
 using Unitful, UnitfulAtomic
 using LinearAlgebra
 using Parameters
-using ReverseDiff
 using Requires
-using SparseArrays
+using StaticArrays
 using NonadiabaticDynamicsBase
+using Zygote
 
 export Model
 export AdiabaticModel
@@ -22,8 +22,6 @@ export AdiabaticFrictionModel
 export potential!, potential
 export derivative!, derivative
 export friction!, friction
-
-export energy, forces
 
 """
 Top-level type for models.
@@ -117,11 +115,12 @@ NonadiabaticModels.potential(model, [1 2; 3 4])
 abstract type DiabaticModel <: Model end
 
 """
-    SparseDiabaticModel <: DiabaticModel
+    LargeDiabaticModel <: DiabaticModel
 
-Same as diabatic model but uses sparse arrays to store potentials and derivatives.
+Diabatic model too large for static arrays, instead uses normal julia arrays and must
+implement the inplace `potential!`
 """
-abstract type SparseDiabaticModel <: DiabaticModel end
+abstract type LargeDiabaticModel <: DiabaticModel end
 
 """
     DiabaticFrictionModel <: DiabaticModel
@@ -135,7 +134,7 @@ and calculation of nonadiabatic couplings.
 Use of this type leads to the allocation of extra arrays inside the `Calculator`
 for the friction calculation.
 """
-abstract type DiabaticFrictionModel <: DiabaticModel end
+abstract type DiabaticFrictionModel <: LargeDiabaticModel end
 
 """
     AdiabaticFrictionModel <: AdiabaticModel
@@ -166,12 +165,6 @@ This must be implemented for all models.
 """
 function derivative! end
 
-"ReverseDiff fallback derivative for adiabatic models."
-function derivative!(model::AdiabaticModel, D, R)
-    f(R) = potential(model, R)
-    D .= ReverseDiff.gradient(f, R)
-end
-
 """
     friction!(model::AdiabaticFrictionModel, F, R:AbstractMatrix)
 
@@ -181,12 +174,21 @@ This need only be implemented for `AdiabaticFrictionModel`s.
 """
 function friction! end
 
-zero_potential(::AdiabaticModel, R) = zeros(eltype(R), 1)
-zero_potential(model::DiabaticModel, R) = Hermitian(zeros(eltype(R), model.n_states, model.n_states))
-zero_potential(model::SparseDiabaticModel, R) = Hermitian(spzeros(eltype(R), model.n_states, model.n_states))
+
+function matrix_template(model::DiabaticModel, eltype)
+    n = convert(Int, model.n_states)
+    return SMatrix{n,n}(zeros(eltype, n, n))
+end
+matrix_template(model::LargeDiabaticModel, eltype) = zeros(eltype, model.n_states, model.n_states)
+
+function vector_template(model::DiabaticModel, eltype)
+    n = convert(Int, model.n_states)
+    return SVector{n}(zeros(eltype, n))
+end
+vector_template(model::LargeDiabaticModel, eltype) = zeros(eltype, model.n_states)
 
 zero_derivative(::AdiabaticModel, R) = zero(R)
-zero_derivative(model::DiabaticModel, R) = [zero_potential(model, R) for _ in CartesianIndices(R)]
+zero_derivative(model::DiabaticModel, R) = [Hermitian(matrix_template(model, eltype(R))) for _ in CartesianIndices(R)]
 
 zero_friction(::AdiabaticFrictionModel, R) = zeros(eltype(R), length(R), length(R))
 
@@ -197,12 +199,11 @@ Obtain the potential for the current position `R`.
 
 This is an allocating version of `potential!`.
 """
-function potential(model::Model, R)
-    V = zero_potential(model, R)
+function potential(model::LargeDiabaticModel, R)
+    V = Hermitian(matrix_template(model, eltype(R)))
     potential!(model, V, R)
     return V
 end
-energy(model::AdiabaticModel, R) = potential(model, R)[1]
 
 """
     derivative(model::Model, R)
@@ -216,7 +217,6 @@ function derivative(model::Model, R)
     derivative!(model, D, R)
     return D
 end
-forces(model::AdiabaticModel, R) = -derivative(model, R)
 
 """
     friction(model::Model, R)

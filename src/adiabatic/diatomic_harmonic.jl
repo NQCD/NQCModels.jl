@@ -11,8 +11,8 @@ Harmonic interaction between two particles.
     r₀::Float64 = 1.0
 end
 
-function potential!(model::DiatomicHarmonic, V::Vector, R::AbstractMatrix)
-    V .= (norm(R[:,1] .- R[:,2]) - model.r₀)^2 / 2
+function potential(model::DiatomicHarmonic, R::AbstractMatrix)
+    return (norm(R[:,1] .- R[:,2]) - model.r₀)^2 / 2
 end
 
 function derivative!(model::DiatomicHarmonic, D::AbstractMatrix, R::AbstractMatrix) 
