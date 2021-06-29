@@ -16,6 +16,7 @@ using Zygote
 export Model
 export AdiabaticModel
 export DiabaticModel
+export LargeDiabaticModel
 export DiabaticFrictionModel
 export AdiabaticFrictionModel
 
