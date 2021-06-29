@@ -24,7 +24,7 @@ The coupling between them is an exponential function of `z` (distance from the s
     γ::Float64 = 1.0
 end
 
-function potential!(model::GatesHollowayElbow, V, R)
+function potential(model::GatesHollowayElbow, R)
     @unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
 
     repel(x, λ, d) = exp(-λ*(x+d))
@@ -33,11 +33,11 @@ function potential!(model::GatesHollowayElbow, V, R)
     x = R[1,1]
     z = R[1,2]
 
-    V[1,1] = morse(x, d, α) + repel(z, λ₁, z₀)
-    V[2,2] = morse(z, d, α) + repel(x, λ₂, x₀)
-    V.data[1,2] = c * repel(z, γ,-z12)
+    V11 = morse(x, d, α) + repel(z, λ₁, z₀)
+    V22 = morse(z, d, α) + repel(x, λ₂, x₀)
+    V12 = c * repel(z, γ,-z12)
 
-    return V
+    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
 function derivative!(model::GatesHollowayElbow, D, R)
@@ -50,14 +50,16 @@ function derivative!(model::GatesHollowayElbow, D, R)
     z = R[1,2]
 
     # x derivative
-    D[1,1][1,1] = dmorse(x, d, α)
-    D[1,1][2,2] = drepel(x, λ₂, x₀)
+    D11 = dmorse(x, d, α)
+    D22 = drepel(x, λ₂, x₀)
+    D[1,1] = Hermitian(SMatrix{2,2}(D11, 0, 0, D22))
     # D[1,1].data[1,2] = 0
 
     # z derivative
-    D[1,2][1,1] = drepel(z, λ₁, z₀)
-    D[1,2][2,2] = dmorse(z, d, α)
-    D[1,2].data[1,2] = c * drepel(z, γ, -z12)
+    D11 = drepel(z, λ₁, z₀)
+    D22 = dmorse(z, d, α)
+    D12 = c * drepel(z, γ, -z12)
+    D[1,2] = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
 
     return D
 end

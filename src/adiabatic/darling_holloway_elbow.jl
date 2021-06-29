@@ -38,7 +38,7 @@ Adiabatic elbow potential from Darling and Holloway: [Faraday Discuss., 1993, 96
     w₃::Float64 = 2.0
 end
 
-function potential!(model::DarlingHollowayElbow, V, R)
+function potential(model::DarlingHollowayElbow, R)
 
     @unpack d, α, p, zoff, V₀, βx, xb, βz, zb, V₁, βr, zr, Cvw, zvw, kc, m₁, m₂, m₃, w₁, w₂, w₃ = model
 
@@ -66,7 +66,11 @@ function potential!(model::DarlingHollowayElbow, V, R)
 
     x = R[1,1]
     Z = R[1,2]
-    V[1] = total_V(x, Z)
 
-    return V
+    return total_V(x, Z)
+end
+
+function derivative!(model::DarlingHollowayElbow, D, R)
+    D .= gradient(x -> potential(model, x), R)[1]
+    return D
 end

@@ -21,5 +21,5 @@ julia> derivative(model, R)
 """
 struct Free <: AdiabaticModel end
 
-potential!(::Free, out::AbstractVector, ::AbstractMatrix) = out .= 0
+potential(::Free, ::AbstractMatrix) = 0
 derivative!(::Free, out::AbstractMatrix, ::AbstractMatrix) = out .= 0

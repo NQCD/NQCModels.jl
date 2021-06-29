@@ -6,9 +6,7 @@ struct RandomFriction{M} <: AdiabaticFrictionModel
     model::M
 end
 
-function potential!(model::RandomFriction, V::AbstractVector, R::AbstractMatrix)
-    potential!(model.model, V, R)
-end
+potential(model::RandomFriction, R::AbstractMatrix) = potential(model.model, R)
 
 function derivative!(model::RandomFriction, D::AbstractMatrix, R::AbstractMatrix)
     derivative!(model.model, D, R)
