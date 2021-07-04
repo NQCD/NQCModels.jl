@@ -13,8 +13,7 @@ julia> @variables x, m, ω, r₀;
 julia> model = Harmonic(m=m, ω=ω, r₀=r₀);
 
 julia> potential(model, hcat(x))
-1-element Vector{Num}:
- 0.5m*(ω^2)*((x - r₀)^2)
+0.5m*(ω^2)*((x - r₀)^2)
 
 julia> derivative(model, hcat(x))
 1×1 Matrix{Num}:

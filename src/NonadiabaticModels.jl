@@ -40,11 +40,11 @@ Base.broadcastable(model::Model) = Ref(model)
 """
     AdiabaticModel <: Model
 
-`AdiabaticModel`s should implement both `potential!` and `derivative!`.
+`AdiabaticModel`s should implement both `potential` and `derivative!`.
 
-`potential!` must fill an `AbstractVector` with `length = 1`.
+`potential(model, R)` must return the value of the potential evaluated at `R`
 
-`derivative!` must fill an `AbstractMatrix` with `size = (DoFs, atoms)`.
+`derivative!(model, D::AbstractMatrix, R)` must fill `D` with `size = (DoFs, atoms)`.
 
 # Example
 
@@ -53,7 +53,7 @@ struct MyModel{P} <: NonadiabaticModels.AdiabaticModel
     param::P
 end
 
-NonadiabaticModels.potential!(model::MyModel, V, R) = V .= model.param*sum(R.^2)
+NonadiabaticModels.potential(model::MyModel, R) = model.param*sum(R.^2)
 NonadiabaticModels.derivative!(model::MyModel, D, R) = D .= model.param*2R
 
 model = MyModel(10)
@@ -62,8 +62,7 @@ NonadiabaticModels.potential(model, [1 2; 3 4])
 
 # output
 
-1-element Vector{Int64}:
- 300
+300
 
 ```
 """
@@ -72,33 +71,36 @@ abstract type AdiabaticModel <: Model end
 """
     DiabaticModel <: Model
 
-`DiabaticModel`s should implement both `potential!` and `derivative!`.
+`DiabaticModel`s should implement both `potential` and `derivative!`.
 Further, each model must have the field `n_states`, which determines the size of the matrix.
 
-`potential!` must fill a `Hermitian` with `size = (n_states, n_states)`.
+`potential` must return a `Hermitian{SMatrix}` with `size = (n_states, n_states)`.
 
 `derivative!` must fill an `AbstractMatrix{<:Hermitian}` with `size = (DoFs, atoms)`,
 and each entry must have `size = (n_states, n_states)`.
 
 # Example
 
+
 ```jldoctest
+using StaticArrays
+using LinearAlgebra
+
 struct MyModel <: NonadiabaticModels.DiabaticModel
     n_states::Int # Mandatory `n_states` field.
     MyModel() = new(2)
 end
 
-function NonadiabaticModels.potential!(::MyModel, V, R) 
-    V[1,1] = sum(R)
-    V[2,2] = -sum(R)
-    V.data[1,2] = 1 # Must use `.data` to set off-diagonal elements of `Hermitian`.
-    return V
+function NonadiabaticModels.potential(::MyModel, R) 
+    V11 = sum(R)
+    V22 = -sum(R)
+    V12 = 1
+    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
 function NonadiabaticModels.derivative!(::MyModel, D, R)
     for d in eachindex(D)
-        D[d][1,1] = 1
-        D[d][2,2] = -1
+        D[d] = Hermitian(SMatrix{2,2}(1, 0, 0, 1))
     end
     return D
 end
@@ -108,7 +110,7 @@ NonadiabaticModels.potential(model, [1 2; 3 4])
 
 # output
 
-2×2 LinearAlgebra.Hermitian{Int64, Matrix{Int64}}:
+2×2 Hermitian{Int64, SMatrix{2, 2, Int64, 4}}:
  10    1
   1  -10
 ```
