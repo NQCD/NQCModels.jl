@@ -2,6 +2,12 @@ import .JuLIP
 
 export JuLIPModel
 
+"""
+    JuLIPModel(atoms::Atoms{N,T}, cell::PeriodicCell,
+               calculator::JuLIP.AbstractCalculator) where {N,T}
+
+Model for interfacing with JuLIP potentials.
+"""
 mutable struct JuLIPModel{T,A<:NamedTuple,B<:NamedTuple} <: AdiabaticModel
     atoms::JuLIP.Atoms{T}
     tmp::A
