@@ -63,7 +63,6 @@ end
     @test test_model(GatesHollowayElbow(), 1, 2)
     # test_model(Subotnik_A(), 1, 1) broken
     @test test_model(MiaoSubotnik(), 1, 1)
-    @test test_model(Tully_NOAu111(), 1, 1)
 end
 
 @testset "FrictionModels" begin
