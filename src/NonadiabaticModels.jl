@@ -5,6 +5,7 @@ These can exist as analytic models or as interfaces to other codes.
 """
 module NonadiabaticModels
 
+using Base: Integer
 using Unitful, UnitfulAtomic
 using LinearAlgebra
 using Parameters
@@ -252,6 +253,7 @@ include("diabatic/1D_scattering.jl")
 include("diabatic/ouyang_models.jl")
 include("diabatic/gates_holloway_elbow.jl")
 include("diabatic/subotnik.jl")
+include("diabatic/tully_NOAu111.jl")
 
 function __init__()
     @require JuLIP="945c410c-986d-556a-acb1-167a618e0462" @eval include("adiabatic/julip.jl")
