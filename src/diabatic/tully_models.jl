@@ -70,3 +70,38 @@ function derivative!(model::TullyModelTwo, derivative::AbstractMatrix{<:Hermitia
     derivative[1] = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
     return derivative
 end
+
+"""
+    TullyModelThree(a=0.0006, b=0.1, c=0.9)
+
+Tully's extended coupling with reflection model from [J. Chem. Phys. 93, 1061 (1990)](https://doi.org/10.1063/1.459170).
+"""
+@with_kw struct TullyModelThree{A,B,C} <: DiabaticModel
+    n_states::UInt8 = 2
+    a::A = 0.0006
+    b::B = 0.1
+    c::C = 0.9
+end
+
+function potential(model::TullyModelThree, R::AbstractMatrix)
+    @unpack a, b, c = model
+    q = R[1]
+    V11 = a
+    V22 = -a
+    if q > 0
+        V12 = b * (2 - exp(-c*q))
+    else
+        V12 = b * exp(c*q)
+    end
+    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+end
+
+function derivative!(model::TullyModelThree, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+    @unpack a, b, c, d  = model
+    q = R[1]
+    D11 = 0
+    D22 = 0
+    D12 = b * c * exp(c*q)
+    derivative[1] = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+    return derivative
+end
