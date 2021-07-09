@@ -1,5 +1,6 @@
 export TullyModelOne
 export TullyModelTwo
+export TullyModelThree
 
 """
     TullyModelOne(a=0.01, b=1.6, c=0.005, d=1.0)
