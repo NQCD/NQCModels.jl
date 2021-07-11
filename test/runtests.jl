@@ -56,6 +56,7 @@ end
     @test test_model(DoubleWell(), 1, 1)
     @test test_model(TullyModelOne(), 1, 1)
     @test test_model(TullyModelTwo(), 1, 1)
+    @test test_model(TullyModelThree(), 1, 1)
     @test test_model(Scattering1D(), 1, 1)
     @test test_model(ThreeStateMorse(), 1, 1)
     @test test_model(DebyeSpinBoson(10), 1, 10)
