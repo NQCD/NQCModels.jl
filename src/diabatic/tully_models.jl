@@ -102,7 +102,11 @@ function derivative!(model::TullyModelThree, derivative::AbstractMatrix{<:Hermit
     q = R[1]
     D11 = 0
     D22 = 0
-    D12 = b * c * exp(c*q)
+    if q > 0
+        D12 = b * c * exp(-c*q)
+    else
+        D12 = b * c * exp(c*q)
+    end
     derivative[1] = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
     return derivative
 end
