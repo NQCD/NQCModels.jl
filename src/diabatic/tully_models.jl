@@ -98,7 +98,7 @@ function potential(model::TullyModelThree, R::AbstractMatrix)
 end
 
 function derivative!(model::TullyModelThree, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
-    @unpack a, b, c, d  = model
+    @unpack a, b, c = model
     q = R[1]
     D11 = 0
     D22 = 0
