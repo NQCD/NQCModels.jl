@@ -5,50 +5,52 @@ export DebyeBosonBath
     DebyeSpinBoson(Nᵇ; ϵ=0, Δ=1, η=0.09, ωᶜ=2.5)
 
 Spin boson model with `Nᵇ` bosons with Debye spectral density:
-`J(ω) = η * ω * ωᶜ / (ω^2 + ωᶜ^2)`
+`J(ω) = 2λ * ω * ωᶜ / (ω^2 + ωᶜ^2)`
+
+Default parameters are chosen to match model 13 from the reference.
 
 # References
-[P. Huo and D. F. Coker, Mol. Phys. 110, 1035 (2012)](https://doi.org/10.1080/00268976.2012.684896)
-[Rekik et al. J. Chem. Phys. 138, 144106 (2013)](http://aip.scitation.org/doi/10.1063/1.4799272)
+[Xin He, Jian Liu, J. Chem. Phys. 151, 024105 (2019)](http://aip.scitation.org/doi/10.1063/1.5108736)
 """
 struct DebyeSpinBoson{E,D,N,W} <: DiabaticModel
     n_states::Int
     ϵ::E
     Δ::D
-    η::N
+    λ::N
     ωᶜ::W
     ωⱼ::Vector{W}
     cⱼ::Vector{W}
 end
 
-function DebyeSpinBoson(Nᵇ; ϵ=0, Δ=1, η=0.09, ωᶜ=2.5)
+function DebyeSpinBoson(Nᵇ; ϵ=0, Δ=1, λ=0.25, ωᶜ=0.25)
 
-    ωᵐ = 10ωᶜ
-    c(ω) = sqrt(2η * atan(ωᵐ / ωᶜ) / (π * Nᵇ)) * ω
-    ω(j) = tan(j * atan(ωᵐ / ωᶜ) / Nᵇ) * ωᶜ
+    ω(j) = ωᶜ * tan(π/2 * (1 - j/(Nᵇ+1)))
+    c(ωⱼ) = sqrt(2λ/(Nᵇ+1)) * ωⱼ
 
     ωⱼ = ω.(1:Nᵇ)
     cⱼ = c.(ωⱼ)
 
-    DebyeSpinBoson(2, ϵ, Δ, η, ωᶜ, ωⱼ, cⱼ)
+    DebyeSpinBoson(2, ϵ, Δ, λ, ωᶜ, ωⱼ, cⱼ)
 end
 
 function potential(model::DebyeSpinBoson, R::AbstractMatrix)
     r = @view R[1,:]
 
+    @unpack ωⱼ, cⱼ, ϵ, Δ = model
+
     v0 = 0.0
-    for i in eachindex(model.ωⱼ)
-        v0 += model.ωⱼ[i]^2 * r[i]^2 / 2
+    for i in eachindex(ωⱼ)
+        v0 += ωⱼ[i]^2 * r[i]^2 / 2
     end
-    V11 = v0 + model.ϵ
-    V22 = v0 - model.ϵ
+    V11 = v0 + ϵ
+    V22 = v0 - ϵ
 
     for i in eachindex(model.cⱼ)
-        V11 += model.cⱼ[i] * r[i]
-        V22 -= model.cⱼ[i] * r[i]
+        V11 += cⱼ[i] * r[i]
+        V22 -= cⱼ[i] * r[i]
     end
 
-    V12 = model.Δ
+    V12 = Δ
 
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
@@ -56,9 +58,11 @@ end
 function derivative!(model::DebyeSpinBoson, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
     r = @view R[1,:]
 
+    @unpack ωⱼ, cⱼ = model
+
     for i in eachindex(r)
-        d0 = model.ωⱼ[i]^2 * r[i]
-        D[1,i] = Hermitian(SMatrix{2,2}(d0 + model.cⱼ[i], 0, 0, d0 - model.cⱼ[i]))
+        d0 = ωⱼ[i]^2 * r[i]
+        D[1,i] = Hermitian(SMatrix{2,2}(d0 + cⱼ[i], 0, 0, d0 - cⱼ[i]))
     end
 
     return D
@@ -76,10 +80,9 @@ struct DebyeBosonBath{WC,WJ} <: AdiabaticModel
     ωⱼ::Vector{WJ}
 end
 
-function DebyeBosonBath(Nᵇ; ωᶜ=2.5)
+function DebyeBosonBath(Nᵇ; ωᶜ=0.25)
 
-    ωᵐ = 10ωᶜ
-    ω(j) = tan(j * atan(ωᵐ / ωᶜ) / Nᵇ) * ωᶜ
+    ω(j) = ωᶜ * tan(π/2 * (1 - j/(Nᵇ+1)))
     ωⱼ = ω.(1:Nᵇ)
 
     DebyeBosonBath(2, ωᶜ, ωⱼ)
