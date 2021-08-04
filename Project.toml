@@ -16,6 +16,17 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 UnitfulRecipes = "42071c24-d89e-48dd-8a24-8a12d9b8861f"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
+[compat]
+NonadiabaticDynamicsBase = "0.1"
+Parameters = "0.12"
+RecipesBase = "1"
+Requires = "1"
+StaticArrays = "1"
+Unitful = "1"
+UnitfulAtomic = "1"
+UnitfulRecipes = "1"
+Zygote = "0.6"
+
 [extras]
 FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
 JuLIP = "945c410c-986d-556a-acb1-167a618e0462"
