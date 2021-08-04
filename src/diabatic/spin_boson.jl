@@ -22,13 +22,22 @@ struct DebyeSpinBoson{E,D,N,W} <: DiabaticModel
     cⱼ::Vector{W}
 end
 
-function DebyeSpinBoson(Nᵇ; ϵ=0, Δ=1, λ=0.25, ωᶜ=0.25)
+function DebyeSpinBoson(Nᵇ; ϵ=0, Δ=1, λ=0.25, ωᶜ=0.25, discretisation=1)
 
-    ω(j) = ωᶜ * tan(π/2 * (1 - j/(Nᵇ+1)))
-    c(ωⱼ) = sqrt(2λ/(Nᵇ+1)) * ωⱼ
+    ω1(j) = ωᶜ * tan(π/2 * (1 - j/(Nᵇ+1)))
+    c1(ωⱼ) = sqrt(2λ/(Nᵇ+1)) * ωⱼ
 
-    ωⱼ = ω.(1:Nᵇ)
-    cⱼ = c.(ωⱼ)
+    ωᵐ = 10ωᶜ
+    ω2(j) = tan(j * atan(ωᵐ / ωᶜ) / Nᵇ) * ωᶜ
+    c2(ω) = sqrt(4λ * atan(ωᵐ / ωᶜ) / (π * Nᵇ)) * ω
+
+    if discretisation == 1
+        ωⱼ = ω1.(1:Nᵇ)
+        cⱼ = c1.(ωⱼ)
+    else
+        ωⱼ = ω2.(1:Nᵇ)
+        cⱼ = c2.(ωⱼ)
+    end
 
     DebyeSpinBoson(2, ϵ, Δ, λ, ωᶜ, ωⱼ, cⱼ)
 end
@@ -80,10 +89,17 @@ struct DebyeBosonBath{WC,WJ} <: AdiabaticModel
     ωⱼ::Vector{WJ}
 end
 
-function DebyeBosonBath(Nᵇ; ωᶜ=0.25)
+function DebyeBosonBath(Nᵇ; ωᶜ=0.25, discretisation=1)
 
-    ω(j) = ωᶜ * tan(π/2 * (1 - j/(Nᵇ+1)))
-    ωⱼ = ω.(1:Nᵇ)
+    ω1(j) = ωᶜ * tan(π/2 * (1 - j/(Nᵇ+1)))
+    ωᵐ = 10ωᶜ
+    ω2(j) = tan(j * atan(ωᵐ / ωᶜ) / Nᵇ) * ωᶜ
+
+    if discretisation == 1
+        ωⱼ = ω1.(1:Nᵇ)
+    else
+        ωⱼ = ω2.(1:Nᵇ)
+    end
 
     DebyeBosonBath(2, ωᶜ, ωⱼ)
 end
