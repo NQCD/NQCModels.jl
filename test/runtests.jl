@@ -78,3 +78,16 @@ end
     model = JuLIPModel(atoms, PeriodicCell(vecs), JuLIP.StillingerWeber())
     @test_broken test_model(model, 3, 2)
 end
+
+@testset "ASE" begin
+    using PyCall
+
+    build = pyimport("ase.build")
+    emt = pyimport("ase.calculators.emt")
+
+    atom = build.bulk("Ni", "fcc") * 2
+    atom.calc = emt.EMT()
+
+    model = AdiabaticASEModel(atom)
+    @test test_model(model, 3, 8)
+end
