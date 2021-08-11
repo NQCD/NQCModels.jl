@@ -16,14 +16,14 @@ jobs:
 
       - name: Install Libxc
         run: |
-          wget http://www.tddft.org/programs/libxc/down.php?file=5.1.5/libxc-5.1.5.tar.gz -O libxc.tar.gz
-          tar -xf libxc.tar.gz
-          cd libxc
-          ./configure --enable-shared --disable-fortran --prefix=$HOME/libxc
+          wget http://www.tddft.org/programs/libxc/down.php?file=5.1.5/libxc-5.1.5.tar.gz -O libxc-5.1.5.tar.gz
+          tar -xf libxc-5.1.5.tar.gz
+          cd libxc-5.1.5
+          ./configure --enable-shared --disable-fortran --prefix=$HOME/libxc-5.1.5
           make
           make install
 
-          XC=~/libxc
+          XC=~/libxc-5.1.5
           export C_INCLUDE_PATH=$XC/include
           export LIBRARY_PATH=$XC/lib
           export LD_LIBRARY_PATH=$XC/lib
