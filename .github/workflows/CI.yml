@@ -23,10 +23,14 @@ jobs:
           make
           make install
 
-          export C_INCLUDE_PATH=./include
-          export LIBRARY_PATH=./lib
-          export LD_LIBRARY_PATH=./lib
-          cd ..
+          XC=$HOME/libxc-5.1.5
+          export C_INCLUDE_PATH=$XC/include
+          export LIBRARY_PATH=$XC/lib
+          export LD_LIBRARY_PATH=$XC/lib
+          echo C_INCLUDE_PATH
+          cd $XC/include
+          ls
+          cd
 
       - name: Install ase and gpaw
         run: |
