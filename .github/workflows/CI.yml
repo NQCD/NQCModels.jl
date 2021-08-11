@@ -15,7 +15,9 @@ jobs:
       - uses: julia-actions/setup-julia@latest
 
       - name: Install ase and gpaw
-        run: pip install ase gpaw
+        run: |
+          python3 -m pip install ase 
+          python3 -m pip install gpaw
 
       - name: Add NQCDRegistry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))'
