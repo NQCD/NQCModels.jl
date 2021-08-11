@@ -14,6 +14,20 @@ jobs:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
 
+      - name: Install Libxc
+        run: |
+          wget http://www.tddft.org/programs/libxc/down.php?file=5.1.5/libxc-5.1.5.tar.gz -O libxc.tar.gz
+          tar -xf libxc.tar.gz
+          cd libxc
+          ./configure --enable-shared --disable-fortran --prefix=$HOME/libxc
+          make
+          make install
+
+          XC=~/libxc
+          export C_INCLUDE_PATH=$XC/include
+          export LIBRARY_PATH=$XC/lib
+          export LD_LIBRARY_PATH=$XC/lib
+
       - name: Install ase and gpaw
         run: |
           python3 -m pip install ase 
