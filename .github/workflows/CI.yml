@@ -28,10 +28,16 @@ jobs:
           export LIBRARY_PATH=$XC/lib
           export LD_LIBRARY_PATH=$XC/lib
 
-      - name: Install ase and gpaw
+      - name: Install ase
         run: |
           python3 -m pip install ase 
-          python3 -m pip install gpaw
+
+      - name: Install GPAW
+        run: |
+          git clone -b 21.6.0 https://gitlab.com/gpaw/gpaw.git
+          cd gpaw
+          python3 setup.py build
+          python3 setup.py install
 
       - name: Add NQCDRegistry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))'
