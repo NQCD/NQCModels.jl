@@ -34,6 +34,7 @@ jobs:
           echo "library_dirs += ['$HOME/libxc-4.3.4/lib']" >> $HOME/.gpaw/siteconfig.py
           echo "include_dirs += ['$HOME/libxc-4.3.4/include']" >> $HOME/.gpaw/siteconfig.py
           python3 -m pip install gpaw
+          export LD_LIBRARY_PATH = $HOME/libxc-4.3.4/lib:$LD_LIBRARY_PATH
 
       - name: Add NQCDRegistry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))'
