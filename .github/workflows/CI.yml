@@ -19,7 +19,7 @@ jobs:
           wget http://www.tddft.org/programs/libxc/down.php?file=4.3.4/libxc-4.3.4.tar.gz -O libxc-4.3.4.tar.gz
           tar -xf libxc-4.3.4.tar.gz
           cd libxc-4.3.4
-          ./configure --prefix=$HOME/libxc-4.3.4
+          ./configure --enable-shared --disable-fortran --prefix=$HOME/libxc-4.3.4
           make
           make install
 
@@ -29,13 +29,11 @@ jobs:
 
       - name: Install GPAW
         run: |
-          git clone -b 21.6.0 https://gitlab.com/gpaw/gpaw.git
-          cd gpaw
-          touch siteconfig.py
-          echo "library_dirs += ['~/libxc-4.3.4/lib']" >> siteconfig.py
-          echo "include_dirs += ['~/libxc-4.3.4/include']" >> siteconfig.py
-          python3 setup.py build
-          python3 setup.py install
+          mkdir $HOME/.gpaw
+          touch $HOME/.gpaw/siteconfig.py
+          echo "library_dirs += ['$HOME/libxc-4.3.4/lib']" >> $HOME/.gpaw/siteconfig.py
+          echo "include_dirs += ['$HOME/libxc-4.3.4/include']" >> $HOME/.gpaw/siteconfig.py
+          python3 -m pip install gpaw
 
       - name: Add NQCDRegistry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))'
