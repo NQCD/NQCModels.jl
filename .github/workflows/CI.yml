@@ -23,11 +23,6 @@ jobs:
           make
           make install
 
-          XC=$HOME/libxc-4.3.4
-          export C_INCLUDE_PATH=$XC/include
-          export LIBRARY_PATH=$XC/lib
-          export LD_LIBRARY_PATH=$XC/lib
-
       - name: Install ase
         run: |
           python3 -m pip install ase 
@@ -36,6 +31,9 @@ jobs:
         run: |
           git clone -b 21.6.0 https://gitlab.com/gpaw/gpaw.git
           cd gpaw
+          touch siteconfig.py
+          echo "library_dirs += ['~/libxc-4.3.4/lib']" >> siteconfig.py
+          echo "include_dirs += ['~/libxc-4.3.4/include']" >> siteconfig.py
           python3 setup.py build
           python3 setup.py install
 
