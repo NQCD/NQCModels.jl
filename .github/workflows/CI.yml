@@ -16,10 +16,10 @@ jobs:
 
       - name: Install Libxc
         run: |
-          wget http://www.tddft.org/programs/libxc/down.php?file=4.3.4/libxc-4.3.4.tar.gz -O libxc-4.3.4.tar.gz
-          tar -xf libxc-4.3.4.tar.gz
-          cd libxc-4.3.4
-          ./configure --enable-shared --disable-fortran --prefix=$HOME/libxc-4.3.4
+          wget http://www.tddft.org/programs/libxc/down.php?file=5.1.5/libxc-5.1.5.tar.gz -O libxc-5.1.5.tar.gz
+          tar -xf libxc-5.1.5.tar.gz
+          cd libxc-5.1.5
+          ./configure --enable-shared --disable-fortran --prefix=$HOME/libxc-5.1.5
           make
           make install
 
@@ -31,10 +31,9 @@ jobs:
         run: |
           mkdir $HOME/.gpaw
           touch $HOME/.gpaw/siteconfig.py
-          echo "library_dirs += ['$HOME/libxc-4.3.4/lib']" >> $HOME/.gpaw/siteconfig.py
-          echo "include_dirs += ['$HOME/libxc-4.3.4/include']" >> $HOME/.gpaw/siteconfig.py
+          echo "library_dirs += ['$HOME/libxc-5.1.5/lib']" >> $HOME/.gpaw/siteconfig.py
+          echo "include_dirs += ['$HOME/libxc-5.1.5/include']" >> $HOME/.gpaw/siteconfig.py
           python3 -m pip install gpaw
-          export LD_LIBRARY_PATH=$HOME/libxc-4.3.4/lib:$LD_LIBRARY_PATH
 
       - name: Add NQCDRegistry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))'
