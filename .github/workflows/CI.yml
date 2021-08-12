@@ -16,21 +16,17 @@ jobs:
 
       - name: Install Libxc
         run: |
-          wget http://www.tddft.org/programs/libxc/down.php?file=5.1.5/libxc-5.1.5.tar.gz -O libxc-5.1.5.tar.gz
-          tar -xf libxc-5.1.5.tar.gz
-          cd libxc-5.1.5
-          ./configure --enable-shared --disable-fortran --prefix=$HOME/libxc-5.1.5
+          wget http://www.tddft.org/programs/libxc/down.php?file=4.3.4/libxc-4.3.4.tar.gz -O libxc-4.3.4.tar.gz
+          tar -xf libxc-4.3.4.tar.gz
+          cd libxc-4.3.4
+          ./configure --prefix=$HOME/libxc-4.3.4
           make
           make install
 
-          XC=$HOME/libxc-5.1.5
+          XC=$HOME/libxc-4.3.4
           export C_INCLUDE_PATH=$XC/include
           export LIBRARY_PATH=$XC/lib
           export LD_LIBRARY_PATH=$XC/lib
-          echo C_INCLUDE_PATH
-          cd $XC/include
-          ls
-          cd
 
       - name: Install ase and gpaw
         run: |
