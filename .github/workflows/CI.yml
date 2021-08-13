@@ -22,7 +22,7 @@ jobs:
           ./configure --enable-shared --disable-fortran --prefix=$HOME/libxc-5.1.5
           make
           make install
-          export LD_LIBRARY_PATH=$HOME/libxc-5.1.5/lib
+          ln -s $HOME/libxc-5.1.5/lib /usr/lib
 
       - name: Install ase
         run: |
@@ -35,7 +35,7 @@ jobs:
           echo "library_dirs += ['$HOME/libxc-5.1.5/lib']" >> $HOME/.gpaw/siteconfig.py
           echo "include_dirs += ['$HOME/libxc-5.1.5/include']" >> $HOME/.gpaw/siteconfig.py
           python3 -m pip install gpaw
-          cd $HOME/libxc-5.1.5/lib
+          cd /
           ls
 
       - name: Add NQCDRegistry
