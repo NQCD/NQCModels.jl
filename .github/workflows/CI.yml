@@ -57,4 +57,4 @@ jobs:
       - uses: julia-actions/julia-runtest@v1
         env:
           LD_LIBRARY_PATH: $HOME/libxc-5.1.5/lib
-
+          PYTHONPATH: $HOME/libxc-5.1.5/lib
