@@ -19,7 +19,7 @@ jobs:
         env:
           cache-name: libxc-4.3.4
         with:
-          path: $HOME/libxc-4.3.4/install
+          path: $HOME/libxc-4.3.4
           key: ${{ runner.os }}-${{ env.cache-name }}
 
       - name: Install Libxc
@@ -28,11 +28,10 @@ jobs:
           wget http://www.tddft.org/programs/libxc/down.php?file=4.3.4/libxc-4.3.4.tar.gz -O libxc-4.3.4.tar.gz
           tar -xf libxc-4.3.4.tar.gz
           cd libxc-4.3.4
-          mkdir install
-          ./configure --enable-shared --disable-fortran --prefix=$HOME/libxc-4.3.4/install
+          ./configure --enable-shared --disable-fortran --prefix=$HOME/libxc-4.3.4
           make
           make install
-          ln -s $HOME/libxc-4.3.4/install/lib /usr/local/lib/libxc-4.3.4
+          cd ..
 
       - name: Install ase
         run: |
@@ -42,8 +41,8 @@ jobs:
         run: |
           mkdir $HOME/.gpaw
           touch $HOME/.gpaw/siteconfig.py
-          echo "library_dirs += ['$HOME/libxc-4.3.4/install/lib']" >> $HOME/.gpaw/siteconfig.py
-          echo "include_dirs += ['$HOME/libxc-4.3.4/install/include']" >> $HOME/.gpaw/siteconfig.py
+          echo "library_dirs += ['$HOME/libxc-4.3.4/lib']" >> $HOME/.gpaw/siteconfig.py
+          echo "include_dirs += ['$HOME/libxc-4.3.4/include']" >> $HOME/.gpaw/siteconfig.py
           python3 -m pip install gpaw
 
       - name: Add NQCDRegistry
@@ -54,7 +53,7 @@ jobs:
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
         env:
-          LD_LIBRARY_PATH: $HOME/libxc-4.3.4/install/lib
-          PYTHONPATH: $HOME/libxc-4.3.4/install/lib:$PYTHONPATH
-          PATH: $HOME/libxc-4.3.4/install/lib:$PATH
+          LD_LIBRARY_PATH: $HOME/libxc-4.3.4/lib
+          PYTHONPATH: $HOME/libxc-4.3.4/lib:$PYTHONPATH
+          PATH: $HOME/libxc-4.3.4/lib:$PATH
 
