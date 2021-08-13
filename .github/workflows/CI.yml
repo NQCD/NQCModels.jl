@@ -22,7 +22,7 @@ jobs:
           ./configure --enable-shared --disable-fortran --prefix=$HOME/libxc-5.1.5
           make
           make install
-          ln -s $HOME/libxc-5.1.5/lib /usr/lib
+          ln -s $HOME/libxc-5.1.5/lib /usr/local/lib/libxc
 
       - name: Install ase
         run: |
