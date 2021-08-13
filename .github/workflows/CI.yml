@@ -14,24 +14,25 @@ jobs:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
 
-      - name: Cache libxc
+      - uses: actions/cache@v2
         id: cache
-        uses: actions/cache@v2
         env:
-          cache-name: cache-libxc
+          cache-name: libxc-4.3.4
         with:
-          path: $HOME/libxc-5.1.5
+          path: $HOME/libxc-4.3.4/install
           key: ${{ runner.os }}-${{ env.cache-name }}
 
       - name: Install Libxc
-        if: ${{ !steps.cache.outputs.cache-hit }}
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          wget http://www.tddft.org/programs/libxc/down.php?file=5.1.5/libxc-5.1.5.tar.gz -O libxc-5.1.5.tar.gz
-          tar -xf libxc-5.1.5.tar.gz
-          cd libxc-5.1.5
-          ./configure --enable-shared --disable-fortran --prefix=$HOME/libxc-5.1.5
+          wget http://www.tddft.org/programs/libxc/down.php?file=4.3.4/libxc-4.3.4.tar.gz -O libxc-4.3.4.tar.gz
+          tar -xf libxc-4.3.4.tar.gz
+          cd libxc-4.3.4
+          mkdir install
+          ./configure --enable-shared --disable-fortran --prefix=$HOME/libxc-4.3.4/install
           make
           make install
+          ln -s $HOME/libxc-4.3.4/install/lib /usr/local/lib/libxc-4.3.4
 
       - name: Install ase
         run: |
@@ -41,8 +42,8 @@ jobs:
         run: |
           mkdir $HOME/.gpaw
           touch $HOME/.gpaw/siteconfig.py
-          echo "library_dirs += ['$HOME/libxc-5.1.5/lib']" >> $HOME/.gpaw/siteconfig.py
-          echo "include_dirs += ['$HOME/libxc-5.1.5/include']" >> $HOME/.gpaw/siteconfig.py
+          echo "library_dirs += ['$HOME/libxc-4.3.4/install/lib']" >> $HOME/.gpaw/siteconfig.py
+          echo "include_dirs += ['$HOME/libxc-4.3.4/install/include']" >> $HOME/.gpaw/siteconfig.py
           python3 -m pip install gpaw
 
       - name: Add NQCDRegistry
@@ -51,7 +52,9 @@ jobs:
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
 
       - uses: julia-actions/julia-buildpkg@v1
-      # - uses: julia-actions/julia-runtest@v1
-      #   env:
-      #     LD_LIBRARY_PATH: $HOME/libxc-5.1.5/lib
-      #     PYTHONPATH: $HOME/libxc-5.1.5/lib:$PYTHONPATH
+      - uses: julia-actions/julia-runtest@v1
+        env:
+          LD_LIBRARY_PATH: $HOME/libxc-4.3.4/install/lib
+          PYTHONPATH: $HOME/libxc-4.3.4/install/lib:$PYTHONPATH
+          PATH: $HOME/libxc-4.3.4/install/lib:$PATH
+
