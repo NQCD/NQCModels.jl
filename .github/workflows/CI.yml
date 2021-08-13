@@ -24,7 +24,7 @@ jobs:
           key: ${{ runner.os }}-${{ env.cache-name }}
 
       - name: Install Libxc
-        if: ! steps.cache.outputs.cache-hit
+        if: ${{ !steps.cache.outputs.cache-hit }}
         run: |
           wget http://www.tddft.org/programs/libxc/down.php?file=5.1.5/libxc-5.1.5.tar.gz -O libxc-5.1.5.tar.gz
           tar -xf libxc-5.1.5.tar.gz
