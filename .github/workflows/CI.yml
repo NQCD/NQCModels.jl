@@ -46,7 +46,7 @@ jobs:
           git clone -b 21.6.0 https://gitlab.com/gpaw/gpaw.git
           cd gpaw
           python3 setup.py build
-          python3 setup.py install
+          python3 setup.py install --user
 
       - name: Add NQCDRegistry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))'
