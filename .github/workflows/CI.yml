@@ -15,32 +15,15 @@ jobs:
       - uses: julia-actions/setup-julia@latest
 
       - name: Install Libxc
-        # if: steps.cache.outputs.cache-hit != 'true'
-        # run: |
-        #   wget http://www.tddft.org/programs/libxc/down.php?file=4.3.4/libxc-4.3.4.tar.gz -O libxc-4.3.4.tar.gz
-        #   tar -xf libxc-4.3.4.tar.gz
-        #   cd libxc-4.3.4
-        #   ./configure --enable-shared --disable-fortran --prefix=$HOME/libxc-4.3.4
-        #   make
-        #   make install
-        #   cd ..
         run: |
           wget https://github.com/JuliaBinaryWrappers/Libxc_jll.jl/releases/download/Libxc-v5.1.5%2B2/Libxc.v5.1.5.x86_64-linux-gnu-libgfortran5.tar.gz -O libxc-5.1.5.tar.gz
           mkdir $HOME/libxc-5.1.5
           tar -xf libxc-5.1.5.tar.gz -C $HOME/libxc-5.1.5
 
-      - name: Install ase
-        run: |
-          python3 -m pip install ase 
-
       - name: Install GPAW
         run: |
           mkdir $HOME/.gpaw
           touch $HOME/.gpaw/siteconfig.py
-          # echo "library_dirs += ['$HOME/libxc-5.1.5/lib']" >> $HOME/.gpaw/siteconfig.py
-          # echo "include_dirs += ['$HOME/libxc-5.1.5/include']" >> $HOME/.gpaw/siteconfig.py
-          # echo "extra_compile_args =['-fPIC']" >> $HOME/.gpaw/siteconfig.py
-
           echo "noblas = True;
           libraries = ['xc'];
           xc = Path.home() / 'libxc-5.1.5';
@@ -51,11 +34,7 @@ jobs:
           " > $HOME/.gpaw/siteconfig.py
 
           python3 -m pip install gpaw
-
-          # git clone -b 21.6.0 https://gitlab.com/gpaw/gpaw.git
-          # cd gpaw
-          # python3 setup.py build
-          # python3 setup.py install --user
+          gpaw install-data --register gpaw-datasets
 
       - name: Add NQCDRegistry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))'
