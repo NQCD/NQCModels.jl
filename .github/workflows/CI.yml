@@ -35,18 +35,27 @@ jobs:
 
       - name: Install GPAW
         run: |
-          # python3 -m pip install gpaw
-
           mkdir $HOME/.gpaw
           touch $HOME/.gpaw/siteconfig.py
-          echo "library_dirs += ['$HOME/libxc-5.1.5/lib']" >> $HOME/.gpaw/siteconfig.py
-          echo "include_dirs += ['$HOME/libxc-5.1.5/include']" >> $HOME/.gpaw/siteconfig.py
-          echo "extra_compile_args =['-fPIC']" >> $HOME/.gpaw/siteconfig.py
+          # echo "library_dirs += ['$HOME/libxc-5.1.5/lib']" >> $HOME/.gpaw/siteconfig.py
+          # echo "include_dirs += ['$HOME/libxc-5.1.5/include']" >> $HOME/.gpaw/siteconfig.py
+          # echo "extra_compile_args =['-fPIC']" >> $HOME/.gpaw/siteconfig.py
 
-          git clone -b 21.6.0 https://gitlab.com/gpaw/gpaw.git
-          cd gpaw
-          python3 setup.py build
-          python3 setup.py install --user
+          echo "noblas = True;
+          libraries = ['xc'];
+          xc = Path.home() / 'libxc-5.1.5';
+          lib = xc / 'lib';
+          library_dirs = [lib];
+          include_dirs = [xc / 'include'];
+          extra_link_args = [f'-Wl,-rpath={lib}']
+          " > $HOME/.gpaw/siteconfig.py
+
+          python3 -m pip install gpaw
+
+          # git clone -b 21.6.0 https://gitlab.com/gpaw/gpaw.git
+          # cd gpaw
+          # python3 setup.py build
+          # python3 setup.py install --user
 
       - name: Add NQCDRegistry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))'
