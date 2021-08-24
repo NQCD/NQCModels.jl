@@ -14,6 +14,28 @@ jobs:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
 
+      - name: Install Libxc
+        run: |
+          wget https://github.com/JuliaBinaryWrappers/Libxc_jll.jl/releases/download/Libxc-v5.1.5%2B2/Libxc.v5.1.5.x86_64-linux-gnu-libgfortran5.tar.gz -O libxc-5.1.5.tar.gz
+          mkdir $HOME/libxc-5.1.5
+          tar -xf libxc-5.1.5.tar.gz -C $HOME/libxc-5.1.5
+
+      - name: Install GPAW
+        run: |
+          mkdir $HOME/.gpaw
+          touch $HOME/.gpaw/siteconfig.py
+          echo "noblas = True;
+          libraries = ['xc'];
+          xc = Path.home() / 'libxc-5.1.5';
+          lib = xc / 'lib';
+          library_dirs = [lib];
+          include_dirs = [xc / 'include'];
+          extra_link_args = [f'-Wl,-rpath={lib}']
+          " > $HOME/.gpaw/siteconfig.py
+
+          python3 -m pip install gpaw
+          gpaw install-data --register gpaw-datasets
+
       - name: Add NQCDRegistry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))'
       - name: Add JuliaMolSim registry
@@ -21,3 +43,6 @@ jobs:
 
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
+        env:
+          LD_LIBRARY_PATH: $HOME/libxc-5.1.5/lib
+          PYTHONPATH: $HOME/libxc-5.1.5/lib

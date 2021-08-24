@@ -22,10 +22,11 @@ function finite_difference_gradient(model::DiabaticModel, R)
     grad
 end
 
-function test_model(model::Model, DoFs, atoms)
+function test_model(model::Model, DoFs, atoms; rtol=1e-5)
     R = rand(DoFs, atoms)
     D = derivative(model, R)
-    return finite_difference_gradient(model, R) ≈ D
+    finite_diff = finite_difference_gradient(model, R)
+    return isapprox(finite_diff, D, rtol=rtol)
 end
 
 function test_model(model::AdiabaticFrictionModel, DoFs, atoms)
@@ -77,4 +78,28 @@ end
     vecs = [10 0 0; 0 10 0; 0 0 10]
     model = JuLIPModel(atoms, PeriodicCell(vecs), JuLIP.StillingerWeber())
     @test_broken test_model(model, 3, 2)
+end
+
+@testset "ASE" begin
+    using PyCall
+
+    ase = pyimport("ase")
+
+    h2 = ase.Atoms("H2", [(0, 0, 0), (0, 0, 0.74)])
+    h2.center(vacuum=2.5)
+
+    @testset "EMT" begin
+        emt = pyimport("ase.calculators.emt")
+        h2.calc = emt.EMT()
+        model = AdiabaticASEModel(h2)
+        @test test_model(model, 3, 2)
+    end
+
+    @testset "GPAW" begin
+        gpaw = pyimport("gpaw")
+        h2.calc = gpaw.GPAW(xc="PBE", mode=gpaw.PW(300), txt="h2.txt")
+        model = AdiabaticASEModel(h2)
+        @test test_model(model, 3, 2, rtol=1e-3)
+    end
+
 end
