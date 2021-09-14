@@ -3,6 +3,64 @@ export BosonBath
 export DebyeSpectralDensity
 export OhmicSpectralDensity
 
+abstract type SpectralDensity end
+
+"Discretize a given spectral density for N oscillators. Returns frequencies and couplings."
+function discretize(J::SpectralDensity, N::Integer)
+    ωⱼ = ω.(Ref(J), N, 1:N)
+    cⱼ = c.(Ref(J), N, ωⱼ)
+    return ωⱼ, cⱼ
+end
+
+"""
+    OhmicSpectralDensity{T} <: SpectralDensity
+
+Ohmic density as detailed in:
+[Xin He, Jian Liu, J. Chem. Phys. 151, 024105 (2019)](http://aip.scitation.org/doi/10.1063/1.5108736)
+"""
+struct OhmicSpectralDensity{T} <: SpectralDensity
+    ωᶜ::T
+    α::T
+end
+
+(J::OhmicSpectralDensity)(ω) = π/2 * J.α * ω * exp(-ω / J.ωᶜ)
+ω(J::OhmicSpectralDensity, N, j) = -J.ωᶜ * log(1 - j/(N+1))
+c(J::OhmicSpectralDensity, N, ωⱼ) = sqrt(J.α * J.ωᶜ/(N+1)) * ωⱼ
+
+"""
+    DebyeSpectralDensity{T} <: SpectralDensity
+
+Debye density as detailed in:
+[Xin He, Jian Liu, J. Chem. Phys. 151, 024105 (2019)](http://aip.scitation.org/doi/10.1063/1.5108736)
+"""
+struct DebyeSpectralDensity{T} <: SpectralDensity
+    ωᶜ::T
+    λ::T
+end
+
+(J::DebyeSpectralDensity)(ω) = 2J.λ * J.ωᶜ * ω / (J.ωᶜ^2 + ω^2)
+ω(J::DebyeSpectralDensity, N, j) = J.ωᶜ * tan(π/2 * (1 - j/(N+1)))
+c(J::DebyeSpectralDensity, N, ωⱼ) = sqrt(2J.λ/(N+1)) * ωⱼ
+
+"""
+    AltDebyeSpectralDensity{T} <: SpectralDensity
+
+Standard Debye spectral density but uses an alternative discretization scheme that requires
+a cutoff parameter `ωᵐ`.
+
+# References
+[Najeh Rekik, Chang-Yu Hsieh, Holly Freedman, Gabriel Hanna, J. Chem. Phys. 138, 144106 (2013)](https://doi.org/10.1063/1.4799272)
+"""
+struct AltDebyeSpectralDensity{T} <: SpectralDensity
+    ωᶜ::T
+    λ::T
+    ωᵐ::T
+end
+
+(J::AltDebyeSpectralDensity)(ω) = 2J.λ * J.ωᶜ * ω / (J.ωᶜ^2 + ω^2)
+ω(J::AltDebyeSpectralDensity, N, j) = tan(j * atan(J.ωᵐ / J.ωᶜ) / N) * J.ωᶜ
+c(J::AltDebyeSpectralDensity, N, ωⱼ) = sqrt(4J.λ * atan(J.ωᵐ / J.ωᶜ) / (π * N)) * ωⱼ
+
 """
     SpinBoson(density::SpectralDensity, N::Integer, ϵ, Δ)
 
@@ -89,39 +147,3 @@ function derivative!(model::BosonBath, D::AbstractMatrix, R::AbstractMatrix)
         D[1,i] = model.ωⱼ[i]^2 * r[i]
     end
 end
-
-abstract type SpectralDensity end
-
-function discretize(J::SpectralDensity, N::Integer)
-    ωⱼ = ω.(Ref(J), N, 1:N)
-    cⱼ = c.(Ref(J), N, ωⱼ)
-    return ωⱼ, cⱼ
-end
-
-struct OhmicSpectralDensity{T} <: SpectralDensity
-    ωᶜ::T
-    α::T
-end
-
-(J::OhmicSpectralDensity)(ω) = π/2 * J.α * ω * exp(-ω / J.ωᶜ)
-ω(J::OhmicSpectralDensity, N, j) = -J.ωᶜ * log(1 - j/(N+1))
-c(J::OhmicSpectralDensity, N, ωⱼ) = sqrt(J.α * J.ωᶜ/(N+1)) * ωⱼ
-
-struct DebyeSpectralDensity{T} <: SpectralDensity
-    ωᶜ::T
-    λ::T
-end
-
-(J::DebyeSpectralDensity)(ω) = 2λ * ωᶜ * ω / (ωᶜ^2 + ω^2)
-ω(J::DebyeSpectralDensity, N, j) = J.ωᶜ * tan(π/2 * (1 - j/(N+1)))
-c(J::DebyeSpectralDensity, N, ωⱼ) = sqrt(2J.λ/(N+1)) * ωⱼ
-
-struct AltDebyeSpectralDensity{T} <: SpectralDensity
-    ωᶜ::T
-    λ::T
-    ωᵐ::T
-end
-
-(J::AltDebyeSpectralDensity)(ω) = 2λ * ωᶜ * ω / (ωᶜ^2 + ω^2)
-ω(J::AltDebyeSpectralDensity, N, j) = tan(j * atan(J.ωᵐ / J.ωᶜ) / N) * J.ωᶜ
-c(J::AltDebyeSpectralDensity, N, ωⱼ) = sqrt(4J.λ * atan(J.ωᵐ / J.ωᶜ) / (π * N)) * ωⱼ
