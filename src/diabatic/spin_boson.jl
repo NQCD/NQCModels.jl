@@ -1,48 +1,90 @@
-export DebyeSpinBoson
-export DebyeBosonBath
+export SpinBoson
+export BosonBath
+export DebyeSpectralDensity
+export OhmicSpectralDensity
+
+abstract type SpectralDensity end
+
+"Discretize a given spectral density for N oscillators. Returns frequencies and couplings."
+function discretize(J::SpectralDensity, N::Integer)
+    ωⱼ = ω.(Ref(J), N, 1:N)
+    cⱼ = c.(Ref(J), N, ωⱼ)
+    return ωⱼ, cⱼ
+end
 
 """
-    DebyeSpinBoson(Nᵇ; ϵ=0, Δ=1, η=0.09, ωᶜ=2.5)
+    OhmicSpectralDensity{T} <: SpectralDensity
 
-Spin boson model with `Nᵇ` bosons with Debye spectral density:
-`J(ω) = 2λ * ω * ωᶜ / (ω^2 + ωᶜ^2)`
+Ohmic density as detailed in:
+[Xin He, Jian Liu, J. Chem. Phys. 151, 024105 (2019)](http://aip.scitation.org/doi/10.1063/1.5108736)
+"""
+struct OhmicSpectralDensity{T} <: SpectralDensity
+    ωᶜ::T
+    α::T
+end
 
-Default parameters are chosen to match model 13 from the reference.
+(J::OhmicSpectralDensity)(ω) = π/2 * J.α * ω * exp(-ω / J.ωᶜ)
+ω(J::OhmicSpectralDensity, N, j) = -J.ωᶜ * log(1 - j/(N+1))
+c(J::OhmicSpectralDensity, N, ωⱼ) = sqrt(J.α * J.ωᶜ/(N+1)) * ωⱼ
+
+"""
+    DebyeSpectralDensity{T} <: SpectralDensity
+
+Debye density as detailed in:
+[Xin He, Jian Liu, J. Chem. Phys. 151, 024105 (2019)](http://aip.scitation.org/doi/10.1063/1.5108736)
+"""
+struct DebyeSpectralDensity{T} <: SpectralDensity
+    ωᶜ::T
+    λ::T
+end
+
+(J::DebyeSpectralDensity)(ω) = 2J.λ * J.ωᶜ * ω / (J.ωᶜ^2 + ω^2)
+ω(J::DebyeSpectralDensity, N, j) = J.ωᶜ * tan(π/2 * (1 - j/(N+1)))
+c(J::DebyeSpectralDensity, N, ωⱼ) = sqrt(2J.λ/(N+1)) * ωⱼ
+
+"""
+    AltDebyeSpectralDensity{T} <: SpectralDensity
+
+Standard Debye spectral density but uses an alternative discretization scheme that requires
+a cutoff parameter `ωᵐ`.
+
+# References
+[Najeh Rekik, Chang-Yu Hsieh, Holly Freedman, Gabriel Hanna, J. Chem. Phys. 138, 144106 (2013)](https://doi.org/10.1063/1.4799272)
+"""
+struct AltDebyeSpectralDensity{T} <: SpectralDensity
+    ωᶜ::T
+    λ::T
+    ωᵐ::T
+end
+
+(J::AltDebyeSpectralDensity)(ω) = 2J.λ * J.ωᶜ * ω / (J.ωᶜ^2 + ω^2)
+ω(J::AltDebyeSpectralDensity, N, j) = tan(j * atan(J.ωᵐ / J.ωᶜ) / N) * J.ωᶜ
+c(J::AltDebyeSpectralDensity, N, ωⱼ) = sqrt(4J.λ * atan(J.ωᵐ / J.ωᶜ) / (π * N)) * ωⱼ
+
+"""
+    SpinBoson(density::SpectralDensity, N::Integer, ϵ, Δ)
+
+Spin boson model with `N` bosons with given spectral density.
 
 # References
 [Xin He, Jian Liu, J. Chem. Phys. 151, 024105 (2019)](http://aip.scitation.org/doi/10.1063/1.5108736)
 """
-struct DebyeSpinBoson{E,D,N,W} <: DiabaticModel
+struct SpinBoson{T} <: DiabaticModel
     n_states::Int
-    ϵ::E
-    Δ::D
-    λ::N
-    ωᶜ::W
-    ωⱼ::Vector{W}
-    cⱼ::Vector{W}
+    ϵ::T
+    Δ::T
+    ωⱼ::Vector{T}
+    cⱼ::Vector{T}
 end
 
-function DebyeSpinBoson(Nᵇ; ϵ=0, Δ=1, λ=0.25, ωᶜ=0.25, discretisation=1)
+nstates(::SpinBoson) = 2
 
-    ω1(j) = ωᶜ * tan(π/2 * (1 - j/(Nᵇ+1)))
-    c1(ωⱼ) = sqrt(2λ/(Nᵇ+1)) * ωⱼ
-
-    ωᵐ = 10ωᶜ
-    ω2(j) = tan(j * atan(ωᵐ / ωᶜ) / Nᵇ) * ωᶜ
-    c2(ω) = sqrt(4λ * atan(ωᵐ / ωᶜ) / (π * Nᵇ)) * ω
-
-    if discretisation == 1
-        ωⱼ = ω1.(1:Nᵇ)
-        cⱼ = c1.(ωⱼ)
-    else
-        ωⱼ = ω2.(1:Nᵇ)
-        cⱼ = c2.(ωⱼ)
-    end
-
-    DebyeSpinBoson(2, ϵ, Δ, λ, ωᶜ, ωⱼ, cⱼ)
+function SpinBoson(density::SpectralDensity, N::Integer, ϵ, Δ)
+    ωⱼ, cⱼ = discretize(density, N)
+    SpinBoson(2, ϵ, Δ, ωⱼ, cⱼ)
 end
 
-function potential(model::DebyeSpinBoson, R::AbstractMatrix)
+function potential(model::SpinBoson, R::AbstractMatrix)
     r = @view R[1,:]
 
     @unpack ωⱼ, cⱼ, ϵ, Δ = model
@@ -64,7 +106,7 @@ function potential(model::DebyeSpinBoson, R::AbstractMatrix)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function derivative!(model::DebyeSpinBoson, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+function derivative!(model::SpinBoson, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
     r = @view R[1,:]
 
     @unpack ωⱼ, cⱼ = model
@@ -78,38 +120,27 @@ function derivative!(model::DebyeSpinBoson, D::AbstractMatrix{<:Hermitian}, R::A
 end
 
 """
-    DebyeBosonBath(Nᵇ; ωᶜ=2.5)
+    BosonBath(density::SpectralDensity, N::Integer)
 
-Bosonic bath with Debye spectral density.
+Bosonic bath with given spectral density.
+
 Useful for sampling the bath uncoupled from the spin for spin-boson dynamics.
 """
-struct DebyeBosonBath{WC,WJ} <: AdiabaticModel
-    n_states::Int
-    ωᶜ::WC
-    ωⱼ::Vector{WJ}
+struct BosonBath{T} <: AdiabaticModel
+    ωⱼ::Vector{T}
 end
 
-function DebyeBosonBath(Nᵇ; ωᶜ=0.25, discretisation=1)
-
-    ω1(j) = ωᶜ * tan(π/2 * (1 - j/(Nᵇ+1)))
-    ωᵐ = 10ωᶜ
-    ω2(j) = tan(j * atan(ωᵐ / ωᶜ) / Nᵇ) * ωᶜ
-
-    if discretisation == 1
-        ωⱼ = ω1.(1:Nᵇ)
-    else
-        ωⱼ = ω2.(1:Nᵇ)
-    end
-
-    DebyeBosonBath(2, ωᶜ, ωⱼ)
+function BosonBath(density::SpectralDensity, N::Integer)
+    ωⱼ, _ = discretize(density, N)
+    BosonBath(ωⱼ)
 end
 
-function potential(model::DebyeBosonBath, R::AbstractMatrix)
+function potential(model::BosonBath, R::AbstractMatrix)
     r = @view R[1,:]
     return sum(model.ωⱼ .^2 .* r .^2 ./ 2)
 end
 
-function derivative!(model::DebyeBosonBath, D::AbstractMatrix, R::AbstractMatrix)
+function derivative!(model::BosonBath, D::AbstractMatrix, R::AbstractMatrix)
     r = @view R[1,:]
 
     for i in eachindex(r)
