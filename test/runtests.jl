@@ -49,7 +49,7 @@ end
 @testset "AdiabaticModels" begin
     @test test_model(Harmonic(), 3, 10)
     @test test_model(Free(), 3, 10)
-    @test test_model(DebyeBosonBath(10), 1, 10)
+    @test test_model(BosonBath(OhmicSpectralDensity(2.5, 0.1), 10), 1, 10)
     @test test_model(DarlingHollowayElbow(), 1, 2)
 end
 
@@ -60,7 +60,7 @@ end
     @test test_model(TullyModelThree(), 1, 1)
     @test test_model(Scattering1D(), 1, 1)
     @test test_model(ThreeStateMorse(), 1, 1)
-    @test test_model(DebyeSpinBoson(10), 1, 10)
+    @test test_model(SpinBoson(DebyeSpectralDensity(0.25, 0.5), 10, 1.0, 1.0), 1, 10)
     @test test_model(OuyangModelOne(), 1, 1)
     @test test_model(GatesHollowayElbow(), 1, 2)
     # test_model(Subotnik_A(), 1, 1) broken
