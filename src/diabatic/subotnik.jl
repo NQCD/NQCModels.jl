@@ -1,7 +1,6 @@
 
 
 # export Subotnik_A
-export MiaoSubotnik
 
 # @doc raw"""
 #     Model A according to Coffmann & Subotnik, Phys.Chem.Chem.Phys., 20, 9847 (2018).
@@ -82,7 +81,7 @@ export MiaoSubotnik
     The model is defined such that h=(V_0-V_1)d^t d + V_1, however, the diabatic surfaces
     that they show in the paper in Fig. 1 correspond to the picture implemented below
 """
-@with_kw struct MiaoSubotnik <: LargeDiabaticModel
+Parameters.@with_kw struct MiaoSubotnik <: LargeDiabaticModel
     m::Float64 = 2000
     ω::Float64 = 2e-4
     g::Float64 = 20.6097
@@ -95,8 +94,11 @@ export MiaoSubotnik
     n_states::Int = M+1
 end
 
-function potential!(model::MiaoSubotnik, V::Hermitian, R::AbstractMatrix)
-    @unpack m, ω, g, ΔG, Γ, ρ, increment, n_states = model
+NonadiabaticModels.ndofs(::MiaoSubotnik) = 1
+NonadiabaticModels.nstates(model::MiaoSubotnik) = model.n_states
+
+function NonadiabaticModels.potential!(model::MiaoSubotnik, V::Hermitian, R::AbstractMatrix)
+    Parameters.@unpack m, ω, g, ΔG, Γ, ρ, increment, n_states = model
 
     U0(x) = (m*ω^2*x^2)/2
     U1(x) = (m*ω^2*(x-g)^2)/2 + ΔG
@@ -114,8 +116,8 @@ function potential!(model::MiaoSubotnik, V::Hermitian, R::AbstractMatrix)
     return V
 end
 
-function derivative!(model::MiaoSubotnik, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
-    @unpack m, ω, g, n_states = model
+function NonadiabaticModels.derivative!(model::MiaoSubotnik, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+    Parameters.@unpack m, ω, g, n_states = model
 
     dU0(x) = m*ω^2*x
     dU1(x) = m*ω^2*(x-g)

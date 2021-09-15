@@ -1,6 +1,4 @@
 
-export GatesHollowayElbow
-
 """
     GatesHollowayElbow()
 
@@ -10,9 +8,7 @@ Simple two state elbow potential from Gates and Holloway:
 Has two diabatic states each comprised of the sum of a Morse and a repulsive potential.
 The coupling between them is an exponential function of `z` (distance from the surface).
 """
-@with_kw struct GatesHollowayElbow <: DiabaticModel
-    n_states::UInt8 = 2
-
+Parameters.@with_kw struct GatesHollowayElbow <: DiabaticModel
     λ₁::Float64 = 3.5
     λ₂::Float64 = 3.5
     z₀::Float64 = 1.4
@@ -24,8 +20,11 @@ The coupling between them is an exponential function of `z` (distance from the s
     γ::Float64 = 1.0
 end
 
-function potential(model::GatesHollowayElbow, R)
-    @unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
+NonadiabaticModels.nstates(::GatesHollowayElbow) = 2
+NonadiabaticModels.ndofs(::GatesHollowayElbow) = 1
+
+function NonadiabaticModels.potential(model::GatesHollowayElbow, R)
+    Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
 
     repel(x, λ, d) = exp(-λ*(x+d))
     morse(x, d, α) = d*(1-exp(-α*x))^2
@@ -40,8 +39,8 @@ function potential(model::GatesHollowayElbow, R)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function derivative!(model::GatesHollowayElbow, D, R)
-    @unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
+function NonadiabaticModels.derivative!(model::GatesHollowayElbow, D, R)
+    Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
 
     drepel(x, λ, d) = -λ*exp(-λ*(x+d))
     dmorse(x, d, α) = 2α*d*(1-exp(-α*x))*exp(-α*x)

@@ -1,6 +1,3 @@
-export Scattering1D
-using Unitful
-using UnitfulAtomic
 
 struct Scattering1D <: DiabaticFrictionModel
     n_states::UInt
@@ -13,11 +10,14 @@ struct Scattering1D <: DiabaticFrictionModel
     σ::Float64
 end
 
+NonadiabaticModels.ndofs(::Scattering1D) = 1
+NonadiabaticModels.nstates(model::Scattering1D) = model.n_states
+
 function Scattering1D(;N=10, a=1, D=1, α=0, β=1, B=1, σ=0.6u"eV")
     Scattering1D(N+1, N, a, D, α, β, B, austrip(σ))
 end
 
-function potential!(model::Scattering1D, V::Hermitian, R::AbstractMatrix)
+function NonadiabaticModels.potential!(model::Scattering1D, V::Hermitian, R::AbstractMatrix)
     V0(R) = model.D*(exp(-2model.a*R) - 2*exp(-model.a*R))
     γ(R) = model.B*exp(-model.a*R^2)
 
@@ -34,7 +34,7 @@ function potential!(model::Scattering1D, V::Hermitian, R::AbstractMatrix)
     V[end,end] = model.α + V₀
 end
 
-function derivative!(model::Scattering1D, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+function NonadiabaticModels.derivative!(model::Scattering1D, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
     D0(R) = 2*model.D*model.a*(exp(-model.a*R)-exp(-2*model.a*R))
     dγ(R) = -2model.a*R*model.B*exp(-model.a*R^2)
 

@@ -1,5 +1,9 @@
 import .JuLIP
 
+using NonadiabaticDynamicsBase: PeriodicCell, Atoms
+using NonadiabaticDynamicsBase: au_to_u, au_to_ang, eV_to_au, eV_per_ang_to_au
+
+
 export JuLIPModel
 
 """
@@ -31,7 +35,9 @@ mutable struct JuLIPModel{T,A<:NamedTuple,B<:NamedTuple} <: AdiabaticModel
     end
 end
 
-function potential(model::JuLIPModel, R::AbstractMatrix)
+NonadiabaticModels.ndofs(::JuLIPModel) = 3
+
+function NonadiabaticModels.potential(model::JuLIPModel, R::AbstractMatrix)
     JuLIP.set_positions!(model.atoms, au_to_ang.(R))
     try
         V = JuLIP.energy!(model.tmp, model.atoms.calc, model.atoms)
@@ -47,7 +53,7 @@ function potential(model::JuLIPModel, R::AbstractMatrix)
     end
 end
 
-function derivative!(model::JuLIPModel, D::AbstractMatrix, R::AbstractMatrix)
+function NonadiabaticModels.derivative!(model::JuLIPModel, D::AbstractMatrix, R::AbstractMatrix)
     JuLIP.set_positions!(model.atoms, au_to_ang.(R))
     try
         JuLIP.forces!(JuLIP.vecs(D), model.tmp_d, model.atoms.calc, model.atoms)

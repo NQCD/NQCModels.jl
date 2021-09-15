@@ -1,4 +1,3 @@
-export DoubleWell
 
 """
     DoubleWell(mass=1, ω=1, γ=1, Δ=1)
@@ -6,15 +5,17 @@ export DoubleWell
 Two state double well, also called the one-dimensional spin-boson model.
 See: [J. Chem. Phys. 150, 244102 (2019)](https://doi.org/10.1063/1.5096276)
 """
-@with_kw struct DoubleWell{M,W,Y,D} <: DiabaticModel
-    n_states::Int = 2
+Parameters.@with_kw struct DoubleWell{M,W,Y,D} <: DiabaticModel
     mass::M = 1
     ω::W = 1
     γ::Y = 1
     Δ::D = 1
 end
 
-function potential(model::DoubleWell, R::AbstractMatrix{T}) where {T}
+NonadiabaticModels.ndofs(::DoubleWell) = 1
+NonadiabaticModels.nstates(::DoubleWell) = 2
+
+function NonadiabaticModels.potential(model::DoubleWell, R::AbstractMatrix{T}) where {T}
 
     V0(R) = 0.5 * model.mass * model.ω^2 * R^2
 
@@ -27,7 +28,7 @@ function potential(model::DoubleWell, R::AbstractMatrix{T}) where {T}
     return Hermitian(SMatrix{2,2,T}(V11, V12, V12, V22))
 end
 
-function derivative!(model::DoubleWell, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix{T}) where {T}
+function NonadiabaticModels.derivative!(model::DoubleWell, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix{T}) where {T}
 
     D0(R) = model.mass * model.ω^2 * R
 

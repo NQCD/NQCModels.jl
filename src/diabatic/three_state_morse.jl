@@ -1,6 +1,4 @@
 
-export ThreeStateMorse
-
 """
     ThreeStateMorse()
 
@@ -9,9 +7,7 @@ Three state morse potential referred to as Model IA here:
 
 Models IB and IC retain the same functional form and need only a change of parameters.
 """
-@with_kw struct ThreeStateMorse <: DiabaticModel
-    n_states::UInt8 = 3
-
+Parameters.@with_kw struct ThreeStateMorse <: DiabaticModel
     d1::Float64 = 0.02
     d2::Float64 = 0.02
     d3::Float64 = 0.003
@@ -41,7 +37,10 @@ Models IB and IC retain the same functional form and need only a change of param
     r23::Float64 = 0.0
 end
 
-function potential(model::ThreeStateMorse, R::AbstractMatrix)
+NonadiabaticModels.ndofs(::ThreeStateMorse) = 1
+NonadiabaticModels.nstates(::ThreeStateMorse) = 3
+
+function NonadiabaticModels.potential(model::ThreeStateMorse, R::AbstractMatrix)
     V_ii(x, d, α, r, c) = d * (1 - exp(-α*(x-r)))^2 + c
     V_ij(x, a, α, r) = a * exp(-α*(x-r)^2)
 
@@ -56,7 +55,7 @@ function potential(model::ThreeStateMorse, R::AbstractMatrix)
     return Hermitian(SMatrix{3,3}(V11, V12, V13, V12, V22, V23, V13, V23, V33))
 end
 
-function derivative!(model::ThreeStateMorse, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+function NonadiabaticModels.derivative!(model::ThreeStateMorse, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
 
     function D_ii(x, d, α, r)
         ex = exp(-α*(x-r))

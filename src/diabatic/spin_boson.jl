@@ -1,7 +1,4 @@
-export SpinBoson
-export BosonBath
-export DebyeSpectralDensity
-export OhmicSpectralDensity
+using ..AdiabaticModels: AdiabaticModels
 
 abstract type SpectralDensity end
 
@@ -70,24 +67,24 @@ Spin boson model with `N` bosons with given spectral density.
 [Xin He, Jian Liu, J. Chem. Phys. 151, 024105 (2019)](http://aip.scitation.org/doi/10.1063/1.5108736)
 """
 struct SpinBoson{T} <: DiabaticModel
-    n_states::Int
     ϵ::T
     Δ::T
     ωⱼ::Vector{T}
     cⱼ::Vector{T}
 end
 
-nstates(::SpinBoson) = 2
+NonadiabaticModels.nstates(::SpinBoson) = 2
+NonadiabaticModels.ndofs(model::SpinBoson) = length(model.cⱼ)
 
 function SpinBoson(density::SpectralDensity, N::Integer, ϵ, Δ)
     ωⱼ, cⱼ = discretize(density, N)
-    SpinBoson(2, ϵ, Δ, ωⱼ, cⱼ)
+    SpinBoson(ϵ, Δ, ωⱼ, cⱼ)
 end
 
-function potential(model::SpinBoson, R::AbstractMatrix)
+function NonadiabaticModels.potential(model::SpinBoson, R::AbstractMatrix)
     r = @view R[1,:]
 
-    @unpack ωⱼ, cⱼ, ϵ, Δ = model
+    Parameters.@unpack ωⱼ, cⱼ, ϵ, Δ = model
 
     v0 = 0.0
     for i in eachindex(ωⱼ)
@@ -106,10 +103,10 @@ function potential(model::SpinBoson, R::AbstractMatrix)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function derivative!(model::SpinBoson, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+function NonadiabaticModels.derivative!(model::SpinBoson, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
     r = @view R[1,:]
 
-    @unpack ωⱼ, cⱼ = model
+    Parameters.@unpack ωⱼ, cⱼ = model
 
     for i in eachindex(r)
         d0 = ωⱼ[i]^2 * r[i]
@@ -126,21 +123,23 @@ Bosonic bath with given spectral density.
 
 Useful for sampling the bath uncoupled from the spin for spin-boson dynamics.
 """
-struct BosonBath{T} <: AdiabaticModel
+struct BosonBath{T} <: AdiabaticModels.AdiabaticModel
     ωⱼ::Vector{T}
 end
+
+NonadiabaticModels.ndofs(model::BosonBath) = length(model.ωⱼ)
 
 function BosonBath(density::SpectralDensity, N::Integer)
     ωⱼ, _ = discretize(density, N)
     BosonBath(ωⱼ)
 end
 
-function potential(model::BosonBath, R::AbstractMatrix)
+function NonadiabaticModels.potential(model::BosonBath, R::AbstractMatrix)
     r = @view R[1,:]
     return sum(model.ωⱼ .^2 .* r .^2 ./ 2)
 end
 
-function derivative!(model::BosonBath, D::AbstractMatrix, R::AbstractMatrix)
+function NonadiabaticModels.derivative!(model::BosonBath, D::AbstractMatrix, R::AbstractMatrix)
     r = @view R[1,:]
 
     for i in eachindex(r)

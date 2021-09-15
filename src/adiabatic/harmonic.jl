@@ -1,4 +1,3 @@
-export Harmonic
 
 """
     Harmonic(m=1.0, ω=1.0, r₀=0.0)
@@ -20,16 +19,19 @@ julia> derivative(model, hcat(x))
  m*(x - r₀)*(ω^2)
 ```
 """
-@with_kw struct Harmonic{M,W,R} <: AdiabaticModel
+Parameters.@with_kw struct Harmonic{M,W,R} <: AdiabaticModel
     m::M = 1.0
     ω::W = 1.0
     r₀::R = 0.0
+    dofs::Int = 1
 end
 
-function potential(model::Harmonic, R::AbstractMatrix)
+NonadiabaticModels.ndofs(harmonic::Harmonic) = harmonic.dofs
+
+function NonadiabaticModels.potential(model::Harmonic, R::AbstractMatrix)
     return sum(0.5 * model.m* model.ω^2 .* (R .- model.r₀) .^2)
 end
 
-function derivative!(model::Harmonic, D::AbstractMatrix, R::AbstractMatrix) 
+function NonadiabaticModels.derivative!(model::Harmonic, D::AbstractMatrix, R::AbstractMatrix) 
     D .= model.m* model.ω^2 .* (R .- model.r₀)
 end

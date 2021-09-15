@@ -1,4 +1,3 @@
-export Free
 
 """
     Free()
@@ -6,7 +5,7 @@ export Free
 Zero external potential everywhere. Useful for modelling free particles.
 
 ```jldoctest model
-julia> model, R = Free(), rand(3, 10);
+julia> model, R = Free(3), rand(3, 10);
 
 julia> potential(model, R)
 0
@@ -18,7 +17,13 @@ julia> derivative(model, R)
  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
 ```
 """
-struct Free <: AdiabaticModel end
+struct Free <: AdiabaticModel
+    dofs::Int
+end
 
-potential(::Free, ::AbstractMatrix) = 0
-derivative!(::Free, out::AbstractMatrix, ::AbstractMatrix) = out .= 0
+Free() = Free(1)
+
+NonadiabaticModels.ndofs(free::Free) = free.dofs
+
+NonadiabaticModels.potential(::Free, ::AbstractMatrix) = 0
+NonadiabaticModels.derivative!(::Free, out::AbstractMatrix, ::AbstractMatrix) = out .= 0

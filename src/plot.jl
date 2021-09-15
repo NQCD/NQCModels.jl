@@ -1,6 +1,16 @@
-using LinearAlgebra
-using RecipesBase
-using Unitful, UnitfulRecipes
+
+module Plot
+
+using RecipesBase: RecipesBase, @recipe, @series
+using LinearAlgebra: eigvals, diag
+
+using Unitful: @u_str
+using UnitfulRecipes: UnitfulRecipes
+using UnitfulAtomic: UnitfulAtomic
+
+using ..NonadiabaticModels: potential, derivative, nstates
+using ..AdiabaticModels: AdiabaticModel
+using ..DiabaticModels: DiabaticModel
 
 @recipe function f(x, model::AdiabaticModel)
     V = zeros(size(x))
@@ -24,8 +34,8 @@ using Unitful, UnitfulRecipes
 end
 
 @recipe function f(x, model::DiabaticModel; adiabats=true, diabats=true)
-    eigs = zeros(length(x), model.n_states)
-    diabatic = zeros(length(x), model.n_states)
+    eigs = zeros(length(x), nstates(model))
+    diabatic = zeros(length(x), nstates(model))
     for i=1:length(x)
         V = potential(model, hcat(x[i]))
         eigs[i,:] .= eigvals(V)
@@ -50,3 +60,5 @@ end
         end
     end
 end
+
+end # module
