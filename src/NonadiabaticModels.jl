@@ -7,9 +7,8 @@ module NonadiabaticModels
 
 using Reexport: @reexport
 
-export potential!, potential
-export derivative!, derivative
-
+export potential
+export derivative
 export nstates
 export ndofs
 
