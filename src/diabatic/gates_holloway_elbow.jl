@@ -23,7 +23,7 @@ end
 NonadiabaticModels.nstates(::GatesHollowayElbow) = 2
 NonadiabaticModels.ndofs(::GatesHollowayElbow) = 1
 
-function NonadiabaticModels.potential(model::GatesHollowayElbow, R)
+function NonadiabaticModels.potential(model::GatesHollowayElbow, R::AbstractMatrix)
     Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
 
     repel(x, λ, d) = exp(-λ*(x+d))
@@ -39,7 +39,7 @@ function NonadiabaticModels.potential(model::GatesHollowayElbow, R)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NonadiabaticModels.derivative!(model::GatesHollowayElbow, D, R)
+function NonadiabaticModels.derivative!(model::GatesHollowayElbow, D, R::AbstractMatrix)
     Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
 
     drepel(x, λ, d) = -λ*exp(-λ*(x+d))

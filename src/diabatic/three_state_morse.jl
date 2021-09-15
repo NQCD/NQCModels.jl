@@ -40,22 +40,22 @@ end
 NonadiabaticModels.ndofs(::ThreeStateMorse) = 1
 NonadiabaticModels.nstates(::ThreeStateMorse) = 3
 
-function NonadiabaticModels.potential(model::ThreeStateMorse, R::AbstractMatrix)
+function NonadiabaticModels.potential(model::ThreeStateMorse, R::Real)
     V_ii(x, d, α, r, c) = d * (1 - exp(-α*(x-r)))^2 + c
     V_ij(x, a, α, r) = a * exp(-α*(x-r)^2)
 
-    V11 = V_ii(R[1], model.d1, model.α1, model.r1, model.c1)
-    V22 = V_ii(R[1], model.d2, model.α2, model.r2, model.c2)
-    V33 = V_ii(R[1], model.d3, model.α3, model.r3, model.c3)
+    V11 = V_ii(R, model.d1, model.α1, model.r1, model.c1)
+    V22 = V_ii(R, model.d2, model.α2, model.r2, model.c2)
+    V33 = V_ii(R, model.d3, model.α3, model.r3, model.c3)
 
-    V12 = V_ij(R[1], model.a12, model.α12, model.r12)
-    V13 = V_ij(R[1], model.a13, model.α13, model.r13)
-    V23 = V_ij(R[1], model.a23, model.α23, model.r23)
+    V12 = V_ij(R, model.a12, model.α12, model.r12)
+    V13 = V_ij(R, model.a13, model.α13, model.r13)
+    V23 = V_ij(R, model.a23, model.α23, model.r23)
 
     return Hermitian(SMatrix{3,3}(V11, V12, V13, V12, V22, V23, V13, V23, V33))
 end
 
-function NonadiabaticModels.derivative!(model::ThreeStateMorse, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+function NonadiabaticModels.derivative(model::ThreeStateMorse, R::Real)
 
     function D_ii(x, d, α, r)
         ex = exp(-α*(x-r))
@@ -64,15 +64,14 @@ function NonadiabaticModels.derivative!(model::ThreeStateMorse, derivative::Abst
 
     D_ij(x, a, α, r) = -2 * a * α * (x-r) * exp(-α*(x-r)^2)
 
-    D11 = D_ii(R[1], model.d1, model.α1, model.r1)
-    D22 = D_ii(R[1], model.d2, model.α2, model.r2)
-    D33 = D_ii(R[1], model.d3, model.α3, model.r3)
+    D11 = D_ii(R, model.d1, model.α1, model.r1)
+    D22 = D_ii(R, model.d2, model.α2, model.r2)
+    D33 = D_ii(R, model.d3, model.α3, model.r3)
 
-    D12 = D_ij(R[1], model.a12, model.α12, model.r12)
-    D13 = D_ij(R[1], model.a13, model.α13, model.r13)
-    D23 = D_ij(R[1], model.a23, model.α23, model.r23)
+    D12 = D_ij(R, model.a12, model.α12, model.r12)
+    D13 = D_ij(R, model.a13, model.α13, model.r13)
+    D23 = D_ij(R, model.a23, model.α23, model.r23)
 
-    derivative[1] = Hermitian(SMatrix{3,3}(D11, D12, D13, D12, D22, D23, D13, D23, D33))
+    return Hermitian(SMatrix{3,3}(D11, D12, D13, D12, D22, D23, D13, D23, D33))
 
-    return derivative
 end

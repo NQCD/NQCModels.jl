@@ -22,9 +22,8 @@ end
 NonadiabaticModels.nstates(model::OuyangModelOne) = model.n_states
 NonadiabaticModels.ndofs(::OuyangModelOne) = 1
 
-function NonadiabaticModels.potential!(model::OuyangModelOne, V, R)
+function NonadiabaticModels.potential!(model::OuyangModelOne, V::Hermitian, r::Real)
     Parameters.@unpack A, B, C, D, ΔE, N = model
-    r = R[1]
 
     Vsys(x) = A*tanh(B*x)
     Vbath(x, Δ) = -Vsys(x) + Δ
@@ -38,17 +37,16 @@ function NonadiabaticModels.potential!(model::OuyangModelOne, V, R)
     return V
 end
 
-function NonadiabaticModels.derivative!(model::OuyangModelOne, derivative, R)
+function NonadiabaticModels.derivative!(model::OuyangModelOne, derivative::Hermitian, r::Real)
     Parameters.@unpack A, B, C, D, N = model
-    r = R[1]
 
     Dsys(x) = B*A*sech(B*x)^2
     Dbath(x) = -Dsys(x)
     Dsb(x) = -2D*x*C*exp(-D*x^2)
 
-    derivative[1][1,1] = Dsys(r)
-    derivative[1].data[1,2:N+1] .= Dsb(r)
-    derivative[1][diagind(N+1,N+1)[2:end]] .= Dbath(r)
+    derivative[1,1] = Dsys(r)
+    derivative.data[1,2:N+1] .= Dsb(r)
+    derivative[diagind(N+1,N+1)[2:end]] .= Dbath(r)
 
     return derivative
 end

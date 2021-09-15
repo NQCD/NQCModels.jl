@@ -74,15 +74,14 @@ struct SpinBoson{T} <: DiabaticModel
 end
 
 NonadiabaticModels.nstates(::SpinBoson) = 2
-NonadiabaticModels.ndofs(model::SpinBoson) = length(model.cⱼ)
+NonadiabaticModels.ndofs(model::SpinBoson) = 1
 
 function SpinBoson(density::SpectralDensity, N::Integer, ϵ, Δ)
     ωⱼ, cⱼ = discretize(density, N)
     SpinBoson(ϵ, Δ, ωⱼ, cⱼ)
 end
 
-function NonadiabaticModels.potential(model::SpinBoson, R::AbstractMatrix)
-    r = @view R[1,:]
+function NonadiabaticModels.potential(model::SpinBoson, r::AbstractVector)
 
     Parameters.@unpack ωⱼ, cⱼ, ϵ, Δ = model
 
@@ -103,14 +102,13 @@ function NonadiabaticModels.potential(model::SpinBoson, R::AbstractMatrix)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NonadiabaticModels.derivative!(model::SpinBoson, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
-    r = @view R[1,:]
+function NonadiabaticModels.derivative!(model::SpinBoson, D::AbstractVector{<:Hermitian}, r::AbstractVector)
 
     Parameters.@unpack ωⱼ, cⱼ = model
 
     for i in eachindex(r)
         d0 = ωⱼ[i]^2 * r[i]
-        D[1,i] = Hermitian(SMatrix{2,2}(d0 + cⱼ[i], 0, 0, d0 - cⱼ[i]))
+        D[i] = Hermitian(SMatrix{2,2}(d0 + cⱼ[i], 0, 0, d0 - cⱼ[i]))
     end
 
     return D
@@ -127,22 +125,19 @@ struct BosonBath{T} <: AdiabaticModels.AdiabaticModel
     ωⱼ::Vector{T}
 end
 
-NonadiabaticModels.ndofs(model::BosonBath) = length(model.ωⱼ)
+NonadiabaticModels.ndofs(model::BosonBath) = 1
 
 function BosonBath(density::SpectralDensity, N::Integer)
     ωⱼ, _ = discretize(density, N)
     BosonBath(ωⱼ)
 end
 
-function NonadiabaticModels.potential(model::BosonBath, R::AbstractMatrix)
-    r = @view R[1,:]
+function NonadiabaticModels.potential(model::BosonBath, r::AbstractVector)
     return sum(model.ωⱼ .^2 .* r .^2 ./ 2)
 end
 
-function NonadiabaticModels.derivative!(model::BosonBath, D::AbstractMatrix, R::AbstractMatrix)
-    r = @view R[1,:]
-
+function NonadiabaticModels.derivative!(model::BosonBath, D::AbstractVector, r::AbstractVector)
     for i in eachindex(r)
-        D[1,i] = model.ωⱼ[i]^2 * r[i]
+        D[i] = model.ωⱼ[i]^2 * r[i]
     end
 end

@@ -66,6 +66,23 @@ implement the inplace `potential!`
 """
 abstract type LargeDiabaticModel <: DiabaticModel end
 
+function NonadiabaticModels.derivative!(model::LargeDiabaticModel, D, R::AbstractMatrix)
+    if NonadiabaticModels.ndofs(model) == 1
+        if size(R, 2) == 1
+            NonadiabaticModels.derivative!(model, D[1], R[1])
+            return D
+        else
+            NonadiabaticModels.derivative!(model, view(D, 1, :), view(R, 1, :))
+            return D
+        end
+    elseif size(R, 2) == 1
+        NonadiabaticModels.derivative!(model, view(D, :, 1), view(R, :, 1))
+        return D
+    else
+        throw(MethodError(NonadiabaticModels.derivative!, (model, D, R)))
+    end
+end
+
 """
     DiabaticFrictionModel <: LargeDiabaticModel
 
@@ -96,7 +113,7 @@ function vector_template(model::LargeDiabaticModel, eltype)
     zeros(eltype, NonadiabaticModels.nstates(model))
 end
 
-function NonadiabaticModels.zero_derivative(model::DiabaticModel, R)
+function NonadiabaticModels.zero_derivative(model::DiabaticModel, R::AbstractMatrix)
     [Hermitian(matrix_template(model, eltype(R))) for _ in CartesianIndices(R)]
 end
 
@@ -107,7 +124,7 @@ Obtain the potential for the current position `R`.
 
 This is an allocating version of `potential!`.
 """
-function NonadiabaticModels.potential(model::LargeDiabaticModel, R)
+function NonadiabaticModels.potential(model::LargeDiabaticModel, R::AbstractMatrix)
     V = Hermitian(matrix_template(model, eltype(R)))
     NonadiabaticModels.potential!(model, V, R)
     return V
