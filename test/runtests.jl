@@ -36,7 +36,20 @@ function test_model(model::NonadiabaticModels.FrictionModels.AdiabaticFrictionMo
     return finite_difference_gradient(model, R) ≈ D
 end
 
-@testset "plot" begin
+@testset "Potential abstraction" begin
+    struct TestModel <: NonadiabaticModels.Model end
+
+    NonadiabaticModels.ndofs(::TestModel) = 3
+    @test_throws MethodError potential(TestModel(), rand(3,1))
+
+    NonadiabaticModels.ndofs(::TestModel) = 1
+    NonadiabaticModels.potential(::TestModel, ::Real) = 1
+    NonadiabaticModels.potential(::TestModel, ::AbstractVector) = 2
+    @test potential(TestModel(), rand(1,1)) == 1
+    @test potential(TestModel(), rand(1,2)) == 2
+end
+
+@testset "Plot" begin
     using Plots
     plot(-10:0.1:10, Harmonic())
     plot(-10:0.1:10, DoubleWell())

@@ -16,9 +16,8 @@ Parameters.@with_kw struct TullyModelOne{A,B,C,D} <: TullyModel
     d::D = 1.0
 end
 
-function NonadiabaticModels.potential(model::TullyModelOne, R::AbstractMatrix)
+function NonadiabaticModels.potential(model::TullyModelOne, q::Real)
     Parameters.@unpack a, b, c, d = model
-    q = R[1]
     if q > 0
         V11 = a * (1 - exp(-b*q))
     else
@@ -29,14 +28,12 @@ function NonadiabaticModels.potential(model::TullyModelOne, R::AbstractMatrix)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NonadiabaticModels.derivative!(model::TullyModelOne, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+function NonadiabaticModels.derivative(model::TullyModelOne, q::Real)
     Parameters.@unpack a, b, c, d = model
-    q = R[1]
     D11 = a * b * exp(-b * abs(q))
     D22 = -D11
     D12 = -2 * c * d * q * exp(-d*q^2)
-    derivative[1] = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
-    return derivative
+    return Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
 end
 
 """
@@ -52,24 +49,21 @@ Parameters.@with_kw struct TullyModelTwo{A,B,C,D,E} <: TullyModel
     e::E = 0.05
 end
 
-function NonadiabaticModels.potential(model::TullyModelTwo, R::AbstractMatrix)
+function NonadiabaticModels.potential(model::TullyModelTwo, q::Real)
     Parameters.@unpack a, b, c, d, e = model
-    q = R[1]
     V11 = 0
     V22 = -a*exp(-b*q^2) + e
     V12 = c * exp(-d*q^2)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NonadiabaticModels.derivative!(model::TullyModelTwo, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+function NonadiabaticModels.derivative(model::TullyModelTwo, q::Real)
     Parameters.@unpack a, b, c, d  = model
-    q = R[1]
     D11 = 0
     D22 = 2*a*b*q*exp(-b*q^2)
     D12 = -2*c*d*q*exp(-d*q^2)
 
-    derivative[1] = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
-    return derivative
+    Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
 end
 
 """
@@ -83,9 +77,8 @@ Parameters.@with_kw struct TullyModelThree{A,B,C} <: TullyModel
     c::C = 0.9
 end
 
-function NonadiabaticModels.potential(model::TullyModelThree, R::AbstractMatrix)
+function NonadiabaticModels.potential(model::TullyModelThree, q::Real)
     Parameters.@unpack a, b, c = model
-    q = R[1]
     V11 = a
     V22 = -a
     if q > 0
@@ -96,7 +89,7 @@ function NonadiabaticModels.potential(model::TullyModelThree, R::AbstractMatrix)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NonadiabaticModels.derivative!(model::TullyModelThree, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+function NonadiabaticModels.derivative(model::TullyModelThree, R::Real)
     Parameters.@unpack a, b, c = model
     q = R[1]
     D11 = 0
@@ -106,6 +99,5 @@ function NonadiabaticModels.derivative!(model::TullyModelThree, derivative::Abst
     else
         D12 = b * c * exp(c*q)
     end
-    derivative[1] = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
-    return derivative
+    return Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
 end

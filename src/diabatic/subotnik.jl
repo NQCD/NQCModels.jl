@@ -97,18 +97,18 @@ end
 NonadiabaticModels.ndofs(::MiaoSubotnik) = 1
 NonadiabaticModels.nstates(model::MiaoSubotnik) = model.n_states
 
-function NonadiabaticModels.potential!(model::MiaoSubotnik, V::Hermitian, R::AbstractMatrix)
+function NonadiabaticModels.potential!(model::MiaoSubotnik, V::Hermitian, R::Real)
     Parameters.@unpack m, ω, g, ΔG, Γ, ρ, increment, n_states = model
 
     U0(x) = (m*ω^2*x^2)/2
     U1(x) = (m*ω^2*(x-g)^2)/2 + ΔG
     
-    V[1,1] = U1(R[1])
+    V[1,1] = U1(R)
 
     Vₙ = sqrt(Γ/(2π*ρ))
     V.data[1,2:end] .= Vₙ
 
-    V[2,2] = -model.W + U0(R[1])
+    V[2,2] = -model.W + U0(R)
     for i=3:n_states
         V[i,i] = V[i-1,i-1] + increment
     end
@@ -116,17 +116,17 @@ function NonadiabaticModels.potential!(model::MiaoSubotnik, V::Hermitian, R::Abs
     return V
 end
 
-function NonadiabaticModels.derivative!(model::MiaoSubotnik, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+function NonadiabaticModels.derivative!(model::MiaoSubotnik, derivative::Hermitian, R::Real)
     Parameters.@unpack m, ω, g, n_states = model
 
     dU0(x) = m*ω^2*x
     dU1(x) = m*ω^2*(x-g)
     
-    derivative[1][1,1] = dU1(R[1])
-    derivative[1][2,2] = dU0(R[1])
+    derivative[1,1] = dU1(R)
+    derivative[2,2] = dU0(R)
 
     for i=3:n_states
-        derivative[1][i,i] = derivative[1][2,2]
+        derivative[i,i] = derivative[2,2]
     end
 
     return derivative

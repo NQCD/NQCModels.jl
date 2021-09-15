@@ -15,20 +15,20 @@ end
 NonadiabaticModels.ndofs(::DoubleWell) = 1
 NonadiabaticModels.nstates(::DoubleWell) = 2
 
-function NonadiabaticModels.potential(model::DoubleWell, R::AbstractMatrix{T}) where {T}
+function NonadiabaticModels.potential(model::DoubleWell, R::Real)
 
     V0(R) = 0.5 * model.mass * model.ω^2 * R^2
 
-    V₀ = V0(R[1])
-    v = sqrt(2)*model.γ*R[1] # Access only R[1] as this is a 1D model
+    V₀ = V0(R)
+    v = sqrt(2)*model.γ*R
     V11 = V₀ + v
     V22 = V₀ - v
-    V12 = model.Δ/2 # Sets both off-diagonals as V is Hermitian
+    V12 = model.Δ/2
 
-    return Hermitian(SMatrix{2,2,T}(V11, V12, V12, V22))
+    return Hermitian(SMatrix{2,2,}(V11, V12, V12, V22))
 end
 
-function NonadiabaticModels.derivative!(model::DoubleWell, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix{T}) where {T}
+function NonadiabaticModels.derivative(model::DoubleWell, R::Real)
 
     D0(R) = model.mass * model.ω^2 * R
 
@@ -36,6 +36,5 @@ function NonadiabaticModels.derivative!(model::DoubleWell, D::AbstractMatrix{<:H
     v = sqrt(2)*model.γ
     D11 = D₀ + v
     D22 = D₀ - v
-    D[1] = Hermitian(SMatrix{2,2,T}(D11, 0, 0, D22))
-    return D
+    return Hermitian(SMatrix{2,2}(D11, 0, 0, D22))
 end

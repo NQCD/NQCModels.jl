@@ -30,7 +30,19 @@ Base.broadcastable(model::Model) = Ref(model)
 
 Evaluate the potential at position `R` for the given `model`.
 """
-function potential end
+function potential(model::Model, R::AbstractMatrix)
+    if ndofs(model) == 1
+        if size(R, 2) == 1
+            return potential(model, R[1])
+        else
+            return potential(model, @view R[1,:])
+        end
+    elseif size(R, 2) == 1
+        return potential(model, @view R[:,1])
+    else
+        throw(MethodError(potential, (model, R)))
+    end
+end
 
 """
     potential!(model::Model, V, R::AbstractMatrix)
@@ -39,7 +51,20 @@ In-place version of `potential`, used only when mutable arrays are preferred.
 
 Currently used only for `LargeDiabaticModels`, see `diabatic/DiabaticModels.jl`.
 """
-function potential! end
+function potential!(model::Model, V, R::AbstractMatrix)
+    if ndofs(model) == 1
+        if size(R, 2) == 1
+            return potential!(model, V, R[1])
+        else
+            return potential!(model, V, view(R, 1, :))
+        end
+    elseif size(R, 2) == 1
+        return potential!(model, V, view(R, :, 1))
+    else
+        throw(MethodError(potential!, (model, V, R)))
+    end
+
+end
 
 """
     derivative!(model::Model, D, R::AbstractMatrix)
@@ -48,7 +73,22 @@ Fill `D` with the derivative of the electronic potential as a function of the po
 
 This must be implemented for all models.
 """
-function derivative! end
+function derivative!(model::Model, D, R::AbstractMatrix)
+    if ndofs(model) == 1
+        if size(R, 2) == 1
+            D[1] = derivative(model, R[1])
+            return D
+        else
+            derivative!(model, view(D, 1, :), view(R, 1, :))
+            return D
+        end
+    elseif size(R, 2) == 1
+        derivative!(model, view(D, :, 1), view(R, :, 1))
+        return D
+    else
+        throw(MethodError(derivative!, (model, D, R)))
+    end
+end
 
 """
     derivative(model::Model, R)
