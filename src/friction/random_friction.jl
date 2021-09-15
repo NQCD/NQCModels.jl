@@ -1,15 +1,15 @@
-using Random
-
-export RandomFriction
+using Random: randn!
 
 struct RandomFriction{M} <: AdiabaticFrictionModel
     model::M
 end
 
-potential(model::RandomFriction, R::AbstractMatrix) = potential(model.model, R)
+function NonadiabaticModels.potential(model::RandomFriction, R::AbstractMatrix)
+    NonadiabaticModels.potential(model.model, R)
+end
 
-function derivative!(model::RandomFriction, D::AbstractMatrix, R::AbstractMatrix)
-    derivative!(model.model, D, R)
+function NonadiabaticModels.derivative!(model::RandomFriction, D::AbstractMatrix, R::AbstractMatrix)
+    NonadiabaticModels.derivative!(model.model, D, R)
 end
 
 function friction!(::RandomFriction, F::AbstractMatrix, ::AbstractMatrix)
@@ -17,3 +17,5 @@ function friction!(::RandomFriction, F::AbstractMatrix, ::AbstractMatrix)
     F .= F'F
     F .= (F + F')/2
 end
+
+NonadiabaticModels.ndofs(model::RandomFriction) = NonadiabaticModels.ndofs(model.model)

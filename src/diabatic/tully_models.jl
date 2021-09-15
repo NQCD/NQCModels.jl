@@ -1,22 +1,23 @@
-export TullyModelOne
-export TullyModelTwo
-export TullyModelThree
+
+abstract type TullyModel <: DiabaticModel end
+
+NonadiabaticModels.ndofs(::TullyModel) = 1
+NonadiabaticModels.nstates(::TullyModel) = 2
 
 """
     TullyModelOne(a=0.01, b=1.6, c=0.005, d=1.0)
 
 Tully's simple avoided crossing model from [J. Chem. Phys. 93, 1061 (1990)](https://doi.org/10.1063/1.459170).
 """
-@with_kw struct TullyModelOne{A,B,C,D} <: DiabaticModel
-    n_states::UInt8 = 2
+Parameters.@with_kw struct TullyModelOne{A,B,C,D} <: TullyModel
     a::A = 0.01
     b::B = 1.6
     c::C = 0.005
     d::D = 1.0
 end
 
-function potential(model::TullyModelOne, R::AbstractMatrix)
-    @unpack a, b, c, d = model
+function NonadiabaticModels.potential(model::TullyModelOne, R::AbstractMatrix)
+    Parameters.@unpack a, b, c, d = model
     q = R[1]
     if q > 0
         V11 = a * (1 - exp(-b*q))
@@ -28,8 +29,8 @@ function potential(model::TullyModelOne, R::AbstractMatrix)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function derivative!(model::TullyModelOne, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
-    @unpack a, b, c, d = model
+function NonadiabaticModels.derivative!(model::TullyModelOne, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+    Parameters.@unpack a, b, c, d = model
     q = R[1]
     D11 = a * b * exp(-b * abs(q))
     D22 = -D11
@@ -43,8 +44,7 @@ end
 
 Tully's dual avoided crossing model from [J. Chem. Phys. 93, 1061 (1990)](https://doi.org/10.1063/1.459170).
 """
-@with_kw struct TullyModelTwo{A,B,C,D,E} <: DiabaticModel
-    n_states::UInt8 = 2
+Parameters.@with_kw struct TullyModelTwo{A,B,C,D,E} <: TullyModel
     a::A = 0.1
     b::B = 0.28
     c::C = 0.015
@@ -52,8 +52,8 @@ Tully's dual avoided crossing model from [J. Chem. Phys. 93, 1061 (1990)](https:
     e::E = 0.05
 end
 
-function potential(model::TullyModelTwo, R::AbstractMatrix)
-    @unpack a, b, c, d, e = model
+function NonadiabaticModels.potential(model::TullyModelTwo, R::AbstractMatrix)
+    Parameters.@unpack a, b, c, d, e = model
     q = R[1]
     V11 = 0
     V22 = -a*exp(-b*q^2) + e
@@ -61,8 +61,8 @@ function potential(model::TullyModelTwo, R::AbstractMatrix)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function derivative!(model::TullyModelTwo, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
-    @unpack a, b, c, d  = model
+function NonadiabaticModels.derivative!(model::TullyModelTwo, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+    Parameters.@unpack a, b, c, d  = model
     q = R[1]
     D11 = 0
     D22 = 2*a*b*q*exp(-b*q^2)
@@ -77,15 +77,14 @@ end
 
 Tully's extended coupling with reflection model from [J. Chem. Phys. 93, 1061 (1990)](https://doi.org/10.1063/1.459170).
 """
-@with_kw struct TullyModelThree{A,B,C} <: DiabaticModel
-    n_states::UInt8 = 2
+Parameters.@with_kw struct TullyModelThree{A,B,C} <: TullyModel
     a::A = 0.0006
     b::B = 0.1
     c::C = 0.9
 end
 
-function potential(model::TullyModelThree, R::AbstractMatrix)
-    @unpack a, b, c = model
+function NonadiabaticModels.potential(model::TullyModelThree, R::AbstractMatrix)
+    Parameters.@unpack a, b, c = model
     q = R[1]
     V11 = a
     V22 = -a
@@ -97,8 +96,8 @@ function potential(model::TullyModelThree, R::AbstractMatrix)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function derivative!(model::TullyModelThree, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
-    @unpack a, b, c = model
+function NonadiabaticModels.derivative!(model::TullyModelThree, derivative::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+    Parameters.@unpack a, b, c = model
     q = R[1]
     D11 = 0
     D22 = 0

@@ -1,12 +1,10 @@
 
-export DarlingHollowayElbow
-
 """
     DarlingHollowayElbow()
 
 Adiabatic elbow potential from Darling and Holloway: [Faraday Discuss., 1993, 96, 43-54](https://doi.org/10.1039/FD9939600043)
 """
-@with_kw struct DarlingHollowayElbow <: AdiabaticModel
+Parameters.@with_kw struct DarlingHollowayElbow <: AdiabaticModel
 
     # Elbow parameters
     d::Float64 = austrip(4.76u"eV")
@@ -38,9 +36,11 @@ Adiabatic elbow potential from Darling and Holloway: [Faraday Discuss., 1993, 96
     w₃::Float64 = 2.0
 end
 
-function potential(model::DarlingHollowayElbow, R)
+NonadiabaticModels.ndofs(::DarlingHollowayElbow) = 1
 
-    @unpack d, α, p, zoff, V₀, βx, xb, βz, zb, V₁, βr, zr, Cvw, zvw, kc, m₁, m₂, m₃, w₁, w₂, w₃ = model
+function NonadiabaticModels.potential(model::DarlingHollowayElbow, R)
+
+    Parameters.@unpack d, α, p, zoff, V₀, βx, xb, βz, zb, V₁, βr, zr, Cvw, zvw, kc, m₁, m₂, m₃, w₁, w₂, w₃ = model
 
     y(x,z) = (1 + 1/x^4)*(1 + 1/z^4)
     f(x,z) = (y(x,z) - 1)^(-1/4)
@@ -70,7 +70,7 @@ function potential(model::DarlingHollowayElbow, R)
     return total_V(x, Z)
 end
 
-function derivative!(model::DarlingHollowayElbow, D, R)
-    D .= gradient(x -> potential(model, x), R)[1]
+function NonadiabaticModels.derivative!(model::DarlingHollowayElbow, D, R)
+    D .= Zygote.gradient(x -> NonadiabaticModels.potential(model, x), R)[1]
     return D
 end

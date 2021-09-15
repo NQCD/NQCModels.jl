@@ -1,4 +1,4 @@
-export OuyangModelOne
+using LinearAlgebra: diagind
 
 """
     OuyangModelOne(A=0.01, B=1.6, Γ=1e-4, N=10, ΔE=1.6e-2, D=1.0)
@@ -6,7 +6,7 @@ export OuyangModelOne
 Model #1 from [Ouyang and Subotnik](http://aip.scitation.org/doi/10.1063/1.4908032).
 See also [Ouyang's thesis](https://repository.upenn.edu/edissertations/2508/).
 """
-@with_kw struct OuyangModelOne <: DiabaticFrictionModel
+Parameters.@with_kw struct OuyangModelOne <: DiabaticFrictionModel
     A::Float64 = 0.01
     B::Float64 = 1.6
     Γ::Float64 = 1e-4
@@ -16,11 +16,14 @@ See also [Ouyang's thesis](https://repository.upenn.edu/edissertations/2508/).
     C::Float64 = sqrt(Γ / 2π*ρ) / N
     D::Float64 = 1.0
 
-    n_states::UInt8 = N + 1
+    n_states::Int = N + 1
 end
 
-function potential!(model::OuyangModelOne, V, R)
-    @unpack A, B, C, D, ΔE, N = model
+NonadiabaticModels.nstates(model::OuyangModelOne) = model.n_states
+NonadiabaticModels.ndofs(::OuyangModelOne) = 1
+
+function NonadiabaticModels.potential!(model::OuyangModelOne, V, R)
+    Parameters.@unpack A, B, C, D, ΔE, N = model
     r = R[1]
 
     Vsys(x) = A*tanh(B*x)
@@ -35,8 +38,8 @@ function potential!(model::OuyangModelOne, V, R)
     return V
 end
 
-function derivative!(model::OuyangModelOne, derivative, R)
-    @unpack A, B, C, D, N = model
+function NonadiabaticModels.derivative!(model::OuyangModelOne, derivative, R)
+    Parameters.@unpack A, B, C, D, N = model
     r = R[1]
 
     Dsys(x) = B*A*sech(B*x)^2
