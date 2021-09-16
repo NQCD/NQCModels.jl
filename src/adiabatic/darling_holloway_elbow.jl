@@ -38,7 +38,7 @@ end
 
 NonadiabaticModels.ndofs(::DarlingHollowayElbow) = 1
 
-function NonadiabaticModels.potential(model::DarlingHollowayElbow, R::AbstractMatrix)
+function NonadiabaticModels.potential(model::DarlingHollowayElbow, R::AbstractVector)
 
     Parameters.@unpack d, α, p, zoff, V₀, βx, xb, βz, zb, V₁, βr, zr, Cvw, zvw, kc, m₁, m₂, m₃, w₁, w₂, w₃ = model
 
@@ -64,13 +64,13 @@ function NonadiabaticModels.potential(model::DarlingHollowayElbow, R::AbstractMa
 
     total_V(x,z) = Velbow(x,z) + Vbarrier(x,z) + Vphys(x,z)
 
-    x = R[1,1]
-    Z = R[1,2]
+    x = R[1]
+    Z = R[2]
 
     return total_V(x, Z)
 end
 
-function NonadiabaticModels.derivative!(model::DarlingHollowayElbow, D, R::AbstractMatrix)
+function NonadiabaticModels.derivative!(model::DarlingHollowayElbow, D, R::AbstractVector)
     D .= Zygote.gradient(x -> NonadiabaticModels.potential(model, x), R)[1]
     return D
 end

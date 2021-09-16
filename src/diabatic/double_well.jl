@@ -25,7 +25,7 @@ function NonadiabaticModels.potential(model::DoubleWell, R::Real)
     V22 = V₀ - v
     V12 = model.Δ/2
 
-    return Hermitian(SMatrix{2,2,}(V11, V12, V12, V22))
+    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
 function NonadiabaticModels.derivative(model::DoubleWell, R::Real)

@@ -23,14 +23,14 @@ end
 NonadiabaticModels.nstates(::GatesHollowayElbow) = 2
 NonadiabaticModels.ndofs(::GatesHollowayElbow) = 1
 
-function NonadiabaticModels.potential(model::GatesHollowayElbow, R::AbstractMatrix)
+function NonadiabaticModels.potential(model::GatesHollowayElbow, R::AbstractVector)
     Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
 
     repel(x, λ, d) = exp(-λ*(x+d))
     morse(x, d, α) = d*(1-exp(-α*x))^2
 
-    x = R[1,1]
-    z = R[1,2]
+    x = R[1]
+    z = R[2]
 
     V11 = morse(x, d, α) + repel(z, λ₁, z₀)
     V22 = morse(z, d, α) + repel(x, λ₂, x₀)
@@ -39,26 +39,25 @@ function NonadiabaticModels.potential(model::GatesHollowayElbow, R::AbstractMatr
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NonadiabaticModels.derivative!(model::GatesHollowayElbow, D, R::AbstractMatrix)
+function NonadiabaticModels.derivative!(model::GatesHollowayElbow, D, R::AbstractVector)
     Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
 
     drepel(x, λ, d) = -λ*exp(-λ*(x+d))
     dmorse(x, d, α) = 2α*d*(1-exp(-α*x))*exp(-α*x)
 
-    x = R[1,1]
-    z = R[1,2]
+    x = R[1]
+    z = R[2]
 
     # x derivative
     D11 = dmorse(x, d, α)
     D22 = drepel(x, λ₂, x₀)
-    D[1,1] = Hermitian(SMatrix{2,2}(D11, 0, 0, D22))
-    # D[1,1].data[1,2] = 0
+    D[1] = Hermitian(SMatrix{2,2}(D11, 0, 0, D22))
 
     # z derivative
     D11 = drepel(z, λ₁, z₀)
     D22 = dmorse(z, d, α)
     D12 = c * drepel(z, γ, -z12)
-    D[1,2] = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+    D[2] = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
 
     return D
 end
