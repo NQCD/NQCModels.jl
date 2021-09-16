@@ -7,7 +7,7 @@ using UnitfulAtomic: austrip
 
 using Parameters: Parameters
 using LinearAlgebra: Hermitian
-using StaticArrays: SMatrix
+using StaticArrays: SMatrix, SVector
 
 """
     DiabaticModel <: Model
