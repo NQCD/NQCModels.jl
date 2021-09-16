@@ -82,7 +82,6 @@ end
     @test test_model(SpinBoson(DebyeSpectralDensity(0.25, 0.5), 10, 1.0, 1.0), 10)
     @test test_model(OuyangModelOne(), 1)
     @test test_model(GatesHollowayElbow(), 2)
-    # test_model(Subotnik_A(), 1, 1) broken
     @test test_model(MiaoSubotnik(), 1)
 end
 
@@ -92,11 +91,12 @@ end
 end
 
 @testset "JuLIP" begin
-    import JuLIP
-    atoms = Atoms([:H, :H])
-    vecs = [10 0 0; 0 10 0; 0 0 10]
-    model = AdiabaticModels.JuLIPModel(atoms, PeriodicCell(vecs), JuLIP.StillingerWeber())
-    @test_broken test_model(model, 2)
+    using JuLIP: JuLIP
+    at = JuLIP.bulk(:Si, cubic=true)
+    deleteat!(at, 1)
+    JuLIP.set_calculator!(at, JuLIP.StillingerWeber())
+    model = AdiabaticModels.JuLIPModel(at)
+    @test test_model(model, length(at))
 end
 
 @testset "ASE" begin
