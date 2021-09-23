@@ -12,48 +12,52 @@ using StaticArrays: SMatrix, SVector
 """
     DiabaticModel <: Model
 
-`DiabaticModel`s should implement both `potential` and `derivative!`.
-Further, each model must implement `nstates` which determines the size of the matrix.
+`DiabaticModel`s are used when a system has multiple electronic states that are
+presented in the diabatic representation. This is the case for the majority
+of model systems.
 
-`potential` must return a `Hermitian{SMatrix}` with `size = (nstates, nstates)`.
+# Implementation
 
-`derivative!` must fill an `AbstractMatrix{<:Hermitian}` with `size = (ndofs, natoms)`,
-and each entry must have `size = (nstates, nstates)`.
+`DiabaticModel`s should implement:
+* `potential(model, R)`
+* `derivative!(model, D, R)`
+* `nstates(model)`
+* `ndofs(model)`
 
 # Example
 
+In this example we create a simple 2 state, 1 dimensional diabatic model `MyModel`.
+As noted above, we implement the 4 relevant functions then evaluate the potential.
+Since this is a 1D model the argument `R` accepts a `Real` value.
 
 ```jldoctest
-using StaticArrays
-using LinearAlgebra
+using StaticArrays: SMatrix
+using LinearAlgebra: Hermitian
 
-struct MyModel <: NonadiabaticModels.DiabaticModel end
+struct MyModel <: NonadiabaticModels.DiabaticModels.DiabaticModel end
 
-nstates(::MyModel) = 2
-ndofs(::MyModel) = 1
+NonadiabaticModels.nstates(::MyModel) = 2
+NonadiabaticModels.ndofs(::MyModel) = 1
 
-function NonadiabaticModels.potential(::MyModel, R) 
-    V11 = sum(R)
-    V22 = -sum(R)
+function NonadiabaticModels.potential(::MyModel, R::Real) 
+    V11 = R
+    V22 = -R
     V12 = 1
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NonadiabaticModels.derivative!(::MyModel, D, R)
-    for d in eachindex(D)
-        D[d] = Hermitian(SMatrix{2,2}(1, 0, 0, 1))
-    end
-    return D
+function NonadiabaticModels.derivative!(::MyModel, D, R::Real)
+    return Hermitian(SMatrix{2,2}(1, 0, 0, 1))
 end
 
 model = MyModel()
-NonadiabaticModels.potential(model, [1 2; 3 4])
+NonadiabaticModels.potential(model, 10)
 
 # output
 
 2×2 Hermitian{Int64, SMatrix{2, 2, Int64, 4}}:
-10    1
-1  -10
+ 10    1
+  1  -10
 ```
 """
 abstract type DiabaticModel <: NonadiabaticModels.Model end
@@ -61,8 +65,9 @@ abstract type DiabaticModel <: NonadiabaticModels.Model end
 """
     LargeDiabaticModel <: DiabaticModel
 
-Diabatic model too large for static arrays, instead uses normal julia arrays and must
-implement the inplace `potential!`
+Same as the `DiabaticModels` but uses normal Julia arrays instead of StaticArrays and must
+implement the inplace `potential!` rather than `potential`.
+This is useful when `nstates` is very large and StaticArrays are no longer efficient.
 """
 abstract type LargeDiabaticModel <: DiabaticModel end
 
@@ -86,14 +91,12 @@ end
 """
     DiabaticFrictionModel <: LargeDiabaticModel
 
-`DiabaticFrictionModel`s are defined identically to the `DiabaticModel`.
+These models are defined identically to the `LargeDiabaticModel` but
+allocate extra temporary arrays when used with `NonadiabaticMolecularDynamics.jl`.
 
-However, they additionally allow for the calculation of electronic friction
+This allows for the calculation of electronic friction
 internally from the diabatic potential after diagonalisation
 and calculation of nonadiabatic couplings.
-
-Use of this type leads to the allocation of extra arrays inside the `Calculator`
-for the friction calculation.
 """
 abstract type DiabaticFrictionModel <: LargeDiabaticModel end
 

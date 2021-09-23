@@ -12,23 +12,32 @@ using UnitfulAtomic: austrip, auconvert
 """
     AdiabaticModel <: Model
 
-`AdiabaticModel`s should implement both `potential` and `derivative!`.
+`AdiabaticModel`s represent the familiar potentials from classical molecular dynamics
+where the potential is a simple function of position.
 
-`potential(model, R)` must return the value of the potential evaluated at `R`
+# Implementation
 
-`derivative!(model, D::AbstractMatrix, R)` must fill `D` with `size = (ndofs, natoms)`.
+`AdiabaticModel`s should implement:
+* `potential(model, R)`
+* `derivative!(model, D, R)`
+* `ndofs(model)`
 
 # Example
 
+This example creates a 2 dimensional adiabatic model `MyModel`.
+We implement the 3 compulsory functions then evaluate the potential.
+Here the argument `R` is an `AbstractMatrix` since this is a 2D model
+that can accept multiple atoms.
+
 ```jldoctest
-struct MyModel{P} <: NonadiabaticModels.AdiabaticModel
+struct MyModel{P} <: NonadiabaticModels.AdiabaticModels.AdiabaticModel
     param::P
 end
 
-ndofs(::MyModel) = 2
+NonadiabaticModels.ndofs(::MyModel) = 2
 
-NonadiabaticModels.potential(model::MyModel, R) = model.param*sum(R.^2)
-NonadiabaticModels.derivative!(model::MyModel, D, R) = D .= model.param*2R
+NonadiabaticModels.potential(model::MyModel, R::AbstractMatrix) = model.param*sum(R.^2)
+NonadiabaticModels.derivative!(model::MyModel, D, R::AbstractMatrix) = D .= model.param*2R
 
 model = MyModel(10)
 
