@@ -120,13 +120,6 @@ function NonadiabaticModels.zero_derivative(model::DiabaticModel, R::AbstractMat
     [Hermitian(matrix_template(model, eltype(R))) for _ in CartesianIndices(R)]
 end
 
-"""
-    potential(model::Model, R)
-
-Obtain the potential for the current position `R`.
-
-This is an allocating version of `potential!`.
-"""
 function NonadiabaticModels.potential(model::LargeDiabaticModel, R::AbstractMatrix)
     V = Hermitian(matrix_template(model, eltype(R)))
     NonadiabaticModels.potential!(model, V, R)
