@@ -1,4 +1,12 @@
 
+"""
+    AdiabaticModels
+
+All models defined within this module have only a single electronic state
+and return potentials as scalars and derivatives as simple arrays.
+
+The central abstract type is the [`AdiabaticModel`](@ref) which all models should subtype.
+"""
 module AdiabaticModels
 
 using ..NonadiabaticModels: NonadiabaticModels

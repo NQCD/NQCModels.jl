@@ -1,4 +1,10 @@
 
+"""
+    DiabaticModels
+
+Models defined within this module subtype the [`DiabaticModel`](@ref) and provide
+potentials as Hermitian matrices and derivatives as arrays of Hermitian matrices.
+"""
 module DiabaticModels
 
 using ..NonadiabaticModels: NonadiabaticModels
