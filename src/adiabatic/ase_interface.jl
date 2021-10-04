@@ -1,4 +1,12 @@
 
+"""
+    AdiabaticASEModel{A} <: AdiabaticModel
+
+Wrapper for an `ase.Atoms` object that has a calculator attached.
+This will synchronise the positions with the `ase` object and handle the unit conversions.
+
+Implements both `potential` and `derivative!`.
+"""
 struct AdiabaticASEModel{A} <: AdiabaticModel
     atoms::A
 end
