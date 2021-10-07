@@ -33,30 +33,49 @@ using ..DiabaticModels: DiabaticModel
     end
 end
 
-@recipe function f(x, model::DiabaticModel; adiabats=true, diabats=true)
+@recipe function f(x, model::DiabaticModel; adiabats=true, diabats=true, coupling=false)
     eigs = zeros(length(x), nstates(model))
     diabatic = zeros(length(x), nstates(model))
+    couplings = zeros(length(x), nstates(model), nstates(model))
     for i=1:length(x)
         V = potential(model, hcat(x[i]))
         eigs[i,:] .= eigvals(V)
         diabatic[i,:] .= diag(V)
+        couplings[i,:,:] .= V
     end
 
-    legend --> false
-    xguide --> "r"
-    yguide --> "V(r)"
+    xguide := "r"
+    yguide := "V(r)"
 
     if adiabats
-        @series begin
-            linecolor := :black
-            x .* u"bohr", eigs .* u"hartree"
+        for i=1:nstates(model)
+            @series begin
+                linecolor := :black
+                label := i==1 ? "Adiabatic" : ""
+                x .* u"bohr", eigs[:,i] .* u"hartree"
+            end
         end
     end
 
     if diabats
-        @series begin
-            linecolor := :red
-            x .* u"bohr", diabatic .* u"hartree"
+        for i=1:nstates(model)
+            @series begin
+                linecolor := "#FF1F5B"
+                label := i==1 ? "Diabatic" : ""
+                x .* u"bohr", diabatic[:,i] .* u"hartree"
+            end
+        end
+    end
+
+    if coupling
+        for i=1:nstates(model)
+            for j=i+1:nstates(model)
+                @series begin
+                    linecolor := "#009ADE"
+                    label := (i == 1 && j == 2) ? "Diabatic coupling" : ""
+                    x .* u"bohr", couplings[:,i,j] .* u"hartree"
+                end
+            end
         end
     end
 end
