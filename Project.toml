@@ -1,7 +1,7 @@
 name = "NonadiabaticModels"
 uuid = "c814dc9f-a51f-4eaf-877f-82eda4edad48"
 authors = ["James Gardner <james.gardner1421@gmail.com>"]
-version = "0.5.5"
+version = "0.5.6"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
