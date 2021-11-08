@@ -86,8 +86,8 @@ end
 end
 
 @testset "FrictionModels" begin
-    @test test_model(ConstantFriction(Free(), 1), 3)
-    @test test_model(RandomFriction(Free()), 3)
+    @test test_model(CompositeFrictionModel(Free(2), ConstantFriction(2, 1)), 3)
+    @test test_model(CompositeFrictionModel(Free(3), RandomFriction(3)), 3)
 end
 
 @testset "JuLIP" begin
