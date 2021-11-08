@@ -18,6 +18,14 @@ export friction, friction!
 abstract type AdiabaticFrictionModel <: AdiabaticModel end
 
 """
+    ElectronicFrictionProvider
+
+Abstract type for defining models that provide electronic friction only.
+Subtypes of this should implement `friction!` and `ndofs`.
+"""
+abstract type ElectronicFrictionProvider end
+
+"""
     friction!(model::AdiabaticFrictionModel, F, R:AbstractMatrix)
 
 Fill `F` with the electronic friction as a function of the positions `R`.
@@ -40,6 +48,11 @@ function friction(model::AdiabaticFrictionModel, R)
 end
 
 zero_friction(::AdiabaticFrictionModel, R) = zeros(eltype(R), length(R), length(R))
+
+include("composite_friction_model.jl")
+export CompositeFrictionModel
+include("ase_friction_interface.jl")
+export ASEFrictionProvider
 
 include("constant_friction.jl")
 export ConstantFriction
