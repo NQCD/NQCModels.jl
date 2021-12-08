@@ -103,12 +103,12 @@ function NonadiabaticModels.potential!(model::MiaoSubotnik, V::Hermitian, R::Rea
     U0(x) = (m*ω^2*x^2)/2
     U1(x) = (m*ω^2*(x-g)^2)/2 + ΔG
     
-    V[1,1] = U1(R)
+    V[1,1] = U1(R) - U0(R)
 
     Vₙ = sqrt(Γ/(2π*ρ))
     V.data[1,2:end] .= Vₙ
 
-    V[2,2] = -model.W + U0(R)
+    V[2,2] = -model.W
     for i=3:n_states
         V[i,i] = V[i-1,i-1] + increment
     end
@@ -122,12 +122,18 @@ function NonadiabaticModels.derivative!(model::MiaoSubotnik, derivative::Hermiti
     dU0(x) = m*ω^2*x
     dU1(x) = m*ω^2*(x-g)
     
-    derivative[1,1] = dU1(R)
-    derivative[2,2] = dU0(R)
+    derivative[1,1] = dU1(R) - dU0(R)
 
-    for i=3:n_states
-        derivative[i,i] = derivative[2,2]
-    end
+    return derivative
+end
 
+function NonadiabaticModels.state_independent_potential(model::MiaoSubotnik, r::AbstractMatrix)
+    (;m, ω) = model
+    return 1/2 * m * ω^2 * r[1]^2
+end
+
+function NonadiabaticModels.state_independent_derivative!(model::MiaoSubotnik, derivative::AbstractMatrix, r::AbstractMatrix)
+    (;m, ω) = model
+    derivative[1] = m * ω^2 * r[1]
     return derivative
 end
