@@ -125,6 +125,9 @@ Get the number of degrees of freedom for every atom in the model. Usually 1 or 3
 """
 function ndofs end
 
+function state_independent_potential end
+function state_independent_derivative! end
+
 include("adiabatic/AdiabaticModels.jl")
 @reexport using .AdiabaticModels
 
