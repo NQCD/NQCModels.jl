@@ -19,10 +19,10 @@ Parameters.@with_kw struct OuyangModelOne <: DiabaticFrictionModel
     n_states::Int = N + 1
 end
 
-NonadiabaticModels.nstates(model::OuyangModelOne) = model.n_states
-NonadiabaticModels.ndofs(::OuyangModelOne) = 1
+NQCModels.nstates(model::OuyangModelOne) = model.n_states
+NQCModels.ndofs(::OuyangModelOne) = 1
 
-function NonadiabaticModels.potential!(model::OuyangModelOne, V::Hermitian, r::Real)
+function NQCModels.potential!(model::OuyangModelOne, V::Hermitian, r::Real)
     Parameters.@unpack A, B, C, D, ΔE, N = model
 
     Vsys(x) = A*tanh(B*x)
@@ -37,7 +37,7 @@ function NonadiabaticModels.potential!(model::OuyangModelOne, V::Hermitian, r::R
     return V
 end
 
-function NonadiabaticModels.derivative!(model::OuyangModelOne, derivative::Hermitian, r::Real)
+function NQCModels.derivative!(model::OuyangModelOne, derivative::Hermitian, r::Real)
     Parameters.@unpack A, B, C, D, N = model
 
     Dsys(x) = B*A*sech(B*x)^2

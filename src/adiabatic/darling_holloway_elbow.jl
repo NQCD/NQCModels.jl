@@ -36,9 +36,9 @@ Parameters.@with_kw struct DarlingHollowayElbow <: AdiabaticModel
     w₃::Float64 = 2.0
 end
 
-NonadiabaticModels.ndofs(::DarlingHollowayElbow) = 1
+NQCModels.ndofs(::DarlingHollowayElbow) = 1
 
-function NonadiabaticModels.potential(model::DarlingHollowayElbow, R::AbstractVector)
+function NQCModels.potential(model::DarlingHollowayElbow, R::AbstractVector)
 
     Parameters.@unpack d, α, p, zoff, V₀, βx, xb, βz, zb, V₁, βr, zr, Cvw, zvw, kc, m₁, m₂, m₃, w₁, w₂, w₃ = model
 
@@ -70,7 +70,7 @@ function NonadiabaticModels.potential(model::DarlingHollowayElbow, R::AbstractVe
     return total_V(x, Z)
 end
 
-function NonadiabaticModels.derivative!(model::DarlingHollowayElbow, D, R::AbstractVector)
-    D .= Zygote.gradient(x -> NonadiabaticModels.potential(model, x), R)[1]
+function NQCModels.derivative!(model::DarlingHollowayElbow, D, R::AbstractVector)
+    D .= Zygote.gradient(x -> NQCModels.potential(model, x), R)[1]
     return D
 end

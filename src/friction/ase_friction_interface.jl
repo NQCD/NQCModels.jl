@@ -12,7 +12,7 @@ struct ASEFrictionProvider{A} <: ElectronicFrictionProvider
     atoms::A
 end
 
-NonadiabaticModels.ndofs(::ASEFrictionProvider) = 3
+NQCModels.ndofs(::ASEFrictionProvider) = 3
 
 function friction!(model::ASEFrictionProvider, F::AbstractMatrix, R::AbstractMatrix)
     set_coordinates!(model, R)

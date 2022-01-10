@@ -1,9 +1,9 @@
 """
-NonadiabaticModels define the potentials and derivatives that
+NQCModels define the potentials and derivatives that
 govern the dynamics of the particles.
 These can exist as analytic models or as interfaces to other codes. 
 """
-module NonadiabaticModels
+module NQCModels
 
 using Reexport: @reexport
 

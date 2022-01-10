@@ -7,7 +7,7 @@ potentials as Hermitian matrices and derivatives as arrays of Hermitian matrices
 """
 module DiabaticModels
 
-using ..NonadiabaticModels: NonadiabaticModels
+using ..NQCModels: NQCModels
 using Unitful: @u_str
 using UnitfulAtomic: austrip
 
@@ -40,24 +40,24 @@ Since this is a 1D model the argument `R` accepts a `Real` value.
 using StaticArrays: SMatrix
 using LinearAlgebra: Hermitian
 
-struct MyModel <: NonadiabaticModels.DiabaticModels.DiabaticModel end
+struct MyModel <: NQCModels.DiabaticModels.DiabaticModel end
 
-NonadiabaticModels.nstates(::MyModel) = 2
-NonadiabaticModels.ndofs(::MyModel) = 1
+NQCModels.nstates(::MyModel) = 2
+NQCModels.ndofs(::MyModel) = 1
 
-function NonadiabaticModels.potential(::MyModel, R::Real) 
+function NQCModels.potential(::MyModel, R::Real) 
     V11 = R
     V22 = -R
     V12 = 1
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NonadiabaticModels.derivative!(::MyModel, D, R::Real)
+function NQCModels.derivative!(::MyModel, D, R::Real)
     return Hermitian(SMatrix{2,2}(1, 0, 0, 1))
 end
 
 model = MyModel()
-NonadiabaticModels.potential(model, 10)
+NQCModels.potential(model, 10)
 
 # output
 
@@ -66,7 +66,7 @@ NonadiabaticModels.potential(model, 10)
   1  -10
 ```
 """
-abstract type DiabaticModel <: NonadiabaticModels.Model end
+abstract type DiabaticModel <: NQCModels.Model end
 
 """
     LargeDiabaticModel <: DiabaticModel
@@ -77,20 +77,20 @@ This is useful when `nstates` is very large and StaticArrays are no longer effic
 """
 abstract type LargeDiabaticModel <: DiabaticModel end
 
-function NonadiabaticModels.derivative!(model::LargeDiabaticModel, D, R::AbstractMatrix)
-    if NonadiabaticModels.ndofs(model) == 1
+function NQCModels.derivative!(model::LargeDiabaticModel, D, R::AbstractMatrix)
+    if NQCModels.ndofs(model) == 1
         if size(R, 2) == 1
-            NonadiabaticModels.derivative!(model, D[1], R[1])
+            NQCModels.derivative!(model, D[1], R[1])
             return D
         else
-            NonadiabaticModels.derivative!(model, view(D, 1, :), view(R, 1, :))
+            NQCModels.derivative!(model, view(D, 1, :), view(R, 1, :))
             return D
         end
     elseif size(R, 2) == 1
-        NonadiabaticModels.derivative!(model, view(D, :, 1), view(R, :, 1))
+        NQCModels.derivative!(model, view(D, :, 1), view(R, :, 1))
         return D
     else
-        throw(MethodError(NonadiabaticModels.derivative!, (model, D, R)))
+        throw(MethodError(NQCModels.derivative!, (model, D, R)))
     end
 end
 
@@ -98,7 +98,7 @@ end
     DiabaticFrictionModel <: LargeDiabaticModel
 
 These models are defined identically to the `LargeDiabaticModel` but
-allocate extra temporary arrays when used with `NonadiabaticMolecularDynamics.jl`.
+allocate extra temporary arrays when used with `NQCDynamics.jl`.
 
 This allows for the calculation of electronic friction
 internally from the diabatic potential after diagonalisation
@@ -107,28 +107,28 @@ and calculation of nonadiabatic couplings.
 abstract type DiabaticFrictionModel <: LargeDiabaticModel end
 
 function matrix_template(model::DiabaticModel, eltype)
-    n = NonadiabaticModels.nstates(model)
+    n = NQCModels.nstates(model)
     return SMatrix{n,n}(zeros(eltype, n, n))
 end
 function matrix_template(model::LargeDiabaticModel, eltype)
-    zeros(eltype, NonadiabaticModels.nstates(model), NonadiabaticModels.nstates(model))
+    zeros(eltype, NQCModels.nstates(model), NQCModels.nstates(model))
 end
 
 function vector_template(model::DiabaticModel, eltype)
-    n = NonadiabaticModels.nstates(model)
+    n = NQCModels.nstates(model)
     return SVector{n}(zeros(eltype, n))
 end
 function vector_template(model::LargeDiabaticModel, eltype)
-    zeros(eltype, NonadiabaticModels.nstates(model))
+    zeros(eltype, NQCModels.nstates(model))
 end
 
-function NonadiabaticModels.zero_derivative(model::DiabaticModel, R::AbstractMatrix)
+function NQCModels.zero_derivative(model::DiabaticModel, R::AbstractMatrix)
     [Hermitian(matrix_template(model, eltype(R))) for _ in CartesianIndices(R)]
 end
 
-function NonadiabaticModels.potential(model::LargeDiabaticModel, R::AbstractMatrix)
+function NQCModels.potential(model::LargeDiabaticModel, R::AbstractMatrix)
     V = Hermitian(matrix_template(model, eltype(R)))
-    NonadiabaticModels.potential!(model, V, R)
+    NQCModels.potential!(model, V, R)
     return V
 end
 

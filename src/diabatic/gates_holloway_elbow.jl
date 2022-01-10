@@ -20,10 +20,10 @@ Parameters.@with_kw struct GatesHollowayElbow <: DiabaticModel
     γ::Float64 = 1.0
 end
 
-NonadiabaticModels.nstates(::GatesHollowayElbow) = 2
-NonadiabaticModels.ndofs(::GatesHollowayElbow) = 1
+NQCModels.nstates(::GatesHollowayElbow) = 2
+NQCModels.ndofs(::GatesHollowayElbow) = 1
 
-function NonadiabaticModels.potential(model::GatesHollowayElbow, R::AbstractVector)
+function NQCModels.potential(model::GatesHollowayElbow, R::AbstractVector)
     Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
 
     repel(x, λ, d) = exp(-λ*(x+d))
@@ -39,7 +39,7 @@ function NonadiabaticModels.potential(model::GatesHollowayElbow, R::AbstractVect
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NonadiabaticModels.derivative!(model::GatesHollowayElbow, D, R::AbstractVector)
+function NQCModels.derivative!(model::GatesHollowayElbow, D, R::AbstractVector)
     Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
 
     drepel(x, λ, d) = -λ*exp(-λ*(x+d))

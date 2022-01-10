@@ -26,12 +26,12 @@ Parameters.@with_kw struct Harmonic{M,W,R} <: AdiabaticModel
     dofs::Int = 1
 end
 
-NonadiabaticModels.ndofs(harmonic::Harmonic) = harmonic.dofs
+NQCModels.ndofs(harmonic::Harmonic) = harmonic.dofs
 
-function NonadiabaticModels.potential(model::Harmonic, R::AbstractMatrix)
+function NQCModels.potential(model::Harmonic, R::AbstractMatrix)
     return sum(0.5 * model.m* model.ω^2 .* (R .- model.r₀) .^2)
 end
 
-function NonadiabaticModels.derivative!(model::Harmonic, D::AbstractMatrix, R::AbstractMatrix) 
+function NQCModels.derivative!(model::Harmonic, D::AbstractMatrix, R::AbstractMatrix) 
     D .= model.m* model.ω^2 .* (R .- model.r₀)
 end

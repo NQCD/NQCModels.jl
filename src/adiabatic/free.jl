@@ -23,10 +23,10 @@ end
 
 Free() = Free(1)
 
-NonadiabaticModels.ndofs(free::Free) = free.dofs
+NQCModels.ndofs(free::Free) = free.dofs
 
-NonadiabaticModels.potential(::Free, ::AbstractMatrix{T}) where {T} = zero(T)
-function NonadiabaticModels.derivative!(::Free, out::AbstractMatrix, ::AbstractMatrix{T}) where {T}
+NQCModels.potential(::Free, ::AbstractMatrix{T}) where {T} = zero(T)
+function NQCModels.derivative!(::Free, out::AbstractMatrix, ::AbstractMatrix{T}) where {T}
     out .= 0
     copyto!(out, zero(T))
 end

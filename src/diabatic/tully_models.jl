@@ -1,8 +1,8 @@
 
 abstract type TullyModel <: DiabaticModel end
 
-NonadiabaticModels.ndofs(::TullyModel) = 1
-NonadiabaticModels.nstates(::TullyModel) = 2
+NQCModels.ndofs(::TullyModel) = 1
+NQCModels.nstates(::TullyModel) = 2
 
 """
     TullyModelOne(a=0.01, b=1.6, c=0.005, d=1.0)
@@ -16,7 +16,7 @@ Parameters.@with_kw struct TullyModelOne{A,B,C,D} <: TullyModel
     d::D = 1.0
 end
 
-function NonadiabaticModels.potential(model::TullyModelOne, q::Real)
+function NQCModels.potential(model::TullyModelOne, q::Real)
     Parameters.@unpack a, b, c, d = model
     if q > 0
         V11 = a * (1 - exp(-b*q))
@@ -28,7 +28,7 @@ function NonadiabaticModels.potential(model::TullyModelOne, q::Real)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NonadiabaticModels.derivative(model::TullyModelOne, q::Real)
+function NQCModels.derivative(model::TullyModelOne, q::Real)
     Parameters.@unpack a, b, c, d = model
     D11 = a * b * exp(-b * abs(q))
     D22 = -D11
@@ -49,7 +49,7 @@ Parameters.@with_kw struct TullyModelTwo{A,B,C,D,E} <: TullyModel
     e::E = 0.05
 end
 
-function NonadiabaticModels.potential(model::TullyModelTwo, q::Real)
+function NQCModels.potential(model::TullyModelTwo, q::Real)
     Parameters.@unpack a, b, c, d, e = model
     V11 = 0
     V22 = -a*exp(-b*q^2) + e
@@ -57,7 +57,7 @@ function NonadiabaticModels.potential(model::TullyModelTwo, q::Real)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NonadiabaticModels.derivative(model::TullyModelTwo, q::Real)
+function NQCModels.derivative(model::TullyModelTwo, q::Real)
     Parameters.@unpack a, b, c, d  = model
     D11 = 0
     D22 = 2*a*b*q*exp(-b*q^2)
@@ -77,7 +77,7 @@ Parameters.@with_kw struct TullyModelThree{A,B,C} <: TullyModel
     c::C = 0.9
 end
 
-function NonadiabaticModels.potential(model::TullyModelThree, q::Real)
+function NQCModels.potential(model::TullyModelThree, q::Real)
     Parameters.@unpack a, b, c = model
     V11 = a
     V22 = -a
@@ -89,7 +89,7 @@ function NonadiabaticModels.potential(model::TullyModelThree, q::Real)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NonadiabaticModels.derivative(model::TullyModelThree, R::Real)
+function NQCModels.derivative(model::TullyModelThree, R::Real)
     Parameters.@unpack a, b, c = model
     q = R[1]
     D11 = 0

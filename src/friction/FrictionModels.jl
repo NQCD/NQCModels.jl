@@ -1,7 +1,7 @@
 
 module FrictionModels
 
-using ..NonadiabaticModels: NonadiabaticModels
+using ..NQCModels: NQCModels
 using ..AdiabaticModels: AdiabaticModel
 
 export friction, friction!
