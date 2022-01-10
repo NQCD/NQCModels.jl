@@ -1,15 +1,15 @@
 using Test
 using NQCBase
-using NonadiabaticModels
+using NQCModels
 using LinearAlgebra
 using FiniteDiff
 
-function finite_difference_gradient(model::NonadiabaticModels.AdiabaticModels.AdiabaticModel, R)
+function finite_difference_gradient(model::NQCModels.AdiabaticModels.AdiabaticModel, R)
     f(x) = potential(model, x)
     FiniteDiff.finite_difference_gradient(f, R)
 end
 
-function finite_difference_gradient(model::NonadiabaticModels.DiabaticModels.DiabaticModel, R)
+function finite_difference_gradient(model::NQCModels.DiabaticModels.DiabaticModel, R)
     f(x, i, j) = potential(model, x)[i,j]
     grad = [Hermitian(zeros(nstates(model), nstates(model))) for i in CartesianIndices(R)]
     for k in eachindex(R)
@@ -22,14 +22,14 @@ function finite_difference_gradient(model::NonadiabaticModels.DiabaticModels.Dia
     grad
 end
 
-function test_model(model::NonadiabaticModels.Model, atoms; rtol=1e-5)
+function test_model(model::NQCModels.Model, atoms; rtol=1e-5)
     R = rand(ndofs(model), atoms)
     D = derivative(model, R)
     finite_diff = finite_difference_gradient(model, R)
     return isapprox(finite_diff, D, rtol=rtol)
 end
 
-function test_model(model::NonadiabaticModels.FrictionModels.AdiabaticFrictionModel, atoms)
+function test_model(model::NQCModels.FrictionModels.AdiabaticFrictionModel, atoms)
     R = rand(ndofs(model), atoms)
     D = derivative(model, R)
     friction(model, R)
@@ -37,14 +37,14 @@ function test_model(model::NonadiabaticModels.FrictionModels.AdiabaticFrictionMo
 end
 
 @testset "Potential abstraction" begin
-    struct TestModel <: NonadiabaticModels.Model end
+    struct TestModel <: NQCModels.Model end
 
-    NonadiabaticModels.ndofs(::TestModel) = 3
+    NQCModels.ndofs(::TestModel) = 3
     @test_throws MethodError potential(TestModel(), rand(3,1))
 
-    NonadiabaticModels.ndofs(::TestModel) = 1
-    NonadiabaticModels.potential(::TestModel, ::Real) = 1
-    NonadiabaticModels.potential(::TestModel, ::AbstractVector) = 2
+    NQCModels.ndofs(::TestModel) = 1
+    NQCModels.potential(::TestModel, ::Real) = 1
+    NQCModels.potential(::TestModel, ::AbstractVector) = 2
     @test potential(TestModel(), rand(1,1)) == 1
     @test potential(TestModel(), rand(1,2)) == 2
 end
