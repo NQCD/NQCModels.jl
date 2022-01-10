@@ -1,5 +1,5 @@
 
-using NonadiabaticDynamicsBase: au_to_ang, eV_to_au, eV_per_ang_to_au
+using NQCBase: au_to_ang, eV_to_au, eV_per_ang_to_au
 using .JuLIP: JuLIP
 
 export JuLIPModel

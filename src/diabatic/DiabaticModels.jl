@@ -98,7 +98,7 @@ end
     DiabaticFrictionModel <: LargeDiabaticModel
 
 These models are defined identically to the `LargeDiabaticModel` but
-allocate extra temporary arrays when used with `NonadiabaticMolecularDynamics.jl`.
+allocate extra temporary arrays when used with `NQCDynamics.jl`.
 
 This allows for the calculation of electronic friction
 internally from the diabatic potential after diagonalisation

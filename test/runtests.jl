@@ -1,5 +1,5 @@
 using Test
-using NonadiabaticDynamicsBase
+using NQCBase
 using NonadiabaticModels
 using LinearAlgebra
 using FiniteDiff
