@@ -36,8 +36,8 @@ jobs:
           python3 -m pip install gpaw
           gpaw install-data --register gpaw-datasets
 
-      - name: Add NQCDRegistry
-        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCDRegistry"))'
+      - name: Add NQCRegistry
+        run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/NQCD/NQCRegistry"))'
       - name: Add JuliaMolSim registry
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
 
