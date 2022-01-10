@@ -8,7 +8,7 @@ using Unitful: @u_str
 using UnitfulRecipes: UnitfulRecipes
 using UnitfulAtomic: UnitfulAtomic
 
-using ..NonadiabaticModels: potential, derivative, nstates
+using ..NQCModels: potential, derivative, nstates
 using ..AdiabaticModels: AdiabaticModel
 using ..DiabaticModels: DiabaticModel
 

@@ -1,4 +1,4 @@
-using NonadiabaticModels: ndofs
+using NQCModels: ndofs
 
 """
     CompositeFrictionModel{M,F} <: AdiabaticFrictionModel
@@ -13,7 +13,7 @@ struct CompositeFrictionModel{M<:AdiabaticModel,F} <: AdiabaticFrictionModel
     friction_model::F
 end
 
-function NonadiabaticModels.ndofs(model::CompositeFrictionModel)
+function NQCModels.ndofs(model::CompositeFrictionModel)
     model_dofs = ndofs(model.pes_model)
     friction_dofs = ndofs(model.friction_model)
 
@@ -24,12 +24,12 @@ function NonadiabaticModels.ndofs(model::CompositeFrictionModel)
     end
 end
 
-function NonadiabaticModels.potential(model::CompositeFrictionModel, R::AbstractMatrix)
-    NonadiabaticModels.potential(model.pes_model, R)
+function NQCModels.potential(model::CompositeFrictionModel, R::AbstractMatrix)
+    NQCModels.potential(model.pes_model, R)
 end
 
-function NonadiabaticModels.derivative!(model::CompositeFrictionModel, D, R::AbstractMatrix)
-    NonadiabaticModels.derivative!(model.pes_model, D, R)
+function NQCModels.derivative!(model::CompositeFrictionModel, D, R::AbstractMatrix)
+    NQCModels.derivative!(model.pes_model, D, R)
 end
 
 function friction!(model::CompositeFrictionModel, F, R)

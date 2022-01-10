@@ -73,15 +73,15 @@ struct SpinBoson{T} <: DiabaticModel
     cⱼ::Vector{T}
 end
 
-NonadiabaticModels.nstates(::SpinBoson) = 2
-NonadiabaticModels.ndofs(model::SpinBoson) = 1
+NQCModels.nstates(::SpinBoson) = 2
+NQCModels.ndofs(model::SpinBoson) = 1
 
 function SpinBoson(density::SpectralDensity, N::Integer, ϵ, Δ)
     ωⱼ, cⱼ = discretize(density, N)
     SpinBoson(ϵ, Δ, ωⱼ, cⱼ)
 end
 
-function NonadiabaticModels.potential(model::SpinBoson, r::AbstractVector)
+function NQCModels.potential(model::SpinBoson, r::AbstractVector)
 
     Parameters.@unpack ωⱼ, cⱼ, ϵ, Δ = model
 
@@ -102,7 +102,7 @@ function NonadiabaticModels.potential(model::SpinBoson, r::AbstractVector)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NonadiabaticModels.derivative!(model::SpinBoson, D::AbstractVector{<:Hermitian}, r::AbstractVector)
+function NQCModels.derivative!(model::SpinBoson, D::AbstractVector{<:Hermitian}, r::AbstractVector)
 
     Parameters.@unpack ωⱼ, cⱼ = model
 
@@ -125,18 +125,18 @@ struct BosonBath{T} <: AdiabaticModels.AdiabaticModel
     ωⱼ::Vector{T}
 end
 
-NonadiabaticModels.ndofs(model::BosonBath) = 1
+NQCModels.ndofs(model::BosonBath) = 1
 
 function BosonBath(density::SpectralDensity, N::Integer)
     ωⱼ, _ = discretize(density, N)
     BosonBath(ωⱼ)
 end
 
-function NonadiabaticModels.potential(model::BosonBath, r::AbstractVector)
+function NQCModels.potential(model::BosonBath, r::AbstractVector)
     return sum(model.ωⱼ .^2 .* r .^2 ./ 2)
 end
 
-function NonadiabaticModels.derivative!(model::BosonBath, D::AbstractVector, r::AbstractVector)
+function NQCModels.derivative!(model::BosonBath, D::AbstractVector, r::AbstractVector)
     for i in eachindex(r)
         D[i] = model.ωⱼ[i]^2 * r[i]
     end

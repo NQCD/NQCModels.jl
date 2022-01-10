@@ -9,7 +9,7 @@ The central abstract type is the [`AdiabaticModel`](@ref) which all models shoul
 """
 module AdiabaticModels
 
-using ..NonadiabaticModels: NonadiabaticModels
+using ..NQCModels: NQCModels
 using Requires: Requires
 using Zygote: Zygote
 using Parameters: Parameters
@@ -38,18 +38,18 @@ Here the argument `R` is an `AbstractMatrix` since this is a 2D model
 that can accept multiple atoms.
 
 ```jldoctest
-struct MyModel{P} <: NonadiabaticModels.AdiabaticModels.AdiabaticModel
+struct MyModel{P} <: NQCModels.AdiabaticModels.AdiabaticModel
     param::P
 end
 
-NonadiabaticModels.ndofs(::MyModel) = 2
+NQCModels.ndofs(::MyModel) = 2
 
-NonadiabaticModels.potential(model::MyModel, R::AbstractMatrix) = model.param*sum(R.^2)
-NonadiabaticModels.derivative!(model::MyModel, D, R::AbstractMatrix) = D .= model.param*2R
+NQCModels.potential(model::MyModel, R::AbstractMatrix) = model.param*sum(R.^2)
+NQCModels.derivative!(model::MyModel, D, R::AbstractMatrix) = D .= model.param*2R
 
 model = MyModel(10)
 
-NonadiabaticModels.potential(model, [1 2; 3 4])
+NQCModels.potential(model, [1 2; 3 4])
 
 # output
 
@@ -57,11 +57,11 @@ NonadiabaticModels.potential(model, [1 2; 3 4])
 
 ```
 """
-abstract type AdiabaticModel <: NonadiabaticModels.Model end
+abstract type AdiabaticModel <: NQCModels.Model end
 
-NonadiabaticModels.nstates(::AdiabaticModel) = 1
+NQCModels.nstates(::AdiabaticModel) = 1
 
-NonadiabaticModels.zero_derivative(::AdiabaticModel, R) = zero(R)
+NQCModels.zero_derivative(::AdiabaticModel, R) = zero(R)
 
 include("free.jl")
 export Free

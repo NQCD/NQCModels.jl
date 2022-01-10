@@ -10,4 +10,4 @@ function friction!(::RandomFriction, F::AbstractMatrix, ::AbstractMatrix)
     F .= (F + F')/2
 end
 
-NonadiabaticModels.ndofs(model::RandomFriction) = model.ndofs
+NQCModels.ndofs(model::RandomFriction) = model.ndofs

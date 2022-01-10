@@ -94,10 +94,10 @@ Parameters.@with_kw struct MiaoSubotnik <: LargeDiabaticModel
     n_states::Int = M+1
 end
 
-NonadiabaticModels.ndofs(::MiaoSubotnik) = 1
-NonadiabaticModels.nstates(model::MiaoSubotnik) = model.n_states
+NQCModels.ndofs(::MiaoSubotnik) = 1
+NQCModels.nstates(model::MiaoSubotnik) = model.n_states
 
-function NonadiabaticModels.potential!(model::MiaoSubotnik, V::Hermitian, R::Real)
+function NQCModels.potential!(model::MiaoSubotnik, V::Hermitian, R::Real)
     Parameters.@unpack m, ω, g, ΔG, Γ, ρ, increment, n_states = model
 
     U0(x) = (m*ω^2*x^2)/2
@@ -116,7 +116,7 @@ function NonadiabaticModels.potential!(model::MiaoSubotnik, V::Hermitian, R::Rea
     return V
 end
 
-function NonadiabaticModels.derivative!(model::MiaoSubotnik, derivative::Hermitian, R::Real)
+function NQCModels.derivative!(model::MiaoSubotnik, derivative::Hermitian, R::Real)
     Parameters.@unpack m, ω, g, n_states = model
 
     dU0(x) = m*ω^2*x
@@ -127,12 +127,12 @@ function NonadiabaticModels.derivative!(model::MiaoSubotnik, derivative::Hermiti
     return derivative
 end
 
-function NonadiabaticModels.state_independent_potential(model::MiaoSubotnik, r::AbstractMatrix)
+function NQCModels.state_independent_potential(model::MiaoSubotnik, r::AbstractMatrix)
     (;m, ω) = model
     return 1/2 * m * ω^2 * r[1]^2
 end
 
-function NonadiabaticModels.state_independent_derivative!(model::MiaoSubotnik, derivative::AbstractMatrix, r::AbstractMatrix)
+function NQCModels.state_independent_derivative!(model::MiaoSubotnik, derivative::AbstractMatrix, r::AbstractMatrix)
     (;m, ω) = model
     derivative[1] = m * ω^2 * r[1]
     return derivative

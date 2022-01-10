@@ -37,10 +37,10 @@ Parameters.@with_kw struct ThreeStateMorse <: DiabaticModel
     r23::Float64 = 0.0
 end
 
-NonadiabaticModels.ndofs(::ThreeStateMorse) = 1
-NonadiabaticModels.nstates(::ThreeStateMorse) = 3
+NQCModels.ndofs(::ThreeStateMorse) = 1
+NQCModels.nstates(::ThreeStateMorse) = 3
 
-function NonadiabaticModels.potential(model::ThreeStateMorse, R::Real)
+function NQCModels.potential(model::ThreeStateMorse, R::Real)
     V_ii(x, d, α, r, c) = d * (1 - exp(-α*(x-r)))^2 + c
     V_ij(x, a, α, r) = a * exp(-α*(x-r)^2)
 
@@ -55,7 +55,7 @@ function NonadiabaticModels.potential(model::ThreeStateMorse, R::Real)
     return Hermitian(SMatrix{3,3}(V11, V12, V13, V12, V22, V23, V13, V23, V33))
 end
 
-function NonadiabaticModels.derivative(model::ThreeStateMorse, R::Real)
+function NQCModels.derivative(model::ThreeStateMorse, R::Real)
 
     function D_ii(x, d, α, r)
         ex = exp(-α*(x-r))

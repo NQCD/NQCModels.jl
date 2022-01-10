@@ -12,10 +12,10 @@ Parameters.@with_kw struct DoubleWell{M,W,Y,D} <: DiabaticModel
     Δ::D = 1
 end
 
-NonadiabaticModels.ndofs(::DoubleWell) = 1
-NonadiabaticModels.nstates(::DoubleWell) = 2
+NQCModels.ndofs(::DoubleWell) = 1
+NQCModels.nstates(::DoubleWell) = 2
 
-function NonadiabaticModels.potential(model::DoubleWell, R::Real)
+function NQCModels.potential(model::DoubleWell, R::Real)
 
     V0(R) = 0.5 * model.mass * model.ω^2 * R^2
 
@@ -28,7 +28,7 @@ function NonadiabaticModels.potential(model::DoubleWell, R::Real)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NonadiabaticModels.derivative(model::DoubleWell, R::Real)
+function NQCModels.derivative(model::DoubleWell, R::Real)
 
     D0(R) = model.mass * model.ω^2 * R
 
