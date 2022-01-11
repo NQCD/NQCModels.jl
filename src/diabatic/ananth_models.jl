@@ -26,7 +26,7 @@ end
 
 function NQCModels.derivative(model::AnanthModelOne, q::Real)
     Parameters.@unpack a, b, c, d = model
-    D11 = a * (1 - tanh(b*q)^2)
+    D11 = a * b * (1 - tanh(b*q)^2)
     D22 = -D11
     D12 = -2 * c * d * q * exp(-d*q^2)
     return Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
@@ -56,8 +56,8 @@ end
 
 function NQCModels.derivative(model::AnanthModelTwo, q::Real)
     Parameters.@unpack a, b, c, d, e, f = model
-    D11 = a * (1 - tanh(f*q)^2)
-    D22 = -b * (1 - tanh(f*q)^2)
+    D11 = a * f * (1 - tanh(f*q)^2)
+    D22 = -b * f * (1 - tanh(f*q)^2)
     D12 = -2 * c * d * (q+e) * exp(-d*(q+e)^2)
 
     Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
