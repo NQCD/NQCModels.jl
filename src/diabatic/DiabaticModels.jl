@@ -153,5 +153,8 @@ include("gates_holloway_elbow.jl")
 export GatesHollowayElbow
 include("subotnik.jl")
 export MiaoSubotnik
+include("ananth_models.jl")
+export AnanthModelOne
+export AnanthModelTwo
 
 end # module

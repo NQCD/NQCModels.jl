@@ -83,6 +83,8 @@ end
     @test test_model(OuyangModelOne(), 1)
     @test test_model(GatesHollowayElbow(), 2)
     @test test_model(MiaoSubotnik(), 1)
+    @test test_model(AnanthModelOne(), 1)
+    @test test_model(AnanthModelTwo(), 1)
 end
 
 @testset "FrictionModels" begin
