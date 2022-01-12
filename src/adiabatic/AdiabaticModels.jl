@@ -73,6 +73,8 @@ include("darling_holloway_elbow.jl")
 export DarlingHollowayElbow
 include("ase_interface.jl")
 export AdiabaticASEModel
+include("averaged_potential.jl")
+export AveragedPotential
 
 function __init__()
     Requires.@require JuLIP="945c410c-986d-556a-acb1-167a618e0462" @eval include("julip.jl")
