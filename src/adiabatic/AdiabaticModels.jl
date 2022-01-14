@@ -5,7 +5,7 @@
 All models defined within this module have only a single electronic state
 and return potentials as scalars and derivatives as simple arrays.
 
-The central abstract type is the [`AdiabaticModel`](@ref) which all models should subtype.
+The central abstract type is the [`AdiabaticModel`](@ref), which all models should subtype.
 """
 module AdiabaticModels
 
@@ -20,21 +20,21 @@ using UnitfulAtomic: austrip, auconvert
 """
     AdiabaticModel <: Model
 
-`AdiabaticModel`s represent the familiar potentials from classical molecular dynamics
-where the potential is a simple function of position.
+`AdiabaticModel`s represent the potentials from classical molecular dynamics
+where the potential is a function of the position.
 
 # Implementation
 
 `AdiabaticModel`s should implement:
 * `potential(model, R)`
-* `derivative!(model, D, R)`
-* `ndofs(model)`
+* `derivative!(model, D, R)` (this is the derivative of the potential energy with respect to the positions)
+* `ndofs(model)` (these are the degrees of freedom)
 
 # Example
 
 This example creates a 2 dimensional adiabatic model `MyModel`.
 We implement the 3 compulsory functions then evaluate the potential.
-Here the argument `R` is an `AbstractMatrix` since this is a 2D model
+Here, the argument `R` is an `AbstractMatrix` since this is a 2D model
 that can accept multiple atoms.
 
 ```jldoctest
