@@ -19,7 +19,7 @@ Top-level type for models.
 When adding new models, this should not be directly subtyped. Instead, depending on
 the intended functionality of the model, one of the child abstract types should be
 subtyped.
-If an appropriate type is not already available, a new abstract subtype should be created.
+If an appropriate type is not already available, a new abstract subtype should be created. 
 """
 abstract type Model end
 
