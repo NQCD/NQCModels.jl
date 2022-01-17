@@ -8,7 +8,7 @@ Zero external potential everywhere. Useful for modelling free particles.
 julia> model, R = Free(3), rand(3, 10);
 
 julia> potential(model, R)
-0
+0.0
 
 julia> derivative(model, R)
 3×10 Matrix{Float64}:
