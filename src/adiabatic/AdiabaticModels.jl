@@ -65,6 +65,8 @@ NQCModels.zero_derivative(::AdiabaticModel, R) = zero(R)
 
 include("free.jl")
 export Free
+include("morse.jl")
+export Morse
 include("harmonic.jl")
 export Harmonic
 include("diatomic_harmonic.jl")

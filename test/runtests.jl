@@ -71,6 +71,7 @@ end
     @test test_model(AveragedPotential((Harmonic(), Harmonic()), zeros(1, 10)), 10)
     @test test_model(BosonBath(OhmicSpectralDensity(2.5, 0.1), 10), 10)
     @test test_model(DarlingHollowayElbow(), 2)
+    @test test_model(Morse(), 1)
 end
 
 @testset "DiabaticModels" begin
