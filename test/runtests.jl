@@ -87,6 +87,7 @@ end
     @test test_model(MiaoSubotnik(), 1)
     @test test_model(AnanthModelOne(), 1)
     @test test_model(AnanthModelTwo(), 1)
+    @test test_model(ErpenbeckThoss(Γ=2.0), 1)
 end
 
 @testset "FrictionModels" begin
