@@ -4,7 +4,7 @@ module Plot
 using RecipesBase: RecipesBase, @recipe, @series
 using LinearAlgebra: eigvals, diag
 
-using Unitful: @u_str
+using Unitful: @u_str, uconvert
 using UnitfulRecipes: UnitfulRecipes
 using UnitfulAtomic: UnitfulAtomic
 
@@ -33,7 +33,7 @@ using ..DiabaticModels: DiabaticModel
     end
 end
 
-@recipe function f(x, model::DiabaticModel; adiabats=true, diabats=true, coupling=false)
+@recipe function f(x, model::DiabaticModel; adiabats=true, diabats=true, coupling=false, atomic=true)
     eigs = zeros(length(x), nstates(model))
     diabatic = zeros(length(x), nstates(model))
     couplings = zeros(length(x), nstates(model), nstates(model))
@@ -52,7 +52,11 @@ end
             @series begin
                 linecolor := :black
                 label := i==1 ? "Adiabatic" : ""
-                x .* u"bohr", eigs[:,i] .* u"hartree"
+                if atomic
+                    x .* u"bohr", eigs[:,i] .* u"hartree"
+                else
+                    uconvert.(u"Å", x .* u"bohr"), uconvert.(u"eV", eigs[:,i] .* u"hartree")
+                end
             end
         end
     end
@@ -62,7 +66,11 @@ end
             @series begin
                 linecolor := "#FF1F5B"
                 label := i==1 ? "Diabatic" : ""
-                x .* u"bohr", diabatic[:,i] .* u"hartree"
+                if atomic
+                    x .* u"bohr", diabatic[:,i] .* u"hartree"
+                else
+                    uconvert.(u"Å", x .* u"bohr"), uconvert.(u"eV", diabatic[:,i] .* u"hartree")
+                end
             end
         end
     end
@@ -73,7 +81,11 @@ end
                 @series begin
                     linecolor := "#009ADE"
                     label := (i == 1 && j == 2) ? "Diabatic coupling" : ""
-                    x .* u"bohr", couplings[:,i,j] .* u"hartree"
+                    if atomic
+                        x .* u"bohr", couplings[:,i,j] .* u"hartree"
+                    else
+                        uconvert.(u"Å", x .* u"bohr"), uconvert.(u"eV", couplings[:,i,j] .* u"hartree")
+                    end
                 end
             end
         end
