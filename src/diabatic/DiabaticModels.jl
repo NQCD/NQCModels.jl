@@ -156,5 +156,7 @@ export MiaoSubotnik
 include("ananth_models.jl")
 export AnanthModelOne
 export AnanthModelTwo
+include("erpenbeck_thoss.jl")
+export ErpenbeckThoss
 
 end # module
