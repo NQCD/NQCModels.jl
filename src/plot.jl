@@ -8,7 +8,7 @@ using Unitful: @u_str, uconvert
 using UnitfulRecipes: UnitfulRecipes
 using UnitfulAtomic: UnitfulAtomic
 
-using ..NQCModels: potential, derivative, nstates
+using ..NQCModels: potential, derivative, nstates, state_independent_potential
 using ..AdiabaticModels: AdiabaticModel
 using ..DiabaticModels: DiabaticModel
 
@@ -39,8 +39,9 @@ end
     couplings = zeros(length(x), nstates(model), nstates(model))
     for i=1:length(x)
         V = potential(model, hcat(x[i]))
-        eigs[i,:] .= eigvals(V)
-        diabatic[i,:] .= diag(V)
+        state_independent = state_independent_potential(model, hcat(x[i]))
+        eigs[i,:] .= eigvals(V) .+ state_independent
+        diabatic[i,:] .= diag(V) .+ state_independent
         couplings[i,:,:] .= V
     end
 

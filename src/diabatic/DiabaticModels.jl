@@ -158,5 +158,7 @@ export AnanthModelOne
 export AnanthModelTwo
 include("erpenbeck_thoss.jl")
 export ErpenbeckThoss
+include("widebandbath.jl")
+export WideBandBath
 
 end # module
