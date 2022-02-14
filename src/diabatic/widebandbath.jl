@@ -59,6 +59,9 @@ end
 
 function NQCModels.state_independent_derivative!(model::WideBandBath, ∂V::AbstractMatrix, r)
     Dsystem = NQCModels.derivative(model.model, r)
-    ∂V[1,1] = Dsystem[1,1]
+    for I in eachindex(∂V, Dsystem)
+        ∂V[I] = Dsystem[I][1,1]
+    end
+
     return ∂V
 end
