@@ -48,12 +48,12 @@ function ErpenbeckThoss(;
     q   = 0.05,
     ã   = austrip(0.5u"Å"),
     x̃   = austrip(3.5u"Å"),
-    V̄ₖ  = sqrt(Γ/2π)
+    V̄ₖ  = sqrt(austrip(Γ)/2π)
 ) 
     morse = AdiabaticModels.Morse(;Dₑ, x₀, a, m)
     c = -NQCModels.AdiabaticModels.eigenenergy(morse, 0) # Set c to offset zero-point energy
 
-    return ErpenbeckThoss(Γ, morse, D₁, D₂, x₀′, a′, c, V∞, q, ã, x̃, V̄ₖ)
+    return ErpenbeckThoss(austrip(Γ), morse, D₁, D₂, x₀′, a′, c, V∞, q, ã, x̃, V̄ₖ)
 end
 
 function NQCModels.potential(model::ErpenbeckThoss, r::Real)
