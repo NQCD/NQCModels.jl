@@ -11,7 +11,6 @@ module AdiabaticModels
 
 using ..NQCModels: NQCModels
 using Requires: Requires
-using Zygote: Zygote
 using Parameters: Parameters
 
 using Unitful: @u_str, ustrip
