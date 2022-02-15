@@ -5,8 +5,8 @@ struct WideBandBath{V<:AbstractVector,M<:DiabaticModel} <: DiabaticFrictionModel
     bathstates::V
 end
 
-WideBandBath(model; nbathstates, bandmin, bandmax) = WideBandBath(model, range(bandmin, bandmax; length=nbathstates))
-WideBandBath(model::DiabaticModel; bathstates) = WideBandBath(model, austrip.(bathstates))
+WideBandBath(model::DiabaticModel; nbathstates, bandmin, bandmax) = WideBandBath(model, range(bandmin, bandmax; length=nbathstates))
+WideBandBath(model::DiabaticModel, bathstates) = WideBandBath(model, austrip.(bathstates))
 
 NQCModels.nstates(model::WideBandBath) = NQCModels.nstates(model.model) + length(model.bathstates) - 1
 NQCModels.ndofs(model::WideBandBath) = NQCModels.ndofs(model.model)
