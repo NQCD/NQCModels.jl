@@ -1,3 +1,4 @@
+using ForwardDiff: ForwardDiff
 
 """
     DarlingHollowayElbow()
@@ -71,6 +72,7 @@ function NQCModels.potential(model::DarlingHollowayElbow, R::AbstractVector)
 end
 
 function NQCModels.derivative!(model::DarlingHollowayElbow, D, R::AbstractVector)
-    D .= Zygote.gradient(x -> NQCModels.potential(model, x), R)[1]
+    f(x) = NQCModels.potential(model, x)
+    copyto!(D, ForwardDiff.gradient(f, R))
     return D
 end
