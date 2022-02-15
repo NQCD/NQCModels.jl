@@ -1,20 +1,17 @@
 using LinearAlgebra: diagind
 
-struct WideBandBath{T<:AbstractFloat,M<:DiabaticModel} <: DiabaticFrictionModel
+struct WideBandBath{V<:AbstractVector,M<:DiabaticModel} <: DiabaticFrictionModel
     model::M
-    nbathstates::Int
-    bandmin::T
-    bandmax::T
+    bathstates::V
 end
 
-WideBandBath(model; nbathstates, bandmin, bandmax) = WideBandBath(model, nbathstates, bandmin, bandmax)
+WideBandBath(model; nbathstates, bandmin, bandmax) = WideBandBath(model, range(bandmin, bandmax; length=nbathstates))
+WideBandBath(model::DiabaticModel; bathstates) = WideBandBath(model, austrip.(bathstates))
 
-NQCModels.nstates(model::WideBandBath) = NQCModels.nstates(model.model) + model.nbathstates - 1
+NQCModels.nstates(model::WideBandBath) = NQCModels.nstates(model.model) + length(model.bathstates) - 1
 NQCModels.ndofs(model::WideBandBath) = NQCModels.ndofs(model.model)
 
 function NQCModels.potential!(model::WideBandBath, V::Hermitian, r::Real)
-
-    (;bandmin, bandmax, nbathstates) = model
 
     Vsystem = NQCModels.potential(model.model, r)
     n = NQCModels.nstates(model.model)
@@ -24,8 +21,7 @@ function NQCModels.potential!(model::WideBandBath, V::Hermitian, r::Real)
     V[diagind(V)[begin:n-1]] .= Vsystem[diagind(Vsystem)[begin+1:end]] .- ϵ0
 
     # Bath states
-    ϵ = range(bandmin, bandmax, length=nbathstates)
-    V[diagind(V)[n:end]] .= ϵ
+    V[diagind(V)[n:end]] .= model.bathstates
 
     # Coupling
     for i=1:n-1
