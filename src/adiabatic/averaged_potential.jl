@@ -17,7 +17,7 @@ function NQCModels.potential(model::AveragedPotential, r::AbstractMatrix)
 end
 
 function NQCModels.derivative!(model::AveragedPotential, D::AbstractMatrix, r::AbstractMatrix)
-    copyto!(D, zero(eltype(D)))
+    fill!(D, zero(eltype(D)))
     for m in model.models
         NQCModels.derivative!(m, model.tmp_derivative, r)
         D .+= model.tmp_derivative
