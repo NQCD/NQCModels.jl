@@ -86,7 +86,7 @@ function NQCModels.potential(model::AdiabaticEMTModel, R::AbstractMatrix)
     return austrip(V[1] * u"eV")
 end
 
-function NQCModels.derivative!(model::AdiabaticEMTModel, R::AbstractMatrix)
+function NQCModels.derivative!(model::AdiabaticEMTModel, D::AbstractMatrix, R::AbstractMatrix)
 
     natoms = size(model.atoms.types)[1]
     nbeads = 1 #Kept for future use?
@@ -128,7 +128,7 @@ function NQCModels.derivative!(model::AdiabaticEMTModel, R::AbstractMatrix)
             natoms_list, projectile_element, surface_element, is_proj)
 
 
-    D = f[:,1,:]
+    D .= f[:,1,:]
     #D .= -model.atoms.get_forces()'
     @. D = austrip(D * u"eV/Å")
 
