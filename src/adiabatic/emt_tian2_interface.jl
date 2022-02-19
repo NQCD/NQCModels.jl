@@ -51,7 +51,7 @@ struct AdiabaticEMTModel{A,F} <: AdiabaticModel
         ccall(pes_init,
                 Cvoid,
 
-                (Ref{Int32},Ref{Int32},Ref{Int32,Ptr{Float64},
+                (Ref{Int32},Ref{Int32},Ref{Int32},Ptr{Float64},
                 Ptr{UInt8},Ref{Int},
                 Ptr{Int32},Ptr{UInt8},Ptr{UInt8},Ptr{BlasInt}),
 
