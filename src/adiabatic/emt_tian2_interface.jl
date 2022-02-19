@@ -28,7 +28,7 @@ struct AdiabaticEMTModel{A,F} <: AdiabaticModel
         wrapper =  Libdl.dlsym(library, :wrapper_mp_wrapper_energy_force_)
         
         # Initialize pes
-        natoms = size(model.atoms.types)[1]
+        natoms = size(atoms.types)[1]
         nbeads = 1 #Kept for future use?
         ntypes = 2 #Projectile and lattice
         cell_array = cell.vectors
