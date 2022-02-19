@@ -24,10 +24,46 @@ struct AdiabaticEMTModel{A,F} <: AdiabaticModel
     pes_path#::AbstractString
     function AdiabaticEMTModel(atoms, cell, lib_path, pes_path)
         library = Libdl.dlopen(lib_path)
-        #library = Libdl.dlopen("/home/chem/msrvhs/git_repos/md_tian2/src/md_tian2_lib.so")
-        wrapper = Libdl.dlsym(library, :force_mp_full_energy_force_wrapper_)
+        pes_init = Libdl.dlsym(library, :wrapper_mp_wrapper_read_pes_)
+        wrapper =  Libdl.dlsym(library, :wrapper_mp_wrapper_energy_force_)
+        
+        # Initialize pes
+        natoms = size(model.atoms.types)[1]
+        nbeads = 1 #Kept for future use?
+        ntypes = 2 #Projectile and lattice
+        cell_array = cell.vectors
+        natoms_list = zeros(Int32,ntypes)
+        natoms_list[1] = 1 #one projectile
+        natoms_list[2] = natoms - 1 # n-1 lattice atoms
+
+        # Assume one projectile that is atom 1
+        # Assume one lattice with same elements
+        projectile_element = Vector{UInt8}(string(atoms.types[1])) #code wants this to check pes file is right
+        surface_element = Vector{UInt8}(string(atoms.types[2]))
+        is_proj = [true,false]
+
+        pes_file = Vector{UInt8}(pes_path)
+
+        @assert natoms == sum(natoms_list)
+        @assert length(is_proj) == ntypes
+
+
+        ccall(pes_init,
+                Cvoid,
+
+                (Ref{Int32},Ref{Int32},Ref{Int32,Ptr{Float64},
+                Ptr{UInt8},Ref{Int},
+                Ptr{Int32},Ptr{UInt8},Ptr{UInt8},Ptr{BlasInt}),
+
+                natoms, nbeads, ntypes, cell_array,
+                pes_file, size(pes_file), 
+                natoms_list, projectile_element, surface_element, is_proj)
+
         new{typeof(atoms),typeof(wrapper)}(atoms, cell, wrapper, pes_path)
     end
+
+
+
 end
 
 NQCModels.ndofs(::AdiabaticEMTModel) = 3
@@ -39,49 +75,37 @@ NQCModels.ndofs(::AdiabaticEMTModel) = 3
 #     wrapper = Libdl.dlsym(library, :force_mp_full_energy_force_wrapper_)
 #     return AdiabaticEMTModel(atoms, cell, wrapper, pes_path)
 # end
+
     
 function NQCModels.potential(model::AdiabaticEMTModel, R::AbstractMatrix)
     # set_coordinates!(model, R)
 
     natoms = size(model.atoms.types)[1]
     nbeads = 1 #Kept for future use?
-    ntypes = 2 #Projectile and lattice
-
-    cell_array = model.cell.vectors
-
     r = zeros(3,nbeads,natoms) 
     r[:,1,:] = R[:,:]
     f = zeros(3,nbeads,natoms) #forces
     V = [Float64(0.)] #size nbeads
 
-    natoms_list = zeros(Int32,ntypes)
-    natoms_list[1] = 1 #one projectile
-    natoms_list[2] = natoms - 1 # n-1 lattice atoms
+    # ccall(model.wrapper_function,
+    #         Cvoid,
 
-    # Assume one projectile that is atom 1
-    # Assume one lattice with same elements
-    projectile_element = Vector{UInt8}(string(model.atoms.types[1])) #code wants this to check pes file is right
-    surface_element = Vector{UInt8}(string(model.atoms.types[2]))
-    is_proj = [true,false]
+    #         (Ref{Int32},Ref{Int32},Ref{Int32},Ptr{Float64},Ptr{Float64},
+    #         Ptr{Float64},Ptr{Float64},Ptr{UInt8},Ref{Int},
+    #         Ptr{Int32},Ptr{UInt8},Ptr{UInt8},Ptr{BlasInt}),
 
-
-    pes_file = Vector{UInt8}(model.pes_path)
-
-    @assert natoms == sum(natoms_list)
-    @assert length(is_proj) == ntypes
-
+    #         natoms, nbeads, ntypes, r, cell_array,
+    #         f, V, pes_file, size(pes_file), 
+    #         natoms_list, projectile_element, surface_element, is_proj)
 
     ccall(model.wrapper_function,
-            Cvoid,
+        Cvoid,
 
-            (Ref{Int32},Ref{Int32},Ref{Int32},Ptr{Float64},Ptr{Float64},
-            Ptr{Float64},Ptr{Float64},Ptr{UInt8},Ref{Int},
-            Ptr{Int32},Ptr{UInt8},Ptr{UInt8},Ptr{BlasInt}),
+        (Ref{Int32},Ref{Int32},Ptr{Float64},
+        Ptr{Float64},Ptr{Float64}),
 
-            natoms, nbeads, ntypes, r, cell_array,
-            f, V, pes_file, size(pes_file), 
-            natoms_list, projectile_element, surface_element, is_proj)
-
+        natoms, nbeads, r,
+        f, V )
 
     return austrip(V[1] * u"eV")
 end
@@ -90,42 +114,30 @@ function NQCModels.derivative!(model::AdiabaticEMTModel, D::AbstractMatrix, R::A
 
     natoms = size(model.atoms.types)[1]
     nbeads = 1 #Kept for future use?
-    ntypes = 2 #Projectile and lattice
-
-    cell_array = model.cell.vectors
-
     r = zeros(3,nbeads,natoms) 
     r[:,1,:] = R[:,:]
     f = zeros(3,nbeads,natoms) #forces
     V = [Float64(0.)] #size nbeads
 
-    natoms_list = zeros(Int32,ntypes)
-    natoms_list[1] = 1 #one projectile
-    natoms_list[2] = natoms - 1 # n-1 lattice atoms
+    # ccall(model.wrapper_function,
+    #         Cvoid,
 
-    # Assume one projectile that is atom 1
-    # Assume one lattice with same elements
-    projectile_element = Vector{UInt8}(string(model.atoms.types[1])) #code wants this to check pes file is right
-    surface_element = Vector{UInt8}(string(model.atoms.types[2]))
-    is_proj = [true,false]
+    #         (Ref{Int32},Ref{Int32},Ref{Int32},Ptr{Float64},Ptr{Float64},
+    #         Ptr{Float64},Ptr{Float64},Ptr{UInt8},Ref{Int},
+    #         Ptr{Int32},Ptr{UInt8},Ptr{UInt8},Ptr{BlasInt}),
 
-
-    pes_file = Vector{UInt8}(model.pes_path)
-
-    @assert natoms == sum(natoms_list)
-    @assert length(is_proj) == ntypes
-
+    #         natoms, nbeads, ntypes, r, cell_array,
+    #         f, V, pes_file, size(pes_file), 
+    #         natoms_list, projectile_element, surface_element, is_proj)
 
     ccall(model.wrapper_function,
-            Cvoid,
+        Cvoid,
 
-            (Ref{Int32},Ref{Int32},Ref{Int32},Ptr{Float64},Ptr{Float64},
-            Ptr{Float64},Ptr{Float64},Ptr{UInt8},Ref{Int},
-            Ptr{Int32},Ptr{UInt8},Ptr{UInt8},Ptr{BlasInt}),
+        (Ref{Int32},Ref{Int32},Ptr{Float64},
+        Ptr{Float64},Ptr{Float64}),
 
-            natoms, nbeads, ntypes, r, cell_array,
-            f, V, pes_file, size(pes_file), 
-            natoms_list, projectile_element, surface_element, is_proj)
+        natoms, nbeads, r,
+        f, V )
 
 
     D .= f[:,1,:]
