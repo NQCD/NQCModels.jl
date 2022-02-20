@@ -22,6 +22,7 @@ struct AdiabaticEMTModel{A,F} <: AdiabaticModel
     cell#::PeriodicCell
     wrapper_function#::F
     pes_path#::AbstractString
+    library #soo we can shut it
     function AdiabaticEMTModel(atoms, cell, lib_path, pes_path)
         library = Libdl.dlopen(lib_path)
         pes_init = Libdl.dlsym(library, :wrapper_mp_wrapper_read_pes_)
@@ -59,7 +60,7 @@ struct AdiabaticEMTModel{A,F} <: AdiabaticModel
                 pes_file, size(pes_file), 
                 natoms_list, projectile_element, surface_element, is_proj)
 
-        new{typeof(atoms),typeof(wrapper)}(atoms, cell, wrapper, pes_path)
+        new{typeof(atoms),typeof(wrapper)}(atoms, cell, wrapper, pes_path, library)
     end
 
 
