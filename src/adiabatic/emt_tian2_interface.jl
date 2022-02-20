@@ -147,13 +147,13 @@ function NQCModels.derivative!(model::AdiabaticEMTModel, D::AbstractMatrix, R::A
     return D
 end
 
-function NQCModels.cleanup(model::AdiabaticEMTModel)
+# function NQCModels.cleanup(model::AdiabaticEMTModel)
 
-    deallocate= Libdl.dlsym(library, :wrapper_mp_wrapper_deallocations_)
-    ccall(deallocate,Cvoid,())
-    library = Libdl.dlclose(lib_path)
+#     deallocate= Libdl.dlsym(library, :wrapper_mp_wrapper_deallocations_)
+#     ccall(deallocate,Cvoid,())
+#     library = Libdl.dlclose(lib_path)
 
-end
+# end
 
 # function set_coordinates!(model::AdiabaticEMTModel, R)
 #     model.atoms.set_positions(ustrip.(auconvert.(u"Å", R')))
