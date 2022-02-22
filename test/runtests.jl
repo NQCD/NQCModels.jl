@@ -88,7 +88,7 @@ end
     @test test_model(AnanthModelOne(), 1)
     @test test_model(AnanthModelTwo(), 1)
     @test test_model(ErpenbeckThoss(Γ=2.0), 1)
-    @test test_model(WideBandBath(ErpenbeckThoss(Γ=2.0); nbathstates=5, bandmin=-1.0, bandmax=1.0), 1)
+    @test test_model(WideBandBath(ErpenbeckThoss(Γ=2.0); step=0.1, bandmin=-1.0, bandmax=1.0), 1)
 end
 
 @testset "FrictionModels" begin
