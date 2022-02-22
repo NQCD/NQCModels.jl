@@ -10,12 +10,13 @@ function finite_difference_gradient(model::NQCModels.AdiabaticModels.AdiabaticMo
 end
 
 function finite_difference_gradient(model::NQCModels.DiabaticModels.DiabaticModel, R)
-    f(x, i, j) = potential(model, x)[i,j]
-    grad = [Hermitian(zeros(nstates(model), nstates(model))) for i in CartesianIndices(R)]
-    for k in eachindex(R)
-        for i=1:nstates(model)
-            for j=1:nstates(model)
-                grad[k].data[i,j] = FiniteDiff.finite_difference_gradient(x->f(x,i,j), R)[k]
+    f(x, j, i) = potential(model, x)[j,i]
+    grad = [Hermitian(zeros(nstates(model), nstates(model))) for _ in CartesianIndices(R)]
+    for i=1:nstates(model)
+        for j=1:nstates(model)
+            gradient = FiniteDiff.finite_difference_gradient(x->f(x,j,i), R)
+            for k in eachindex(R)
+                grad[k].data[j,i] = gradient[k]
             end
         end
     end
