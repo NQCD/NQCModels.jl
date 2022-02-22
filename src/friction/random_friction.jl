@@ -1,5 +1,11 @@
 using Random: randn!
 
+"""
+    RandomFriction <: ElectronicFrictionProvider
+
+Provide a random positive semi-definite matrix of friction values.
+Used mostly for testing and examples.
+"""
 struct RandomFriction <: ElectronicFrictionProvider
     ndofs::Int
 end
