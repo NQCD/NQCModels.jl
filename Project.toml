@@ -1,7 +1,7 @@
 name = "NQCModels"
 uuid = "c814dc9f-a51f-4eaf-877f-82eda4edad48"
 authors = ["James Gardner <james.gardner1421@gmail.com>"]
-version = "0.8.5"
+version = "0.8.6"
 
 [deps]
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
@@ -19,7 +19,7 @@ UnitfulRecipes = "42071c24-d89e-48dd-8a24-8a12d9b8861f"
 
 [compat]
 ForwardDiff = "0.10"
-NQCBase = "0.1"
+NQCBase = "0.1, 0.2"
 Parameters = "0.12"
 RecipesBase = "1"
 Reexport = "1"
