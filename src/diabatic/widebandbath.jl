@@ -1,11 +1,13 @@
 using LinearAlgebra: diagind
 
-struct WideBandBath{M<:DiabaticModel,V<:AbstractVector} <: DiabaticFrictionModel
+struct WideBandBath{M<:DiabaticModel,V<:AbstractVector,T} <: DiabaticFrictionModel
     model::M
     bathstates::V
+    ρ::T
     function WideBandBath(model, bathstates)
         bathstates = austrip.(bathstates)
-        new{typeof(model),typeof(bathstates)}(model, bathstates)
+        ρ = length(bathstates) / (bathstates[end] - bathstates[begin])
+        new{typeof(model),typeof(bathstates),typeof(ρ)}(model, bathstates, ρ)
     end
 end
 
@@ -16,6 +18,7 @@ end
 NQCModels.nstates(model::WideBandBath) = NQCModels.nstates(model.model) + length(model.bathstates) - 1
 NQCModels.ndofs(model::WideBandBath) = NQCModels.ndofs(model.model)
 NQCModels.nelectrons(model::WideBandBath) = fld(NQCModels.nstates(model), 2)
+NQCModels.fermilevel(::WideBandBath) = 0.0
 
 function NQCModels.potential!(model::WideBandBath, V::Hermitian, r::Real)
 
@@ -31,7 +34,7 @@ function NQCModels.potential!(model::WideBandBath, V::Hermitian, r::Real)
 
     # Coupling
     for i=1:n-1
-        V.data[i,n:end] .= Vsystem[i+1,1]
+        V.data[i,n:end] .= Vsystem[i+1,1] / sqrt(model.ρ)
     end
 
     return V
@@ -48,7 +51,7 @@ function NQCModels.derivative!(model::WideBandBath, D::Hermitian, r::Real)
 
     # Coupling
     for i=1:n-1
-        D.data[i,n:end] .= Dsystem[i+1,1]
+        D.data[i,n:end] .= Dsystem[i+1,1] / sqrt(model.ρ)
     end
 
     return D
