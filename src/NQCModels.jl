@@ -127,7 +127,7 @@ function ndofs end
 
 state_independent_potential(model, r) = 0.0
 state_independent_derivative!(model, derivative, r) = fill!(derivative, zero(eltype(r)))
-fermilevel(model) = 0.0
+nelectrons(model) = 0
 
 include("adiabatic/AdiabaticModels.jl")
 @reexport using .AdiabaticModels

@@ -1,23 +1,21 @@
 using LinearAlgebra: diagind
 
-struct WideBandBath{M<:DiabaticModel,V<:AbstractVector,T} <: DiabaticFrictionModel
+struct WideBandBath{M<:DiabaticModel,V<:AbstractVector} <: DiabaticFrictionModel
     model::M
     bathstates::V
-    fermilevel::T
-    function WideBandBath(model, bathstates, fermilevel)
+    function WideBandBath(model, bathstates)
         bathstates = austrip.(bathstates)
-        fermilevel = austrip(fermilevel)
-        new{typeof(model),typeof(bathstates),typeof(fermilevel)}(model, bathstates, fermilevel)
+        new{typeof(model),typeof(bathstates)}(model, bathstates)
     end
 end
 
-function WideBandBath(model::DiabaticModel; step, bandmin, bandmax, fermilevel=0.0)
-    WideBandBath(model, range(bandmin, bandmax; step=step), fermilevel)
+function WideBandBath(model::DiabaticModel; step, bandmin, bandmax)
+    WideBandBath(model, range(bandmin, bandmax; step=step))
 end
 
 NQCModels.nstates(model::WideBandBath) = NQCModels.nstates(model.model) + length(model.bathstates) - 1
 NQCModels.ndofs(model::WideBandBath) = NQCModels.ndofs(model.model)
-NQCModels.fermilevel(model::WideBandBath) = model.fermilevel
+NQCModels.nelectrons(model::WideBandBath) = fld(NQCModels.nstates(model), 2)
 
 function NQCModels.potential!(model::WideBandBath, V::Hermitian, r::Real)
 
