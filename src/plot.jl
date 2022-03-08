@@ -1,8 +1,8 @@
 
 module Plot
 
-using RecipesBase: RecipesBase, @recipe, @series
-using LinearAlgebra: eigvals, diag
+using RecipesBase: RecipesBase, @recipe, @series, @userplot
+using LinearAlgebra: eigvals, diag, eigvecs
 
 using Unitful: @u_str, uconvert
 using UnitfulRecipes: UnitfulRecipes
@@ -33,15 +33,20 @@ using ..DiabaticModels: DiabaticModel
     end
 end
 
-@recipe function f(x, model::DiabaticModel; adiabats=true, diabats=true, coupling=false, atomic=true)
+@recipe function f(x, model::DiabaticModel; adiabats=true, diabats=true, coupling=false, atomic=true, include_diagonal=true)
     eigs = zeros(length(x), nstates(model))
     diabatic = zeros(length(x), nstates(model))
     couplings = zeros(length(x), nstates(model), nstates(model))
     for i=1:length(x)
         V = potential(model, hcat(x[i]))
         state_independent = state_independent_potential(model, hcat(x[i]))
-        eigs[i,:] .= eigvals(V) .+ state_independent
-        diabatic[i,:] .= diag(V) .+ state_independent
+        if include_diagonal
+            eigs[i,:] .= eigvals(V) .+ state_independent
+            diabatic[i,:] .= diag(V) .+ state_independent
+        else
+            eigs[i,:] .= eigvals(V)
+            diabatic[i,:] .= diag(V)
+        end
         couplings[i,:,:] .= V
     end
 
@@ -87,6 +92,35 @@ end
                     else
                         uconvert.(u"Å", x .* u"bohr"), uconvert.(u"eV", couplings[:,i,j] .* u"hartree")
                     end
+                end
+            end
+        end
+    end
+end
+
+@userplot PlotAdiabaticGradient
+
+@recipe function f(p::PlotAdiabaticGradient; states=1:1, atomic=true)
+    x, model = p.args
+
+    legend := false
+
+    gradient = zeros(length(x), nstates(model), nstates(model))
+    for i=1:length(x)
+        V = potential(model, hcat(x[i]))
+        U = eigvecs(V)
+        D = derivative(model, hcat(x[i]))
+        gradient[i,:,:] .= U' * D[1] * U
+    end
+
+    for i in states
+        for j=i:nstates(model)
+            @series begin
+                linecolor := i == j ? :black : :red
+                if atomic
+                    x .* u"bohr", (gradient[:,j,i] .* u"hartree") .^2
+                else
+                    uconvert.(u"Å", x .* u"bohr"), uconvert.(u"eV^2/Å^2", (gradient[:,j,i] .* u"hartree/bohr") .^2)
                 end
             end
         end
