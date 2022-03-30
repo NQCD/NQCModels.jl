@@ -130,6 +130,8 @@ state_independent_derivative!(model, derivative, r) = fill!(derivative, zero(elt
 nelectrons(model) = 0
 fermilevel(model) = 0.0
 
+mobileatoms(::Model, r) = axes(r, 2)
+
 include("adiabatic/AdiabaticModels.jl")
 @reexport using .AdiabaticModels
 
