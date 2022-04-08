@@ -1,4 +1,6 @@
 using Libdl: Libdl
+using NQCBase: PeriodicCell
+using LinearAlgebra: BlasInt 
 """
 AdiabaticASEModel{A} <: AdiabaticModel
 

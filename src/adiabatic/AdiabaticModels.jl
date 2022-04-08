@@ -16,10 +16,6 @@ using Parameters: Parameters
 using Unitful: @u_str, ustrip
 using UnitfulAtomic: austrip, auconvert
 
-#EMT
-using NQCBase: PeriodicCell
-using LinearAlgebra: BlasInt 
-
 """
     AdiabaticModel <: Model
 
