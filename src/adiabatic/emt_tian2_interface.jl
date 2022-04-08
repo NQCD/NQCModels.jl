@@ -1,4 +1,4 @@
-using Libdl
+using Libdl: Libdl
 """
 AdiabaticASEModel{A} <: AdiabaticModel
 
@@ -16,13 +16,17 @@ hosts.
 
 Implements both `potential` and `derivative!`.
 """
-
 struct AdiabaticEMTModel{A,F} <: AdiabaticModel
     atoms#::A
     cell#::PeriodicCell
     wrapper_function#::F
     pes_path#::AbstractString
     library #soo we can shut it
+    r #positions
+    f #forces
+    natoms #number of atoms
+    nbeads #number of beads
+    V #potential energy
     function AdiabaticEMTModel(atoms, cell, lib_path, pes_path)
         library = Libdl.dlopen(lib_path)
         pes_init = Libdl.dlsym(library, :wrapper_mp_wrapper_read_pes_)
@@ -32,7 +36,9 @@ struct AdiabaticEMTModel{A,F} <: AdiabaticModel
         natoms = size(atoms.types)[1]
         nbeads = 1 #Kept for future use?
         ntypes = 2 #Projectile and lattice
-        cell_array = cell.vectors
+
+        # Md_tian2 seems to use row_major order (same as printed in POSCAR file)
+        cell_array = transpose(cell.vectors)
         natoms_list = zeros(Int32,ntypes)
         natoms_list[1] = 1 #one projectile
         natoms_list[2] = natoms - 1 # n-1 lattice atoms
@@ -60,7 +66,13 @@ struct AdiabaticEMTModel{A,F} <: AdiabaticModel
                 pes_file, size(pes_file), 
                 natoms_list, projectile_element, surface_element, is_proj)
 
-        new{typeof(atoms),typeof(wrapper)}(atoms, cell, wrapper, pes_path, library)
+
+        r = zeros(3,nbeads,natoms) #initialize position array to pass to md_tian2
+        f = zeros(3,nbeads,natoms) #initialize force array to pass to md_tian2
+
+        V = [Float64(0.)] #size nbeads
+
+        new{typeof(atoms),typeof(wrapper)}(atoms, cell, wrapper, pes_path, library, r, f, natoms, nbeads, V)
     end
 
 
@@ -81,12 +93,13 @@ NQCModels.ndofs(::AdiabaticEMTModel) = 3
 function NQCModels.potential(model::AdiabaticEMTModel, R::AbstractMatrix)
     # set_coordinates!(model, R)
 
-    natoms = size(model.atoms.types)[1]
-    nbeads = 1 #Kept for future use?
-    r = zeros(3,nbeads,natoms) 
-    r[:,1,:] = R[:,:]
-    f = zeros(3,nbeads,natoms) #forces
-    V = [Float64(0.)] #size nbeads
+    #natoms = size(model.atoms.types)[1]
+    #nbeads = 1 #Kept for future use?
+    #r = zeros(3,nbeads,natoms) 
+    model.r[:,1,:] = R[:,:]
+    model.f[:,1,:] = 0.
+    #f = zeros(3,nbeads,natoms) #forces
+    #V = [Float64(0.)] #size nbeads
 
     # ccall(model.wrapper_function,
     #         Cvoid,
@@ -105,20 +118,23 @@ function NQCModels.potential(model::AdiabaticEMTModel, R::AbstractMatrix)
         (Ref{Int32},Ref{Int32},Ptr{Float64},
         Ptr{Float64},Ptr{Float64}),
 
-        natoms, nbeads, r,
-        f, V )
+        model.natoms, model.nbeads, model.r,
+        model.f, model.V )
 
     return austrip(V[1] * u"eV")
 end
 
 function NQCModels.derivative!(model::AdiabaticEMTModel, D::AbstractMatrix, R::AbstractMatrix)
 
-    natoms = size(model.atoms.types)[1]
-    nbeads = 1 #Kept for future use?
-    r = zeros(3,nbeads,natoms) 
-    r[:,1,:] = R[:,:]
-    f = zeros(3,nbeads,natoms) #forces
-    V = [Float64(0.)] #size nbeads
+    #natoms = size(model.atoms.types)[1]
+    #nbeads = 1 #Kept for future use?
+    #r = zeros(3,nbeads,natoms) 
+    #r[:,1,:] = R[:,:]
+    #f = zeros(3,nbeads,natoms) #forces
+    #V = [Float64(0.)] #size nbeads
+
+    model.r[:,1,:] = R[:,:]
+    model.f[:,1,:] = 0.
 
     # ccall(model.wrapper_function,
     #         Cvoid,
@@ -137,8 +153,8 @@ function NQCModels.derivative!(model::AdiabaticEMTModel, D::AbstractMatrix, R::A
         (Ref{Int32},Ref{Int32},Ptr{Float64},
         Ptr{Float64},Ptr{Float64}),
 
-        natoms, nbeads, r,
-        f, V )
+        model.natoms, model.nbeads, model.r,
+        model.f, model.V )
 
 
     D .= f[:,1,:]
