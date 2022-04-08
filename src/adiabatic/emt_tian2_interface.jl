@@ -157,7 +157,7 @@ function NQCModels.derivative!(model::AdiabaticEMTModel, D::AbstractMatrix, R::A
         model.f, model.V )
 
 
-    D .= f[:,1,:]
+    D .= model.f[:,1,:]
     #D .= -model.atoms.get_forces()'
     @. D = austrip(D * u"eV/Å")
 
