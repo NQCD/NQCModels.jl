@@ -97,7 +97,7 @@ function NQCModels.potential(model::AdiabaticEMTModel, R::AbstractMatrix)
     #nbeads = 1 #Kept for future use?
     #r = zeros(3,nbeads,natoms) 
     model.r[:,1,:] = R[:,:]
-    model.f[:,1,:] = 0.
+    model.f[:,1,:] .= 0.
     #f = zeros(3,nbeads,natoms) #forces
     #V = [Float64(0.)] #size nbeads
 
@@ -134,7 +134,7 @@ function NQCModels.derivative!(model::AdiabaticEMTModel, D::AbstractMatrix, R::A
     #V = [Float64(0.)] #size nbeads
 
     model.r[:,1,:] = R[:,:]
-    model.f[:,1,:] = 0.
+    model.f[:,1,:] .= 0.
 
     # ccall(model.wrapper_function,
     #         Cvoid,
