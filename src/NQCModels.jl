@@ -116,21 +116,26 @@ function zero_derivative end
 
 Get the number of electronic states in the model.
 """
-function nstates end
+nstates(::Model) = error("This should return the total number of electronic states.")
 
 """
     ndofs(::Model)
 
 Get the number of degrees of freedom for every atom in the model. Usually 1 or 3.
 """
-function ndofs end
+ndofs(::Model) = error("This should return the number of degrees of freedom for each atom.")
+
+dofs(model::Model) = Base.OneTo(ndofs(model))
 
 state_independent_potential(model, r) = 0.0
 state_independent_derivative!(model, derivative, r) = fill!(derivative, zero(eltype(r)))
-nelectrons(model) = 0
+nelectrons(::Model) = error("This should return the total number of electrons.")
 fermilevel(model) = 0.0
 
-mobileatoms(::Model, r) = axes(r, 2)
+eachelectron(model::Model) = Base.OneTo(nelectrons(model))
+eachstate(model::Model) = Base.OneTo(nstates(model))
+
+mobileatoms(::Model, n::Int) = Base.OneTo(n)
 
 include("adiabatic/AdiabaticModels.jl")
 @reexport using .AdiabaticModels
