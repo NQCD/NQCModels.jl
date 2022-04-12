@@ -96,6 +96,7 @@ end
 
 NQCModels.ndofs(::MiaoSubotnik) = 1
 NQCModels.nstates(model::MiaoSubotnik) = model.n_states
+NQCModels.nelectrons(model::MiaoSubotnik) = div(model.M, 2)
 
 function NQCModels.potential!(model::MiaoSubotnik, V::Hermitian, R::Real)
     Parameters.@unpack m, ω, g, ΔG, Γ, ρ, increment, n_states = model
