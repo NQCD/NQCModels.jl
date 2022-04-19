@@ -20,7 +20,7 @@ NQCModels.ndofs(model::WideBandBath) = NQCModels.ndofs(model.model)
 NQCModels.nelectrons(model::WideBandBath) = fld(NQCModels.nstates(model), 2)
 NQCModels.fermilevel(::WideBandBath) = 0.0
 
-function NQCModels.potential!(model::WideBandBath, V::Hermitian, r::Real)
+function NQCModels.potential!(model::WideBandBath, V::Hermitian, r::AbstractMatrix)
 
     Vsystem = NQCModels.potential(model.model, r)
     n = NQCModels.nstates(model.model)
@@ -40,18 +40,23 @@ function NQCModels.potential!(model::WideBandBath, V::Hermitian, r::Real)
     return V
 end
 
-function NQCModels.derivative!(model::WideBandBath, D::Hermitian, r::Real)
+function NQCModels.derivative!(model::WideBandBath, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
 
     Dsystem = NQCModels.derivative(model.model, r)
     n = NQCModels.nstates(model.model)
-    ∂ϵ0 = Dsystem[1,1]
+    
+    for I in eachindex(Dsystem, D)
+        ∂ϵ0 = Dsystem[I][1,1]
 
-    # System states
-    @views D[diagind(D)[begin:n-1]] .= Dsystem[diagind(Dsystem)[begin+1:end]] .- ∂ϵ0
+        # System states
+        D_system_output = @view D[I][diagind(D[I])[begin:n-1]]
+        D_system_input = @view Dsystem[I][diagind(Dsystem[I])[begin+1:end]]
+        D_system_output .= D_system_input .- ∂ϵ0
 
-    # Coupling
-    for i=1:n-1
-        D.data[i,n:end] .= Dsystem[i+1,1] / sqrt(model.ρ)
+        # Coupling
+        for i=1:n-1
+            D[I].data[i,n:end] .= Dsystem[I][i+1,1] / sqrt(model.ρ)
+        end
     end
 
     return D
