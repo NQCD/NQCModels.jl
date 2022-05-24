@@ -160,5 +160,7 @@ include("erpenbeck_thoss.jl")
 export ErpenbeckThoss
 include("widebandbath.jl")
 export WideBandBath
+include("gaussianquadrature.jl")
+export GaussQuadrature
 
 end # module
