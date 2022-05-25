@@ -91,6 +91,8 @@ end
     @test test_model(ErpenbeckThoss(Γ=2.0), 1)
     @test test_model(WideBandBath(ErpenbeckThoss(Γ=2.0); step=0.1, bandmin=-1.0, bandmax=1.0), 1)
     @test test_model(WideBandBath(GatesHollowayElbow(); step=0.1, bandmin=-1.0, bandmax=1.0), 2)
+    @test test_model(GaussQuadrature(ErpenbeckThoss(Γ=2.0); nstates=10, bandmin=-1.0, bandmax=1.0), 1)
+    @test test_model(GaussQuadrature(GatesHollowayElbow(); nstates=10, bandmin=-1.0, bandmax=1.0), 2)
 end
 
 @testset "FrictionModels" begin
