@@ -4,6 +4,7 @@ authors = ["James Gardner <james.gardner1421@gmail.com>"]
 version = "0.8.10"
 
 [deps]
+FastGaussQuadrature = "442a2c76-b920-505d-bb47-c5924d526838"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 NQCBase = "78c76ebc-5665-4934-b512-82d81b5cbfb7"
