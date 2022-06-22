@@ -4,6 +4,7 @@ authors = ["James Gardner <james.gardner1421@gmail.com>"]
 version = "0.8.10"
 
 [deps]
+FastGaussQuadrature = "442a2c76-b920-505d-bb47-c5924d526838"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 NQCBase = "78c76ebc-5665-4934-b512-82d81b5cbfb7"
@@ -18,6 +19,7 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 UnitfulRecipes = "42071c24-d89e-48dd-8a24-8a12d9b8861f"
 
 [compat]
+FastGaussQuadrature = "0.4"
 ForwardDiff = "0.10"
 NQCBase = "0.1, 0.2"
 Parameters = "0.12"
