@@ -23,6 +23,12 @@ function setcoupling!(out::AbstractVector, bathcoupling::Real, coupling::Real)
     fill!(out, bathcoupling * coupling)
 end
 
+"""
+    TrapezoidalRule{B,T} <: WideBandBathDiscretisation
+
+Discretise wide band continuum using trapezoidal rule.
+Leads to evenly spaced states and constant coupling.
+"""
 struct TrapezoidalRule{B,T} <: WideBandBathDiscretisation
     bathstates::B
     bathcoupling::T
@@ -38,7 +44,8 @@ end
 """
     ShenviGaussLegendre{T}
 
-Defined exactly as described by Shenvi et al. in J. Chem. Phys. 130, 174107 (2009).
+Defined as described by Shenvi et al. in J. Chem. Phys. 130, 174107 (2009).
+The position of the negative sign for the state energy level has been moved to ensure the states are sorted from lowest to highest.
 """
 struct ShenviGaussLegendre{T} <: WideBandBathDiscretisation
     bathstates::Vector{T}
@@ -52,7 +59,7 @@ function ShenviGaussLegendre(M, bandmin, bandmax)
 
     bathstates = zeros(M)
     for i in eachindex(knots)
-        bathstates[i] = -ΔE/2 * (1/2 + knots[i]/2)
+        bathstates[i] = ΔE/2 * (-1/2 + knots[i]/2)
     end
     for i in eachindex(knots)
         bathstates[i+length(knots)] = ΔE/2 * (1/2 + knots[i]/2)
@@ -67,20 +74,21 @@ function ShenviGaussLegendre(M, bandmin, bandmax)
 end
 
 """
-    GaussLegendreReferenceImplementation{T}
+    ReferenceGaussLegendre{T}
 
 Implementation translated from Fortran code used for simulations of Shenvi et al. in J. Chem. Phys. 130, 174107 (2009).
 Two differences from ShenviGaussLegendre:
 - Position of minus sign in energy levels has been corrected.
 - Division by sqrt(ΔE) in the coupling. 
 """
-struct GaussLegendreReferenceImplementation{T} <: WideBandBathDiscretisation
+struct ReferenceGaussLegendre{T} <: WideBandBathDiscretisation
     bathstates::Vector{T}
     bathcoupling::Vector{T}
 end
 
-function GaussLegendreReferenceImplementation(M, bandmin, bandmax)
+function ReferenceGaussLegendre(M, bandmin, bandmax)
     M % 2 == 0 || throw(error("The number of states `M` must be even."))
+    @warn "(ReferenceGaussLegendre) The division by sqrt(ΔE) in the coupling is incorrect. Use ShenviGaussLegendre instead."
     knots, weights = gausslegendre(div(M, 2))
     ΔE = bandmax - bandmin
 
@@ -97,9 +105,15 @@ function GaussLegendreReferenceImplementation(M, bandmin, bandmax)
         bathcoupling[i] = sqrt(w) / 2
     end
 
-    return GaussLegendreReferenceImplementation(bathstates, bathcoupling)
+    return ReferenceGaussLegendre(bathstates, bathcoupling)
 end
 
+"""
+    FullGaussLegendre{T} <: WideBandBathDiscretisation
+
+Use Gauss-Legendre quadrature to discretise the continuum across the entire band width.
+This is similar to the ShenviGaussLegendre except that splits the continuum at the Fermi level into two halves.
+"""
 struct FullGaussLegendre{T} <: WideBandBathDiscretisation
     bathstates::Vector{T}
     bathcoupling::Vector{T}
@@ -121,42 +135,4 @@ function FullGaussLegendre(M, bandmin, bandmax)
     end
 
     return FullGaussLegendre(bathstates, bathcoupling)
-end
-
-struct GaussLegendre{T} <: WideBandBathDiscretisation
-    bathstates::Vector{T}
-    bathcoupling::Vector{T}
-end
-
-function GaussLegendre(M, bandmin, bandmax)
-    M % 2 == 0 || throw(error("The number of states `M` must be even."))
-    knots, weights = gausslegendre(div(M, 2))
-    ΔE = bandmax - bandmin
-
-    bathstates = zeros(M)
-    for i in eachindex(knots)
-        bathstates[i] = ΔE^2/16 * weights[i] * (knots[i] - 1)
-    end
-    for i in eachindex(knots)
-        bathstates[i+length(knots)] = ΔE^2/16 * weights[i] * (knots[i] + 1)
-    end
-
-    bathcoupling = zeros(M)
-    for (i, w) in zip(eachindex(bathcoupling), Iterators.cycle(weights))
-        bathcoupling[i] = ΔE * w / 4
-    end
-
-    return GaussLegendre(bathstates, bathcoupling)
-end
-
-struct RiemannSum{B,T} <: WideBandBathDiscretisation
-    bathstates::B
-    bathcoupling::T
-end
-
-function RiemannSum(M, bandmin, bandmax)
-    ΔE = bandmax - bandmin
-    bathstates = range(bandmin, bandmax, length=M) .* ΔE / M
-    coupling = ΔE / M
-    return RiemannSum(bathstates, coupling)
 end
