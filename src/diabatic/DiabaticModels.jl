@@ -161,4 +161,13 @@ export ErpenbeckThoss
 include("widebandbath.jl")
 export WideBandBath
 
+include("wide_band_bath_discretisation.jl")
+export TrapezoidalRule
+export ShenviGaussLegendre
+export ReferenceGaussLegendre
+export FullGaussLegendre
+
+include("anderson_holstein.jl")
+export AndersonHolstein
+
 end # module

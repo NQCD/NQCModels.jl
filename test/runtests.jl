@@ -3,6 +3,9 @@ using NQCBase
 using NQCModels
 using LinearAlgebra
 using FiniteDiff
+using SafeTestsets
+
+@time @safetestset "Wide band bath discretisations" begin include("wide_band_bath_discretisations.jl") end
 
 function finite_difference_gradient(model::NQCModels.AdiabaticModels.AdiabaticModel, R)
     f(x) = potential(model, x)
@@ -91,6 +94,9 @@ end
     @test test_model(ErpenbeckThoss(Γ=2.0), 1)
     @test test_model(WideBandBath(ErpenbeckThoss(Γ=2.0); step=0.1, bandmin=-1.0, bandmax=1.0), 1)
     @test test_model(WideBandBath(GatesHollowayElbow(); step=0.1, bandmin=-1.0, bandmax=1.0), 2)
+    @test test_model(AndersonHolstein(ErpenbeckThoss(Γ=2.0), TrapezoidalRule(10, -1, 1)), 1)
+    @test test_model(AndersonHolstein(ErpenbeckThoss(Γ=2.0), ShenviGaussLegendre(10, -1, 1)), 1)
+    @test test_model(AndersonHolstein(GatesHollowayElbow(), ShenviGaussLegendre(10, -1, 1)), 2)
 end
 
 @testset "FrictionModels" begin
