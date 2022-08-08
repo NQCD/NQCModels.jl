@@ -88,7 +88,7 @@ end
     @test test_model(SpinBoson(DebyeSpectralDensity(0.25, 0.5), 10, 1.0, 1.0), 10)
     @test test_model(OuyangModelOne(), 1)
     @test test_model(GatesHollowayElbow(), 2)
-    @test test_model(MiaoSubotnik(), 1)
+    @test test_model(MiaoSubotnik(Γ=0.1), 1)
     @test test_model(AnanthModelOne(), 1)
     @test test_model(AnanthModelTwo(), 1)
     @test test_model(ErpenbeckThoss(Γ=2.0), 1)
