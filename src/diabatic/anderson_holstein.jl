@@ -1,7 +1,13 @@
 
-struct AndersonHolstein{M<:DiabaticModel,B} <: LargeDiabaticModel
+struct AndersonHolstein{M<:DiabaticModel,B,D} <: LargeDiabaticModel
     model::M
     bath::B
+    tmp_derivative::Base.RefValue{D}
+end
+
+function AndersonHolstein(model, bath)
+    tmp_derivative = Ref(NQCModels.zero_derivative(model, zeros(1,1)))
+    return AndersonHolstein(model, bath, tmp_derivative)
 end
 
 NQCModels.nstates(model::AndersonHolstein) = NQCModels.nstates(model.bath) + 1
@@ -18,8 +24,7 @@ function NQCModels.potential!(model::AndersonHolstein, V::Hermitian, r::Abstract
 end
 
 function NQCModels.derivative!(model::AndersonHolstein, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
-
-    Dsystem = NQCModels.derivative(model.model, r)
+    Dsystem = get_subsystem_derivative(model, r)
     
     for I in eachindex(Dsystem, D)
         D[I][1,1] = Dsystem[I][2,2] - Dsystem[I][1,1]
@@ -35,9 +40,17 @@ function NQCModels.state_independent_potential(model::AndersonHolstein, r::Abstr
 end
 
 function NQCModels.state_independent_derivative!(model::AndersonHolstein, ∂V::AbstractMatrix, r::AbstractMatrix)
-    Dsystem = NQCModels.derivative(model.model, r)
+    Dsystem = get_subsystem_derivative(model, r)
     for I in eachindex(∂V, Dsystem)
         ∂V[I] = Dsystem[I][1,1]
     end
     return ∂V
+end
+
+function get_subsystem_derivative(model::AndersonHolstein, r::AbstractMatrix)
+    if size(r) != size(model.tmp_derivative[])
+        model.tmp_derivative[] = NQCModels.zero_derivative(model.model, r)
+    end
+    NQCModels.derivative!(model.model, model.tmp_derivative[], r)
+    return model.tmp_derivative[]
 end
