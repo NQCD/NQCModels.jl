@@ -130,7 +130,7 @@ dofs(model::Model) = Base.OneTo(ndofs(model))
 state_independent_potential(model, r) = 0.0
 state_independent_derivative!(model, derivative, r) = fill!(derivative, zero(eltype(r)))
 nelectrons(::Model) = error("This should return the total number of electrons.")
-fermilevel(model) = 0.0
+fermilevel(::Model) = 0.0
 
 eachelectron(model::Model) = Base.OneTo(nelectrons(model))
 eachstate(model::Model) = Base.OneTo(nstates(model))

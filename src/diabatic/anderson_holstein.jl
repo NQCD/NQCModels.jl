@@ -1,19 +1,23 @@
 
-struct AndersonHolstein{M<:DiabaticModel,B,D} <: LargeDiabaticModel
+struct AndersonHolstein{M<:DiabaticModel,B,D,T} <: LargeDiabaticModel
     model::M
     bath::B
     tmp_derivative::Base.RefValue{D}
+    fermi_level::T
+    nelectrons::Int
 end
 
-function AndersonHolstein(model, bath)
+function AndersonHolstein(model, bath; fermi_level=0.0)
     tmp_derivative = Ref(NQCModels.zero_derivative(model, zeros(1,1)))
-    return AndersonHolstein(model, bath, tmp_derivative)
+    fermi_level = austrip(fermi_level)
+    nelectrons = count(x -> x <= fermi_level, bath.bathstates)
+    return AndersonHolstein(model, bath, tmp_derivative, fermi_level, nelectrons)
 end
 
 NQCModels.nstates(model::AndersonHolstein) = NQCModels.nstates(model.bath) + 1
 NQCModels.ndofs(model::AndersonHolstein) = NQCModels.ndofs(model.model)
-NQCModels.nelectrons(model::AndersonHolstein) = fld(NQCModels.nstates(model.bath), 2)
-NQCModels.fermilevel(::AndersonHolstein) = 0
+NQCModels.nelectrons(model::AndersonHolstein) = model.nelectrons
+NQCModels.fermilevel(model::AndersonHolstein) = model.fermi_level
 
 function NQCModels.potential!(model::AndersonHolstein, V::Hermitian, r::AbstractMatrix)
     Vsystem = NQCModels.potential(model.model, r)
