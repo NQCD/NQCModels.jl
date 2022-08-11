@@ -6,6 +6,7 @@ using FiniteDiff
 using SafeTestsets
 
 @time @safetestset "Wide band bath discretisations" begin include("wide_band_bath_discretisations.jl") end
+@time @safetestset "Anderson Holstein" begin include("anderson_holstein.jl") end
 
 function finite_difference_gradient(model::NQCModels.AdiabaticModels.AdiabaticModel, R)
     f(x) = potential(model, x)
