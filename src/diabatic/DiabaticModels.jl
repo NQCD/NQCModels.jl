@@ -12,7 +12,7 @@ using Unitful: @u_str
 using UnitfulAtomic: austrip
 
 using Parameters: Parameters
-using LinearAlgebra: Hermitian
+using LinearAlgebra: LinearAlgebra, Hermitian
 using StaticArrays: SMatrix, SVector
 
 """
@@ -169,5 +169,8 @@ export FullGaussLegendre
 
 include("anderson_holstein.jl")
 export AndersonHolstein
+
+include("adiabatic_state_selector.jl")
+export AdiabaticStateSelector
 
 end # module
