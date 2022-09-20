@@ -55,19 +55,22 @@ end
 function ShenviGaussLegendre(M, bandmin, bandmax)
     M % 2 == 0 || throw(error("The number of states `M` must be even."))
     knots, weights = gausslegendre(div(M, 2))
-    ΔE = bandmax - bandmin
+    centre = (bandmax + bandmin) / 2
 
     bathstates = zeros(M)
     for i in eachindex(knots)
-        bathstates[i] = ΔE/2 * (-1/2 + knots[i]/2)
+        bathstates[i] = (centre - bandmin)/2 * knots[i] + (bandmin + centre) / 2
     end
     for i in eachindex(knots)
-        bathstates[i+length(knots)] = ΔE/2 * (1/2 + knots[i]/2)
+        bathstates[i+length(knots)] = (bandmax - centre)/2 * knots[i] + (bandmax + centre) / 2
     end
 
     bathcoupling = zeros(M)
-    for (i, w) in zip(eachindex(bathcoupling), Iterators.cycle(weights))
-        bathcoupling[i] = sqrt(ΔE * w) / 2
+    for (i, w) in zip(eachindex(bathcoupling), weights)
+        bathcoupling[i] = sqrt((centre - bandmin)/2  * w)
+    end
+    for (i, w) in zip(eachindex(bathcoupling), weights)
+        bathcoupling[i+length(w)] = sqrt((bandmax - centre)/2  * w)
     end
 
     return ShenviGaussLegendre(bathstates, bathcoupling)
