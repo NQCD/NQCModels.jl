@@ -66,11 +66,11 @@ function ShenviGaussLegendre(M, bandmin, bandmax)
     end
 
     bathcoupling = zeros(M)
-    for (i, w) in zip(eachindex(bathcoupling), weights)
+    for (i, w) in enumerate(weights)
         bathcoupling[i] = sqrt((centre - bandmin)/2  * w)
     end
-    for (i, w) in zip(eachindex(bathcoupling), weights)
-        bathcoupling[i+length(w)] = sqrt((bandmax - centre)/2  * w)
+    for (i, w) in enumerate(weights)
+        bathcoupling[i+length(weights)] = sqrt((bandmax - centre)/2  * w)
     end
 
     return ShenviGaussLegendre(bathstates, bathcoupling)
