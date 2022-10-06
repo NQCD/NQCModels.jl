@@ -1,7 +1,7 @@
 name = "NQCModels"
 uuid = "c814dc9f-a51f-4eaf-877f-82eda4edad48"
 authors = ["James Gardner <james.gardner1421@gmail.com>"]
-version = "0.8.17"
+version = "0.8.18"
 
 [deps]
 FastGaussQuadrature = "442a2c76-b920-505d-bb47-c5924d526838"
@@ -16,7 +16,6 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
-UnitfulRecipes = "42071c24-d89e-48dd-8a24-8a12d9b8861f"
 
 [compat]
 FastGaussQuadrature = "0.4"
@@ -29,7 +28,6 @@ Requires = "1"
 StaticArrays = "1"
 Unitful = "1"
 UnitfulAtomic = "1"
-UnitfulRecipes = "1"
 julia = "1.7"
 
 [extras]
