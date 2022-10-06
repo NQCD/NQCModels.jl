@@ -5,7 +5,6 @@ using RecipesBase: RecipesBase, @recipe, @series, @userplot
 using LinearAlgebra: eigvals, diag, eigvecs
 
 using Unitful: @u_str, uconvert
-using UnitfulRecipes: UnitfulRecipes
 using UnitfulAtomic: UnitfulAtomic
 
 using ..NQCModels: potential, derivative, nstates, state_independent_potential
