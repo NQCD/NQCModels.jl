@@ -7,6 +7,7 @@ using SafeTestsets
 @time @safetestset "Wide band bath discretisations" begin include("wide_band_bath_discretisations.jl") end
 @time @safetestset "Anderson Holstein" begin include("anderson_holstein.jl") end
 @safetestset "AdiabaticStateSelector" begin include("test_adiabatic_state_selector.jl") end
+@safetestset "md_tian2_EMT" begin include("test_mdtian2.jl") end
 
 include("test_utils.jl")
 

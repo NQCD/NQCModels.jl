@@ -1,6 +1,6 @@
 using Libdl: Libdl
-using NQCBase: PeriodicCell
 using LinearAlgebra: BlasInt 
+
 """
 AdiabaticASEModel{A} <: AdiabaticModel
 
@@ -18,162 +18,111 @@ hosts.
 
 Implements both `potential` and `derivative!`.
 """
-struct md_tian2_EMT{A,F} <: AdiabaticModel
-    atoms#::A
-    cell#::PeriodicCell
-    wrapper_function#::F
-    pes_path#::AbstractString
-    library #soo we can shut it
-    r #positions
-    f #forces
-    natoms #number of atoms
-    nbeads #number of beads
-    V #potential energy
-    function md_tian2_EMT(atoms, cell, lib_path, pes_path)
-        library = Libdl.dlopen(lib_path)
-        pes_init = Libdl.dlsym(library, :wrapper_mp_wrapper_read_pes_)
-        wrapper =  Libdl.dlsym(library, :wrapper_mp_wrapper_energy_force_)
-        
-        # Initialize pes
-        natoms = size(atoms.types)[1]
-        nbeads = 1 #Kept for future use?
-        ntypes = 2 #Projectile and lattice
+struct md_tian2_EMT{F,L} <: AdiabaticModel
+    wrapper_function::F
+    library::L # so we can shut it
+    r::Array{Float64,3} #positions
+    f::Array{Float64,3} #forces
+    natoms::Int
+    nbeads::Int
+    V::Vector{Float64}
+end
 
-        # Md_tian2 seems to use row_major order (same as printed in POSCAR file)
-        cell_array = transpose(cell.vectors)
-        natoms_list = zeros(Int32,ntypes)
-        natoms_list[1] = 1 #one projectile
-        natoms_list[2] = natoms - 1 # n-1 lattice atoms
+function md_tian2_EMT(atoms, cell, lib_path, pes_path)
+    library = Libdl.dlopen(lib_path)
+    pes_init = Libdl.dlsym(library, :wrapper_mp_wrapper_read_pes_)
+    wrapper =  Libdl.dlsym(library, :wrapper_mp_wrapper_energy_force_)
+    
+    # Initialize pes
+    natoms = size(atoms.types)[1]
+    nbeads = 1 #Kept for future use?
+    ntypes = 2 #Projectile and lattice
 
-        # Assume one projectile that is atom 1
-        # Assume one lattice with same elements
-        projectile_element = Vector{UInt8}(string(atoms.types[1])) #code wants this to check pes file is right
-        surface_element = Vector{UInt8}(string(atoms.types[2]))
-        is_proj = [true,false]
+    # Md_tian2 seems to use row_major order (same as printed in POSCAR file)
+    cell_array = transpose(cell.vectors)
+    natoms_list = zeros(Int32,ntypes)
+    natoms_list[1] = 1 #one projectile
+    natoms_list[2] = natoms - 1 # n-1 lattice atoms
 
-        pes_file = Vector{UInt8}(pes_path)
+    # Assume one projectile that is atom 1
+    # Assume one lattice with same elements
+    projectile_element = Vector{UInt8}(string(atoms.types[1])) #code wants this to check pes file is right
+    surface_element = Vector{UInt8}(string(atoms.types[2]))
+    is_proj = [1, 0]
 
-        @assert natoms == sum(natoms_list)
-        @assert length(is_proj) == ntypes
+    pes_file = Vector{UInt8}(pes_path)
 
+    @assert natoms == sum(natoms_list)
+    @assert length(is_proj) == ntypes
 
-        ccall(pes_init,
-                Cvoid,
+    ccall(pes_init,
+        Cvoid,
 
-                (Ref{Int32},Ref{Int32},Ref{Int32},Ptr{Float64},
-                Ptr{UInt8},Ref{Int},
-                Ptr{Int32},Ptr{UInt8},Ptr{UInt8},Ptr{BlasInt}),
+        (Ref{Int32},Ref{Int32},Ref{Int32},Ref{Float64},
+        Ref{UInt8},Ref{Int},
+        Ref{Int32},Ref{UInt8},Ref{UInt8},Ref{BlasInt}),
 
-                natoms, nbeads, ntypes, cell_array,
-                pes_file, size(pes_file), 
-                natoms_list, projectile_element, surface_element, is_proj)
+        natoms, nbeads, ntypes, cell_array,
+        pes_file, size(pes_file), 
+        natoms_list, projectile_element, surface_element, is_proj
+    )
 
+    r = zeros(3,nbeads,natoms) #initialize position array to pass to md_tian2
+    f = zeros(3,nbeads,natoms) #initialize force array to pass to md_tian2
 
-        r = zeros(3,nbeads,natoms) #initialize position array to pass to md_tian2
-        f = zeros(3,nbeads,natoms) #initialize force array to pass to md_tian2
+    V = zeros(Float64, nbeads)
 
-        V = [Float64(0.)] #size nbeads
-
-        new{typeof(atoms),typeof(wrapper)}(atoms, cell, wrapper, pes_path, library, r, f, natoms, nbeads, V)
-    end
-
-
-
+    md_tian2_EMT(wrapper, library, r, f, natoms, nbeads, V)
 end
 
 NQCModels.ndofs(::md_tian2_EMT) = 3
 
-
-# function md_tian2_EMT(atoms, cell, lib_path, pes_path)
-#     library = Libdl.dlopen(lib_path)
-#     #library = Libdl.dlopen("/home/chem/msrvhs/git_repos/md_tian2/src/md_tian2_lib.so")
-#     wrapper = Libdl.dlsym(library, :force_mp_full_energy_force_wrapper_)
-#     return md_tian2_EMT(atoms, cell, wrapper, pes_path)
-# end
-
-    
 function NQCModels.potential(model::md_tian2_EMT, R::AbstractMatrix)
-    # set_coordinates!(model, R)
-
-    #natoms = size(model.atoms.types)[1]
-    #nbeads = 1 #Kept for future use?
-    #r = zeros(3,nbeads,natoms) 
-    model.r[:,1,:] = R[:,:]
-    model.f[:,1,:] .= 0.
-    #f = zeros(3,nbeads,natoms) #forces
-    #V = [Float64(0.)] #size nbeads
-
-    # ccall(model.wrapper_function,
-    #         Cvoid,
-
-    #         (Ref{Int32},Ref{Int32},Ref{Int32},Ptr{Float64},Ptr{Float64},
-    #         Ptr{Float64},Ptr{Float64},Ptr{UInt8},Ref{Int},
-    #         Ptr{Int32},Ptr{UInt8},Ptr{UInt8},Ptr{BlasInt}),
-
-    #         natoms, nbeads, ntypes, r, cell_array,
-    #         f, V, pes_file, size(pes_file), 
-    #         natoms_list, projectile_element, surface_element, is_proj)
+    set_coordinates!(model, R)
+    fill!(model.f, zero(eltype(model.f)))
 
     ccall(model.wrapper_function,
         Cvoid,
 
-        (Ref{Int32},Ref{Int32},Ptr{Float64},
-        Ptr{Float64},Ptr{Float64}),
+        (Ref{Int32}, Ref{Int32},
+         Ref{Float64}, Ref{Float64}, Ref{Float64}),
 
-        model.natoms, model.nbeads, model.r,
-        model.f, model.V )
+        model.natoms, model.nbeads,
+        model.r, model.f, model.V
+    )
 
-    return austrip(V[1] * u"eV")
+    return austrip(model.V[1] * u"eV")
 end
 
 function NQCModels.derivative!(model::md_tian2_EMT, D::AbstractMatrix, R::AbstractMatrix)
 
-    #natoms = size(model.atoms.types)[1]
-    #nbeads = 1 #Kept for future use?
-    #r = zeros(3,nbeads,natoms) 
-    #r[:,1,:] = R[:,:]
-    #f = zeros(3,nbeads,natoms) #forces
-    #V = [Float64(0.)] #size nbeads
-
-    model.r[:,1,:] = R[:,:]
-    model.f[:,1,:] .= 0.
-
-    # ccall(model.wrapper_function,
-    #         Cvoid,
-
-    #         (Ref{Int32},Ref{Int32},Ref{Int32},Ptr{Float64},Ptr{Float64},
-    #         Ptr{Float64},Ptr{Float64},Ptr{UInt8},Ref{Int},
-    #         Ptr{Int32},Ptr{UInt8},Ptr{UInt8},Ptr{BlasInt}),
-
-    #         natoms, nbeads, ntypes, r, cell_array,
-    #         f, V, pes_file, size(pes_file), 
-    #         natoms_list, projectile_element, surface_element, is_proj)
+    set_coordinates!(model, R)
+    fill!(model.f, zero(eltype(model.f)))
 
     ccall(model.wrapper_function,
         Cvoid,
 
-        (Ref{Int32},Ref{Int32},Ptr{Float64},
-        Ptr{Float64},Ptr{Float64}),
+        (Ref{Int32},Ref{Int32},
+         Ref{Float64},Ref{Float64},Ref{Float64}),
 
-        model.natoms, model.nbeads, model.r,
-        model.f, model.V )
+        model.natoms, model.nbeads,
+        model.r, model.f, model.V
+    )
 
-
-    D .= model.f[:,1,:]
-    #D .= -model.atoms.get_forces()'
-    @. D = austrip(D * u"eV/Å")
+    for i in 1:model.natoms
+        for j in 1:3
+            D[j,i] = -austrip(model.f[j,1,i] * u"eV/Å")
+        end
+    end
 
     return D
 end
 
-# function NQCModels.cleanup(model::md_tian2_EMT)
+function set_coordinates!(model::md_tian2_EMT, R)
+    for i in 1:model.natoms
+        for j in 1:3
+            model.r[j,1,i] = ustrip(auconvert(u"Å", R[j,i]))
+        end
+    end
+end
 
-#     deallocate= Libdl.dlsym(library, :wrapper_mp_wrapper_deallocations_)
-#     ccall(deallocate,Cvoid,())
-#     library = Libdl.dlclose(lib_path)
-
-# end
-
-# function set_coordinates!(model::md_tian2_EMT, R)
-#     model.atoms.set_positions(ustrip.(auconvert.(u"Å", R')))
-# end
