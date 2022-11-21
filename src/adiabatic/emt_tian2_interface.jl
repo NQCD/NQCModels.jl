@@ -18,7 +18,7 @@ hosts.
 
 Implements both `potential` and `derivative!`.
 """
-struct AdiabaticEMTModel{A,F} <: AdiabaticModel
+struct md_tian2_EMT{A,F} <: AdiabaticModel
     atoms#::A
     cell#::PeriodicCell
     wrapper_function#::F
@@ -29,7 +29,7 @@ struct AdiabaticEMTModel{A,F} <: AdiabaticModel
     natoms #number of atoms
     nbeads #number of beads
     V #potential energy
-    function AdiabaticEMTModel(atoms, cell, lib_path, pes_path)
+    function md_tian2_EMT(atoms, cell, lib_path, pes_path)
         library = Libdl.dlopen(lib_path)
         pes_init = Libdl.dlsym(library, :wrapper_mp_wrapper_read_pes_)
         wrapper =  Libdl.dlsym(library, :wrapper_mp_wrapper_energy_force_)
@@ -81,18 +81,18 @@ struct AdiabaticEMTModel{A,F} <: AdiabaticModel
 
 end
 
-NQCModels.ndofs(::AdiabaticEMTModel) = 3
+NQCModels.ndofs(::md_tian2_EMT) = 3
 
 
-# function AdiabaticEMTModel(atoms, cell, lib_path, pes_path)
+# function md_tian2_EMT(atoms, cell, lib_path, pes_path)
 #     library = Libdl.dlopen(lib_path)
 #     #library = Libdl.dlopen("/home/chem/msrvhs/git_repos/md_tian2/src/md_tian2_lib.so")
 #     wrapper = Libdl.dlsym(library, :force_mp_full_energy_force_wrapper_)
-#     return AdiabaticEMTModel(atoms, cell, wrapper, pes_path)
+#     return md_tian2_EMT(atoms, cell, wrapper, pes_path)
 # end
 
     
-function NQCModels.potential(model::AdiabaticEMTModel, R::AbstractMatrix)
+function NQCModels.potential(model::md_tian2_EMT, R::AbstractMatrix)
     # set_coordinates!(model, R)
 
     #natoms = size(model.atoms.types)[1]
@@ -126,7 +126,7 @@ function NQCModels.potential(model::AdiabaticEMTModel, R::AbstractMatrix)
     return austrip(V[1] * u"eV")
 end
 
-function NQCModels.derivative!(model::AdiabaticEMTModel, D::AbstractMatrix, R::AbstractMatrix)
+function NQCModels.derivative!(model::md_tian2_EMT, D::AbstractMatrix, R::AbstractMatrix)
 
     #natoms = size(model.atoms.types)[1]
     #nbeads = 1 #Kept for future use?
@@ -166,7 +166,7 @@ function NQCModels.derivative!(model::AdiabaticEMTModel, D::AbstractMatrix, R::A
     return D
 end
 
-# function NQCModels.cleanup(model::AdiabaticEMTModel)
+# function NQCModels.cleanup(model::md_tian2_EMT)
 
 #     deallocate= Libdl.dlsym(library, :wrapper_mp_wrapper_deallocations_)
 #     ccall(deallocate,Cvoid,())
@@ -174,6 +174,6 @@ end
 
 # end
 
-# function set_coordinates!(model::AdiabaticEMTModel, R)
+# function set_coordinates!(model::md_tian2_EMT, R)
 #     model.atoms.set_positions(ustrip.(auconvert.(u"Å", R')))
 # end
