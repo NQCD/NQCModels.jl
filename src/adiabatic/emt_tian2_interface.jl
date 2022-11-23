@@ -88,8 +88,8 @@ function NQCModels.potential(model::md_tian2_EMT, R::AbstractMatrix)
     fill!(model.f, zero(eltype(model.f)))
 
     positions = zeros(size(model.r)[1],size(model.r)[2])
-    for i in 1,size(model.r)[1]
-        for j in 1,size(model.r)[1]
+    for i in 1:size(model.r)[1]
+        for j in 1:size(model.r)[1]
             positions[i,j] = austrip(cell_array[i,j]/u"Å")
         end
     end
@@ -114,8 +114,8 @@ function NQCModels.derivative!(model::md_tian2_EMT, D::AbstractMatrix, R::Abstra
     fill!(model.f, zero(eltype(model.f)))
 
     positions = zeros(size(model.r)[1],size(model.r)[2])
-    for i in 1,size(model.r)[1]
-        for j in 1,size(model.r)[1]
+    for i in 1:size(model.r)[1]
+        for j in 1:size(model.r)[1]
             positions[i,j] = austrip(cell_array[i,j]/u"Å")
         end
     end
