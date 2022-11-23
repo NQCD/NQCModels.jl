@@ -87,13 +87,6 @@ function NQCModels.potential(model::md_tian2_EMT, R::AbstractMatrix)
     set_coordinates!(model, R)
     fill!(model.f, zero(eltype(model.f)))
 
-    positions = zeros(size(model.r)[1],size(model.r)[2])
-    for i in 1:size(model.r)[1]
-        for j in 1:size(model.r)[2]
-            positions[i,j] = austrip(positions[i,j]/u"Å")
-        end
-    end
-
     ccall(model.wrapper_function,
         Cvoid,
 
@@ -101,8 +94,7 @@ function NQCModels.potential(model::md_tian2_EMT, R::AbstractMatrix)
          Ref{Float64}, Ref{Float64}, Ref{Float64}),
 
         model.natoms, model.nbeads,
-        # model.r, model.f, model.V
-        positions, model.f, model.V
+        model.r, model.f, model.V
     )
 
     return austrip(model.V[1] * u"eV")
@@ -113,12 +105,7 @@ function NQCModels.derivative!(model::md_tian2_EMT, D::AbstractMatrix, R::Abstra
     set_coordinates!(model, R)
     fill!(model.f, zero(eltype(model.f)))
 
-    positions = zeros(size(model.r)[1],size(model.r)[2])
-    for i in 1:size(model.r)[1]
-        for j in 1:size(model.r)[2]
-            positions[i,j] = austrip(positions[i,j]/u"Å")
-        end
-    end
+   
 
     ccall(model.wrapper_function,
         Cvoid,
@@ -127,7 +114,7 @@ function NQCModels.derivative!(model::md_tian2_EMT, D::AbstractMatrix, R::Abstra
          Ref{Float64},Ref{Float64},Ref{Float64}),
 
         model.natoms, model.nbeads,
-        positions, model.f, model.V
+        model.r, model.f, model.V
     )
 
     for i in 1:model.natoms
