@@ -40,6 +40,7 @@ function md_tian2_EMT(atoms, cell, lib_path, pes_path)
 
     # Md_tian2 seems to use row_major order (same as printed in POSCAR file)
     cell_array = transpose(cell.vectors)
+    
     natoms_list = zeros(Int32,ntypes)
     natoms_list[1] = 1 #one projectile
     natoms_list[2] = natoms - 1 # n-1 lattice atoms
@@ -62,7 +63,7 @@ function md_tian2_EMT(atoms, cell, lib_path, pes_path)
         Ref{UInt8},Ref{Int},
         Ref{Int32},Ref{UInt8},Ref{UInt8},Ref{BlasInt}),
 
-        natoms, nbeads, ntypes, cell_array,
+        natoms, nbeads, ntypes, austrip(cell_array/u"Å"),
         pes_file, size(pes_file), 
         natoms_list, projectile_element, surface_element, is_proj
     )
@@ -88,7 +89,8 @@ function NQCModels.potential(model::md_tian2_EMT, R::AbstractMatrix)
          Ref{Float64}, Ref{Float64}, Ref{Float64}),
 
         model.natoms, model.nbeads,
-        model.r, model.f, model.V
+        # model.r, model.f, model.V
+        austrip(model.r/u"Å"), model.f, model.V
     )
 
     return austrip(model.V[1] * u"eV")
@@ -106,7 +108,7 @@ function NQCModels.derivative!(model::md_tian2_EMT, D::AbstractMatrix, R::Abstra
          Ref{Float64},Ref{Float64},Ref{Float64}),
 
         model.natoms, model.nbeads,
-        model.r, model.f, model.V
+        austrip(model.r/u"Å"), model.f, model.V
     )
 
     for i in 1:model.natoms
