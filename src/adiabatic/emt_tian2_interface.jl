@@ -115,7 +115,7 @@ function NQCModels.derivative!(model::md_tian2_EMT, D::AbstractMatrix, R::Abstra
 
     positions = zeros(size(model.r)[1],size(model.r)[2])
     for i in 1:size(model.r)[1]
-        for j in 1:size(model.r)[1]
+        for j in 1:size(model.r)[2]
             positions[i,j] = austrip(positions[i,j]/u"Å")
         end
     end
@@ -129,7 +129,7 @@ function NQCModels.derivative!(model::md_tian2_EMT, D::AbstractMatrix, R::Abstra
         model.natoms, model.nbeads,
         positions, model.f, model.V
     )
-ßßß
+
     for i in 1:model.natoms
         for j in 1:3
             D[j,i] = -austrip(model.f[j,1,i] * u"eV/Å")
