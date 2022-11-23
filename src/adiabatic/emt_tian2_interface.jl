@@ -40,6 +40,11 @@ function md_tian2_EMT(atoms, cell, lib_path, pes_path)
 
     # Md_tian2 seems to use row_major order (same as printed in POSCAR file)
     cell_array = transpose(cell.vectors)
+    for i in 1:3
+        for j in 1:3
+            cel_array[i,j] = austrip(cell_array[i,j]/u"Å")
+        end
+    end
     
     natoms_list = zeros(Int32,ntypes)
     natoms_list[1] = 1 #one projectile
@@ -63,7 +68,7 @@ function md_tian2_EMT(atoms, cell, lib_path, pes_path)
         Ref{UInt8},Ref{Int},
         Ref{Int32},Ref{UInt8},Ref{UInt8},Ref{BlasInt}),
 
-        natoms, nbeads, ntypes, austrip(cell_array/u"Å"),
+        natoms, nbeads, ntypes, cell_array,
         pes_file, size(pes_file), 
         natoms_list, projectile_element, surface_element, is_proj
     )
@@ -82,6 +87,13 @@ function NQCModels.potential(model::md_tian2_EMT, R::AbstractMatrix)
     set_coordinates!(model, R)
     fill!(model.f, zero(eltype(model.f)))
 
+    positions = zeros(size(model.r)[1],size(model.r)[2])
+    for i in 1,size(model.r)[1]
+        for j in 1,size(model.r)[1]
+            positions[i,j] = austrip(cell_array[i,j]/u"Å")
+        end
+    end
+
     ccall(model.wrapper_function,
         Cvoid,
 
@@ -90,7 +102,7 @@ function NQCModels.potential(model::md_tian2_EMT, R::AbstractMatrix)
 
         model.natoms, model.nbeads,
         # model.r, model.f, model.V
-        austrip(model.r/u"Å"), model.f, model.V
+        positions, model.f, model.V
     )
 
     return austrip(model.V[1] * u"eV")
@@ -101,6 +113,13 @@ function NQCModels.derivative!(model::md_tian2_EMT, D::AbstractMatrix, R::Abstra
     set_coordinates!(model, R)
     fill!(model.f, zero(eltype(model.f)))
 
+    positions = zeros(size(model.r)[1],size(model.r)[2])
+    for i in 1,size(model.r)[1]
+        for j in 1,size(model.r)[1]
+            positions[i,j] = austrip(cell_array[i,j]/u"Å")
+        end
+    end
+
     ccall(model.wrapper_function,
         Cvoid,
 
@@ -108,9 +127,9 @@ function NQCModels.derivative!(model::md_tian2_EMT, D::AbstractMatrix, R::Abstra
          Ref{Float64},Ref{Float64},Ref{Float64}),
 
         model.natoms, model.nbeads,
-        austrip(model.r/u"Å"), model.f, model.V
+        positions, model.f, model.V
     )
-
+ßßß
     for i in 1:model.natoms
         for j in 1:3
             D[j,i] = -austrip(model.f[j,1,i] * u"eV/Å")
