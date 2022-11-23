@@ -42,7 +42,7 @@ function md_tian2_EMT(atoms, cell, lib_path, pes_path)
     cell_array = transpose(cell.vectors)
     for i in 1:3
         for j in 1:3
-            cel_array[i,j] = austrip(cell_array[i,j]/u"Å")
+            cell_array[i,j] = austrip(cell_array[i,j]/u"Å")
         end
     end
     
