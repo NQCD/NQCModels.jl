@@ -39,7 +39,11 @@ function md_tian2_EMT(atoms, cell, lib_path, pes_path)
     ntypes = 2 #Projectile and lattice
 
     # Md_tian2 seems to use row_major order (same as printed in POSCAR file)
-    cell_array = permutedims(cell.vectors)
+    #cell_array = transpose(cell.vectors)
+    cell_array = cell.vectors
+    cell_array = transpose(cell_array)
+    # cell_array = permutedims(cell.vectors)
+
     for i in 1:3
         for j in 1:3
             cell_array[i,j] = austrip(cell_array[i,j]/u"Å")
