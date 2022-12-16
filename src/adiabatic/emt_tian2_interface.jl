@@ -37,30 +37,33 @@ function md_tian2_EMT(atoms, cell, lib_path, pes_path; freeze=[])
     wrapper =  Libdl.dlsym(library, :wrapper_mp_wrapper_energy_force_)
     
     # Initialize pes
-    natoms = size(atoms.types)[1]
+    natoms = length(atoms.types)
     nbeads = 1 #Kept for future use?
-    ntypes = 2 #Projectile and lattice
+    mobile_atoms = setdiff(1:natoms, freeze)
+
+    elements_symbols = unique(atoms.types) 
+    ntypes= length(elements_symbols)
+
+    elements = string.(unique(atoms.types))
+    elements = Vector{UInt8}(join(elements,","))
+
+
+    natoms_list = zeros(Int32,ntypes)
+    for i in eachindex(elements_symbols)
+        natoms_list[i] =  count(==(elements_symbols[i]),atoms.types)
+    end
 
     # Md_tian2 seems to use row_major order (same as printed in POSCAR file)
     # cell_array = permutedims(cell.vectors,(2,1))
     cell_array = cell.vectors
-
     cell_array = auconvert.(u"Å", cell_array)/u"Å"
 
-    natoms_list = zeros(Int32,ntypes)
-    natoms_list[1] = 1 #one projectile
-    natoms_list[2] = natoms - 1 # n-1 lattice atoms
+    is_proj = zeros(Int64,ntypes)
+    is_proj[1] = 1 
 
-
-    mobile_atoms = setdiff(1:natoms, freeze)
-
-    # Assume one projectile that is atom 1
-    # Assume one lattice with same elements
-    projectile_element = Vector{UInt8}(string(atoms.types[1])) #code wants this to check pes file is right
-    surface_element = Vector{UInt8}(string(atoms.types[2]))
-    is_proj = [1, 0]
 
     pes_file = Vector{UInt8}(pes_path)
+
 
     @assert natoms == sum(natoms_list)
     @assert length(is_proj) == ntypes
@@ -70,11 +73,11 @@ function md_tian2_EMT(atoms, cell, lib_path, pes_path; freeze=[])
 
         (Ref{Int32},Ref{Int32},Ref{Int32},Ref{Float64},
         Ref{UInt8},Ref{Int},
-        Ref{Int32},Ref{UInt8},Ref{UInt8},Ref{BlasInt}),
+        Ref{Int32},Ref{UInt8}, Ref{Int}, Ref{BlasInt}),
 
         natoms, nbeads, ntypes, cell_array,
-        pes_file, size(pes_file), 
-        natoms_list, projectile_element, surface_element, is_proj
+        pes_file, length(pes_file), 
+        natoms_list, elements, length(elements),  is_proj
     )
 
     r = zeros(3,nbeads,natoms) #initialize position array to pass to md_tian2
