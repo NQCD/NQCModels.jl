@@ -1,6 +1,7 @@
 using Libdl: Libdl
-using LinearAlgebra: BlasInt 
-
+using LinearAlgebra: BlasInt
+using Unitful: ustrip
+using UnitfulAtomic: auconvert
 """
 AdiabaticASEModel{A} <: AdiabaticModel
 
@@ -64,6 +65,9 @@ function md_tian2_EMT(atoms, cell, lib_path, pes_path; freeze=[])
 
     pes_file = Vector{UInt8}(pes_path)
 
+    #Loics electronic density modification for O atom
+    modification = :O in atoms.types
+
 
     @assert natoms == sum(natoms_list)
     @assert length(is_proj) == ntypes
@@ -73,11 +77,16 @@ function md_tian2_EMT(atoms, cell, lib_path, pes_path; freeze=[])
 
         (Ref{Int32},Ref{Int32},Ref{Int32},Ref{Float64},
         Ref{UInt8},Ref{Int},
-        Ref{Int32},Ref{UInt8}, Ref{Int}, Ref{BlasInt}),
+        Ref{Int32},Ref{UInt8}, Ref{Int}, Ref{BlasInt},
+        Ref{Float64}, 
+        Ref{BlasInt}),
 
         natoms, nbeads, ntypes, cell_array,
         pes_file, length(pes_file), 
-        natoms_list, elements, length(elements),  is_proj
+        natoms_list, elements, length(elements),  is_proj,
+        ustrip.(auconvert.(u"eV*fs^2*Å^-2",atoms.masses)),
+        modification
+
     )
 
     r = zeros(3,nbeads,natoms) #initialize position array to pass to md_tian2
@@ -133,6 +142,35 @@ function NQCModels.derivative!(model::md_tian2_EMT, D::AbstractMatrix, R::Abstra
     return D
 end
 
+function pseudo_ldfa!(model::md_tian2_EMT,d::Vector{Float64}, F::Vector{Float64}, R::AbstractMatrix)
+
+    set_coordinates!(model, R)
+
+    friction = zeros(1,length(F)) #nbeads, natoms
+    density = zeros(1,length(d)) #nbeads, natoms
+
+    friction_function =  Libdl.dlsym(model.library, :wrapper_mp_wrapper_dens_friction_)
+
+    ccall(friction_function,
+        Cvoid,
+
+        (Ref{Int32},Ref{Int32},
+         Ref{Float64},Ref{Float64},Ref{Float64}),
+
+        model.natoms, model.nbeads,
+        model.r, friction, density
+    )
+
+    @inbounds for i in NQCModels.mobileatoms(model)
+        F[i] = austrip(friction[1,i] * u"fs^-1")
+        d[i] = austrip(density[1,i] * u"Å^-3") 
+    end
+
+
+
+    return d,F
+end
+
 function set_coordinates!(model::md_tian2_EMT, R)
     for i in 1:model.natoms
         for j in 1:3
@@ -141,25 +179,25 @@ function set_coordinates!(model::md_tian2_EMT, R)
     end
 end
 
-function find_layer_indices(r, layers)
-    freeze = Int[]
-    layers == 0 && return freeze
+# function find_layer_indices(r, layers)
+#     freeze = Int[]
+#     layers == 0 && return freeze
 
-    z_coordinates = @view r[3,:]
-    permutation = sortperm(z_coordinates)
-    ordered_z = z_coordinates[permutation]
-    current_z = ordered_z[begin]
-    current_layer = 1
+#     z_coordinates = @view r[3,:]
+#     permutation = sortperm(z_coordinates)
+#     ordered_z = z_coordinates[permutation]
+#     current_z = ordered_z[begin]
+#     current_layer = 1
 
-    for (i, z) in enumerate(ordered_z)
-        if !isapprox(z, current_z)
-            current_layer += 1
-            current_layer > layers && break
-            current_z = z
-        end
-        push!(freeze, permutation[i])
-    end
+#     for (i, z) in enumerate(ordered_z)
+#         if !isapprox(z, current_z)
+#             current_layer += 1
+#             current_layer > layers && break
+#             current_z = z
+#         end
+#         push!(freeze, permutation[i])
+#     end
     
-    return freeze
-end
+#     return freeze
+# end
 
