@@ -11,7 +11,7 @@ Model for interfacing with JuLIP potentials.
 """
 struct JuLIPModel{T,M} <: AdiabaticModel
     atoms::JuLIP.Atoms{T}
-    constr::Matrix{M}
+    constr::Vector{M}
 end
 
 NQCModels.ndofs(::JuLIPModel) = 3
