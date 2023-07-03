@@ -3,6 +3,7 @@ using NQCBase: au_to_ang, eV_to_au, eV_per_ang_to_au
 # using .JuLIP: JuLIP
 using .ACE1: ACE1
 export ACE1Model
+using StaticArrays: SVector
 
 """
     struct ACE1Model{T} <: AdiabaticModel
@@ -16,7 +17,7 @@ end
 
 NQCModels.ndofs(::ACE1Model) = 3
 
-mat(V::AbstractVector{SVec{N,T}}) where {N,T} =
+mat(V::AbstractVector{SVector{N,T}}) where {N,T} =
       reshape( reinterpret(T, V), (N, length(V)) )
 
 function NQCModels.potential(model::ACE1Model, R::AbstractMatrix)
