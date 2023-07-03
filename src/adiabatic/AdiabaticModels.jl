@@ -79,6 +79,7 @@ export AveragedPotential
 
 function __init__()
     Requires.@require JuLIP="945c410c-986d-556a-acb1-167a618e0462" @eval include("julip.jl")
+    Requires.@require ACE1="e3f9bc04-086e-409a-ba78-e9769fe067bb" @eval include("ace.jl")
 end
 
 end # module
