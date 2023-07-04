@@ -1,6 +1,6 @@
 
 using NQCBase: au_to_ang, eV_to_au, eV_per_ang_to_au
-# using .JuLIP: JuLIP
+using .JuLIP: JuLIP
 using .ACE1: ACE1
 export ACE1Model
 using StaticArrays: SVector
