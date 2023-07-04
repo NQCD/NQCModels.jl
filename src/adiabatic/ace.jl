@@ -27,7 +27,7 @@ end
 
 function NQCModels.derivative!(model::ACE1Model, D::AbstractMatrix, R::AbstractMatrix)
     JuLIP.set_positions!(model.atoms, au_to_ang.(R))
-    force = forces(model.model, model.atoms)
+    force = ACE1.forces(model.model, model.atoms)
     D .= -eV_per_ang_to_au.(mat(force))
     return D
 end
