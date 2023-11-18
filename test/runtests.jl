@@ -79,7 +79,8 @@ end
     at = JuLIP.bulk(:Si, cubic=true)
     deleteat!(at, 1)
     JuLIP.set_calculator!(at, JuLIP.StillingerWeber())
-    model = AdiabaticModels.JuLIPModel(at)
+    incl = ones(1,length(at))
+    model = AdiabaticModels.JuLIPModel(at,incl)
     @test test_model(model, length(at))
 end
 

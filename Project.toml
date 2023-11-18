@@ -4,7 +4,6 @@ authors = ["James Gardner <james.gardner1421@gmail.com>"]
 version = "0.8.20"
 
 [deps]
-
 ASEconvert = "3da9722f-58c2-4165-81be-b4d7253e8fd2"
 AtomsBase = "a963bdd2-2df7-4f54-a1ee-49d51e6be12a"
 FastGaussQuadrature = "442a2c76-b920-505d-bb47-c5924d526838"
