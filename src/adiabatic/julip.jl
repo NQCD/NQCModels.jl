@@ -9,8 +9,9 @@ export JuLIPModel
 
 Model for interfacing with JuLIP potentials.
 """
-struct JuLIPModel{T} <: AdiabaticModel
+struct JuLIPModel{T,M} <: AdiabaticModel
     atoms::JuLIP.Atoms{T}
+    constr::Matrix{M}
 end
 
 NQCModels.ndofs(::JuLIPModel) = 3
@@ -24,5 +25,6 @@ function NQCModels.derivative!(model::JuLIPModel, D::AbstractMatrix, R::Abstract
     JuLIP.set_positions!(model.atoms, au_to_ang.(R))
     force = JuLIP.forces(model.atoms)
     D .= -eV_per_ang_to_au.(JuLIP.mat(force))
+    D .*= model.constr
     return D
 end
