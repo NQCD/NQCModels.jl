@@ -1,3 +1,15 @@
+"""
+Orginal code from James Gardner, University of Warwick, UK
+Comments from Xuexun Lu on Tue, 21 Nov 2023 16:24 in University of Warwick, UK
+
+
+
+This module implements the Anderson-Holstein model, which is a diabatic model with bandwidth.
+
+
+"""
+
+
 
 struct AndersonHolstein{M<:DiabaticModel,B,D,T} <: LargeDiabaticModel
     model::M
@@ -10,6 +22,8 @@ end
 function AndersonHolstein(model, bath; fermi_level=0.0)
     tmp_derivative = Ref(NQCModels.zero_derivative(model, zeros(1,1)))
     fermi_level = austrip(fermi_level)
+    # x -> x <= fermi_level :  anonymous function that checks whether its argument x is less than or equal to fermi_level
+    # It counts how many states are below or equal to the fermi level
     nelectrons = count(x -> x <= fermi_level, bath.bathstates)
     return AndersonHolstein(model, bath, tmp_derivative, fermi_level, nelectrons)
 end
