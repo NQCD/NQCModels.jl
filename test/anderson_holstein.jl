@@ -18,7 +18,8 @@ If you wanted to test your local branch NQCModels.jl, you have to set the path o
 
 using Test
 using NQCModels
-
+using LinearAlgebra
+"""
 m = ErpenbeckThoss(;Γ=0.1)
 b = TrapezoidalRule(10, -10, 10)
 @testset "nelectrons" begin
@@ -30,3 +31,12 @@ b = TrapezoidalRule(10, -10, 10)
         @test NQCModels.nelectrons(model) == n
     end
 end
+"""
+
+
+m = ErpenbeckThoss(;Γ=0.1)
+b = TrapezoidalRule(10, -10, 10)
+
+model = AndersonHolstein(m, b) # fermilevel defaults to zero
+
+NQCModels.potential!(model, Hermitian(zeros(11,11)), zeros(1,1))
