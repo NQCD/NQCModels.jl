@@ -1,10 +1,11 @@
 """
-Orginal code from James Gardner, University of Warwick, UK
-Comments from Xuexun Lu on Tue, 21 Nov 2023 16:24 in University of Warwick, UK
-
-
 
 This module implements the Anderson-Holstein model, which is a diabatic model with bandwidth.
+
+Referencnes:
+http://fy.chalmers.se/~hellsing/Many_Body-Physics/Newns-Anderson_080210.pdf 
+
+https://link.springer.com/book/10.1007/978-1-4757-5714-9 section 4.2 (Anderson-Holstein model Hamiltonian)
 
 
 """
