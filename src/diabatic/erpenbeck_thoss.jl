@@ -58,11 +58,11 @@ end
 
 function NQCModels.potential(model::ErpenbeckThoss, r::Real)
     (;morse, c, D₁, D₂, x₀′, a′, V∞) = model
-    ϵ₀(x) = NQCModels.potential(morse, x) + c
-    ϵ₁(x) = D₁*exp(-2a′*(x-x₀′)) - D₂*exp(-a′*(x-x₀′)) + V∞
+    ϵ₀(x) = NQCModels.potential(morse, x) + c #neutral - Morse potential
+    ϵ₁(x) = D₁*exp(-2a′*(x-x₀′)) - D₂*exp(-a′*(x-x₀′)) + V∞ #charged
 
     (;q, ã, x̃, V̄ₖ) = model
-    Vₖ(x) = V̄ₖ * ((1-q)/2*(1 - tanh((x-x̃)/ã)) + q)
+    Vₖ(x) = V̄ₖ * ((1-q)/2*(1 - tanh((x-x̃)/ã)) + q) # coupling energy (Doesn't match the James' paper Eq 28)
 
     V11 = ϵ₀(r)
     V22 = ϵ₁(r)
