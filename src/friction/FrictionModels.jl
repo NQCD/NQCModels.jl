@@ -23,7 +23,7 @@ abstract type AdiabaticFrictionModel <: AdiabaticModel end
 Abstract type for defining models that provide electronic friction only.
 Subtypes of this should implement `friction!` and `ndofs`.
 """
-abstract type ElectronicFrictionProvider end
+abstract type ElectronicFrictionProvider <: NQCModels.Model end
 
 """
     friction!(model::AdiabaticFrictionModel, F, R:AbstractMatrix)
@@ -40,6 +40,7 @@ function friction! end
 Obtain the friction for the current position `R`.
 
 This is an allocating version of `friction!`.
+
 """
 function friction(model::AdiabaticFrictionModel, R)
     F = zero_friction(model, R)
