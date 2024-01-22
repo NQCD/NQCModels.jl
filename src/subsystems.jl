@@ -55,6 +55,9 @@ get_friction_models(system::CompositeModel) = get_friction_models(system.subsyst
 get_pes_models(system::Vector{<:Subsystem}) = @view system[findall(x->isa(x.model, AdiabaticModels.AdiabaticModel) || isa(x.model, DiabaticModels.DiabaticModel), system)]
 get_pes_models(system::CompositeModel) = get_pes_models(system.subsystems)
 
+dofs(system::CompositeModel) = 1:system.dofs
+ndofs(system::CompositeModel) = system.dofs
+
 """
 Subsystem combination logic - We only want to allow combination of subsystems:
 
