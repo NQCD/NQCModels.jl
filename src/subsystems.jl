@@ -43,7 +43,7 @@ CompositeModel(Subsystems...)
 
 A CompositeModel is composed of multiple Subsystems, creating an effective model which evaluates each Subsystem for its respective indices. 
 """
-struct CompositeModel{S<:Vector{<:Subsystem}, D<:Int}
+struct CompositeModel{S<:Vector{<:Subsystem}, D<:Int} <: Model
 	subsystems::S
 	dofs::D
 end
