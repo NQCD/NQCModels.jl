@@ -19,6 +19,10 @@ struct Subsystem{M<:Model, I<:Vector{Int}}
 	indices::I
 end
 
+function Base.show(io::IO, subsystem::Subsystem)
+    print(io, "Model subsystem:\n\t🏎️ $(subsystem.model)\n\t🔢 $(subsystem.indices)\n")
+end
+
 function Subsystem(model::Model, indices::Union{Vector{Int}, UnitRange{Int}, Int})
 	# Convert indices to a Vector{Int} for consistency
 	if isa(indices, Int)
@@ -46,6 +50,10 @@ A CompositeModel is composed of multiple Subsystems, creating an effective model
 struct CompositeModel{S<:Vector{<:Subsystem}, D<:Int} <: Model
 	subsystems::S
 	dofs::D
+end
+
+function Base.show(io::IO, model::CompositeModel)
+    print(io, "CompositeModel with subsystems:\n", [system for system in model.subsystems]...)
 end
 
 CompositeModel(subsystems::Subsystem...) = CompositeModel(check_models(subsystems...)...) # Check subsystems are a valid combination
