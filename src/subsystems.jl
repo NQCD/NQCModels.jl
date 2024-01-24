@@ -15,7 +15,7 @@ Calling `potential()`, `derivative!()`, or `friction!()` on a subsystem directly
 The Model specified will be supplied with the positions of the entire system for evaluation. 
 
 """
-struct Subsystem{M<:Model,I}
+struct Subsystem{M,I<:Union{Vector{Int64}, Colon}}
 	model::M
 	indices::I
 end
@@ -24,14 +24,15 @@ function Base.show(io::IO, subsystem::Subsystem)
     print(io, "Subsystem:\n\t🏎️ $(subsystem.model)\n\t🔢 $(subsystem.indices)\n")
 end
 
-function Subsystem(model, indices)
+function Subsystem(model, indices=:)
+	@debug "Outer Subsystem constructor called"
 	# Convert indices to a Vector{Int} or : for consistency
 	if isa(indices, Int)
 		indices = [indices]
 	elseif isa(indices, UnitRange{Int})
 		indices = collect(indices)
 	end
-	return Subsystem(model, indices)
+	Subsystem(model, indices)
 end
 
 # Passthrough functions to Model functions
@@ -39,7 +40,7 @@ potential(subsystem::Subsystem, R::AbstractMatrix) = potential(subsystem.model, 
 derivative(subsystem::Subsystem, R::AbstractMatrix) = derivative(subsystem.model, R)
 derivative!(subsystem::Subsystem, D::AbstractMatrix, R::AbstractMatrix) = derivative!(subsystem.model, D, R)
 FrictionModels.friction(subsystem::Subsystem, R::AbstractMatrix) = friction(subsystem.model, R)
-FrictionModels.friction!(subsystem::Subsystem, R::AbstractMatrix) = friction!(subsystem.model, R)
+FrictionModels.friction!(subsystem::Subsystem, F::AbstractMatrix, R::AbstractMatrix) = friction!(subsystem.model, F, R)
 dofs(subsystem::Subsystem) = dofs(subsystem.model)
 ndofs(subsystem::Subsystem) = ndofs(subsystem.model)
 
