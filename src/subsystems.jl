@@ -1,6 +1,7 @@
 
 export Subsystem, CompositeModel
 using .FrictionModels
+using .AdiabaticModels
 
 """
 Subsystem(M, indices)
@@ -14,7 +15,7 @@ Calling `potential()`, `derivative!()`, or `friction!()` on a subsystem directly
 The Model specified will be supplied with the positions of the entire system for evaluation. 
 
 """
-struct Subsystem{M<:Model, I}
+struct Subsystem{M<:Model,I}
 	model::M
 	indices::I
 end
@@ -23,7 +24,7 @@ function Base.show(io::IO, subsystem::Subsystem)
     print(io, "Subsystem:\n\t🏎️ $(subsystem.model)\n\t🔢 $(subsystem.indices)\n")
 end
 
-function Subsystem(model::Model, indices)
+function Subsystem(model, indices)
 	# Convert indices to a Vector{Int} or : for consistency
 	if isa(indices, Int)
 		indices = [indices]
@@ -47,7 +48,7 @@ CompositeModel(Subsystems...)
 
 A CompositeModel is composed of multiple Subsystems, creating an effective model which evaluates each Subsystem for its respective indices. 
 """
-struct CompositeModel{S<:Vector{<:Subsystem}, D<:Int} <: Model
+struct CompositeModel{S<:Vector{<:Subsystem}, D<:Int} <: AdiabaticModels.AdiabaticModel
 	subsystems::S
 	dofs::D
 end
