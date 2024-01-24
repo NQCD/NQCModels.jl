@@ -23,8 +23,8 @@ function Base.show(io::IO, subsystem::Subsystem)
     print(io, "Subsystem:\n\t🏎️ $(subsystem.model)\n\t🔢 $(subsystem.indices)\n")
 end
 
-function Subsystem(model::Model, indices::Union{Vector{Int}, UnitRange{Int}, Int, Colon})
-	# Convert indices to a Vector{Int} for consistency
+function Subsystem(model::Model, indices)
+	# Convert indices to a Vector{Int} or : for consistency
 	if isa(indices, Int)
 		indices = [indices]
 	elseif isa(indices, UnitRange{Int})
