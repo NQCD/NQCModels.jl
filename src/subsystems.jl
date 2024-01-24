@@ -14,16 +14,16 @@ Calling `potential()`, `derivative!()`, or `friction!()` on a subsystem directly
 The Model specified will be supplied with the positions of the entire system for evaluation. 
 
 """
-struct Subsystem{M<:Model, I<:Vector{Int}}
+struct Subsystem{M<:Model, I}
 	model::M
 	indices::I
 end
 
 function Base.show(io::IO, subsystem::Subsystem)
-    print(io, "Model subsystem:\n\t🏎️ $(subsystem.model)\n\t🔢 $(subsystem.indices)\n")
+    print(io, "Subsystem:\n\t🏎️ $(subsystem.model)\n\t🔢 $(subsystem.indices)\n")
 end
 
-function Subsystem(model::Model, indices::Union{Vector{Int}, UnitRange{Int}, Int})
+function Subsystem(model::Model, indices::Union{Vector{Int}, UnitRange{Int}, Int, Colon})
 	# Convert indices to a Vector{Int} for consistency
 	if isa(indices, Int)
 		indices = [indices]
