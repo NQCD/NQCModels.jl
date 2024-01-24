@@ -50,6 +50,9 @@ end
 
 zero_friction(::AdiabaticFrictionModel, R) = zeros(eltype(R), length(R), length(R))
 
+NQCModels.dofs(model::ElectronicFrictionProvider) = 1:model.ndofs
+NQCModels.ndofs(model::ElectronicFrictionProvider) = model.ndofs
+
 include("composite_friction_model.jl")
 export CompositeFrictionModel
 include("ase_friction_interface.jl")
