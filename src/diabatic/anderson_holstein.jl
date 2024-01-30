@@ -36,7 +36,7 @@ NQCModels.fermilevel(model::AndersonHolstein) = model.fermi_level
 
 function NQCModels.potential!(model::AndersonHolstein, V::Hermitian, r::AbstractMatrix)
     Vsystem = NQCModels.potential(model.model, r)
-    V[1,1] = Vsystem[2,2] - Vsystem[1,1]
+    V[1,1] = Vsystem[2,2] - Vsystem[1,1] # h(x) = U_1(x) - U_0(x)
     fillbathstates!(V, model.bath)
     fillbathcoupling!(V, Vsystem[2,1], model.bath)
     return V
