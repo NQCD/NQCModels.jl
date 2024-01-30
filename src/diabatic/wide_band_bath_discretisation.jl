@@ -30,8 +30,8 @@ Discretise wide band continuum using trapezoidal rule.
 Leads to evenly spaced states and constant coupling.
 """
 struct TrapezoidalRule{B,T} <: WideBandBathDiscretisation
-    bathstates::B
-    bathcoupling::T
+    bathstates::B   # ϵ
+    bathcoupling::T # V(ϵ,x̃) 
 end
 
 function TrapezoidalRule(M, bandmin, bandmax)
