@@ -62,7 +62,7 @@ function NQCModels.potential(model::ErpenbeckThoss, r::Real)
     ϵ₁(x) = D₁*exp(-2a′*(x-x₀′)) - D₂*exp(-a′*(x-x₀′)) + V∞ #charged     U_1
 
     (;q, ã, x̃, V̄ₖ) = model
-    Vₖ(x) = V̄ₖ * ((1-q)/2*(1 - tanh((x-x̃)/ã)) + q) # coupling energy (Doesn't match the James' paper Eq 28)
+    Vₖ(x) = V̄ₖ * ((1-q)/2*(1 - tanh((x-x̃)/ã)) + q) # coupling energy eq(20) https://journals.aps.org/prb/pdf/10.1103/PhysRevB.97.235452
 
     V11 = ϵ₀(r)
     V22 = ϵ₁(r)
