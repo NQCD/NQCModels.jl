@@ -52,6 +52,9 @@ function NQCModels.potential(::MyModel, R::Real)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
+##
+Hokseon: I'm very sure the derivative should be Hermitian(SMatrix{2,2}(1, 0, 0, -1))
+##
 function NQCModels.derivative!(::MyModel, D, R::Real)
     return Hermitian(SMatrix{2,2}(1, 0, 0, 1))
 end
