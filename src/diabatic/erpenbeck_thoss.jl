@@ -67,7 +67,7 @@ function NQCModels.potential(model::ErpenbeckThoss, r::Real)
     V11 = ϵ₀(r)
     V22 = ϵ₁(r)
     V12 = Vₖ(r)
-    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22)) # Diabatic Hamiltonian
 end
 
 function NQCModels.derivative(model::ErpenbeckThoss, r::Real)
