@@ -22,8 +22,13 @@ end
 ## Test by Hokseon
 
 m = ErpenbeckThoss(;Γ=0.1)
+
+# discretise the bath
 b = TrapezoidalRule(10, -10, 10)
+b_2 = ShenviGaussLegendre(10, -10, 10)
 
-model = AndersonHolstein(m, b) # fermilevel defaults to zero
+model = AndersonHolstein(m, b_2) # fermilevel defaults to zero
 
-NQCModels.potential!(model, Hermitian(zeros(11,11)), zeros(1,1))
+V = NQCModels.potential!(model, Hermitian(zeros(11,11)), zeros(1,1))
+
+
