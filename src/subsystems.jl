@@ -15,9 +15,9 @@ Calling `potential()`, `derivative!()`, or `friction!()` on a subsystem directly
 The Model specified will be supplied with the positions of the entire system for evaluation. 
 
 """
-struct Subsystem{M,I<:Union{Vector{Int64}, Colon}}
+struct Subsystem{M<:Union{Model, FrictionModels.ElectronicFrictionProvider}}
 	model::M
-	indices::I
+	indices
 end
 
 function Base.show(io::IO, subsystem::Subsystem)
@@ -100,13 +100,17 @@ end
 
 # Subsystem evaluation of model functions
 function potential(system::CompositeModel, R::AbstractMatrix)
-	potentials = [potential(subsystem, R[dofs(subsystem.model), subsystem.indices]) for subsystem in get_pes_models(system)]
-	return sum(potentials)
+	pes_models=get_pes_models(system)
+	total_potential_energy=potential(pes_models[1], R)
+	for subsystem in pes_models[2:end]
+		total_potential_energy+=potential(subsystem, R)
+	end
+	return total_potential_energy
 end
 
 function derivative!(system::CompositeModel, D::AbstractMatrix, R::AbstractMatrix)
 	for subsystem in get_pes_models(system)
-		derivative!(subsystem.model, view(D, dofs(subsystem), subsystem.indices), view(R, dofs(subsystem), subsystem.indices))
+		derivative!(subsystem, view(D, dofs(subsystem), subsystem.indices), R)
 	end
 end
 
@@ -119,7 +123,7 @@ end
 function FrictionModels.friction!(system::CompositeModel, F::AbstractMatrix, R::AbstractMatrix)
 	for subsystem in get_friction_models(system)
 		eft_indices=vcat([[(j-1)*ndofs(subsystem.model)+i for i in dofs(subsystem.model)] for j in subsystem.indices]...)
-		FrictionModels.friction!(subsystem.model, view(F, eft_indices, eft_indices), view(R, dofs(subsystem), subsystem.indices))
+		FrictionModels.friction!(subsystem, view(F, eft_indices, eft_indices), R)
 	end
 end
 
