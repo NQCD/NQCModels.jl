@@ -35,10 +35,10 @@ NQCModels.nelectrons(model::AndersonHolstein) = model.nelectrons
 NQCModels.fermilevel(model::AndersonHolstein) = model.fermi_level
 
 function NQCModels.potential!(model::AndersonHolstein, V::Hermitian, r::AbstractMatrix)
-    Vsystem = NQCModels.potential(model.model, r) # ErpenbeckThoss potential matrix 
+    Vsystem = NQCModels.potential(model.model, r) # ErpenbeckThoss potential matrix evaluate at r
     V[1,1] = Vsystem[2,2] - Vsystem[1,1] # h(r) = U_1(r) - U_0(r)
-    fillbathstates!(V, model.bath)
-    fillbathcoupling!(V, Vsystem[2,1], model.bath)
+    fillbathstates!(V, model.bath) # fill the diagonal elements [2,2]...[N,N] with bath energies (ϵ_k)
+    fillbathcoupling!(V, Vsystem[2,1], model.bath) # Vsystem[2,1] Hybridization function component V_k(r)  
     #Reference for V https://louhokseson.github.io/SVG/NAH_Matrix.svg
     return V
 end
