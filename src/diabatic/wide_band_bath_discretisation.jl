@@ -16,7 +16,7 @@ function fillbathcoupling!(out::Hermitian, coupling::Real, bath::WideBandBathDis
 end
 
 function setcoupling!(out::AbstractVector, bathcoupling::AbstractVector, coupling::Real)
-    out .= bathcoupling .* coupling
+    out .= bathcoupling .* coupling # discretisation coupling * Hybridization coupling component
 end
 
 function setcoupling!(out::AbstractVector, bathcoupling::Real, coupling::Real)
