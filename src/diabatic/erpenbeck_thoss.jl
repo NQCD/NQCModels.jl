@@ -57,6 +57,7 @@ function ErpenbeckThoss(;
 end
 
 function NQCModels.potential(model::ErpenbeckThoss, r::Real)
+    # position-dependent of the coupling function
     (;morse, c, D₁, D₂, x₀′, a′, V∞) = model
     ϵ₀(x) = NQCModels.potential(morse, x) + c #neutral - Morse potential U_0
     ϵ₁(x) = D₁*exp(-2a′*(x-x₀′)) - D₂*exp(-a′*(x-x₀′)) + V∞ #charged     U_1
@@ -71,6 +72,7 @@ function NQCModels.potential(model::ErpenbeckThoss, r::Real)
 end
 
 function NQCModels.derivative(model::ErpenbeckThoss, r::Real)
+    # explicit derivative from the .potential above
     (;morse, D₁, D₂, x₀′, a′) = model
     ∂ϵ₀(x) = NQCModels.derivative(morse, x)
     ∂ϵ₁(x) = -2a′*D₁*exp(-2a′*(x-x₀′)) + a′*D₂*exp(-a′*(x-x₀′))
