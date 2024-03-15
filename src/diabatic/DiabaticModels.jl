@@ -170,6 +170,9 @@ export ShenviGaussLegendre
 export ReferenceGaussLegendre
 export FullGaussLegendre
 
+include("wide_band_bath_gap_discretisation.jl")
+export TrapezoidalRuleGap
+
 include("anderson_holstein.jl")
 export AndersonHolstein
 
