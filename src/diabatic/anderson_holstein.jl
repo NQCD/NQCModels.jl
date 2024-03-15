@@ -1,3 +1,16 @@
+"""
+
+This module implements the Anderson-Holstein model, which is a diabatic model with bandwidth.
+
+Referencnes:
+http://fy.chalmers.se/~hellsing/Many_Body-Physics/Newns-Anderson_080210.pdf 
+
+https://link.springer.com/book/10.1007/978-1-4757-5714-9 section 4.2 (Anderson-Holstein model Hamiltonian)
+
+
+"""
+
+
 
 struct AndersonHolstein{M<:DiabaticModel,B,D,T} <: LargeDiabaticModel
     model::M
@@ -10,6 +23,8 @@ end
 function AndersonHolstein(model, bath; fermi_level=0.0)
     tmp_derivative = Ref(NQCModels.zero_derivative(model, zeros(1,1)))
     fermi_level = austrip(fermi_level)
+    # x -> x <= fermi_level :  anonymous function that checks whether its argument x is less than or equal to fermi_level
+    # It counts how many states are below or equal to the fermi level
     nelectrons = count(x -> x <= fermi_level, bath.bathstates)
     return AndersonHolstein(model, bath, tmp_derivative, fermi_level, nelectrons)
 end
@@ -20,10 +35,11 @@ NQCModels.nelectrons(model::AndersonHolstein) = model.nelectrons
 NQCModels.fermilevel(model::AndersonHolstein) = model.fermi_level
 
 function NQCModels.potential!(model::AndersonHolstein, V::Hermitian, r::AbstractMatrix)
-    Vsystem = NQCModels.potential(model.model, r)
-    V[1,1] = Vsystem[2,2] - Vsystem[1,1]
-    fillbathstates!(V, model.bath)
-    fillbathcoupling!(V, Vsystem[2,1], model.bath)
+    Vsystem = NQCModels.potential(model.model, r) # ErpenbeckThoss potential matrix evaluate at r
+    V[1,1] = Vsystem[2,2] - Vsystem[1,1] # h(r) = U_1(r) - U_0(r)
+    fillbathstates!(V, model.bath) # fill the diagonal elements [2,2]...[N,N] with bath energies (ϵ_k)
+    fillbathcoupling!(V, Vsystem[2,1], model.bath) # Vsystem[2,1] Hybridization function component V_k(r)  
+    #Reference for V https://louhokseson.github.io/SVG/NAH_Matrix.svg
     return V
 end
 

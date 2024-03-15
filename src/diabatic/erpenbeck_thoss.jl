@@ -58,16 +58,16 @@ end
 
 function NQCModels.potential(model::ErpenbeckThoss, r::Real)
     (;morse, c, D₁, D₂, x₀′, a′, V∞) = model
-    ϵ₀(x) = NQCModels.potential(morse, x) + c
-    ϵ₁(x) = D₁*exp(-2a′*(x-x₀′)) - D₂*exp(-a′*(x-x₀′)) + V∞
+    ϵ₀(x) = NQCModels.potential(morse, x) + c #neutral - Morse potential U_0
+    ϵ₁(x) = D₁*exp(-2a′*(x-x₀′)) - D₂*exp(-a′*(x-x₀′)) + V∞ #charged     U_1
 
     (;q, ã, x̃, V̄ₖ) = model
-    Vₖ(x) = V̄ₖ * ((1-q)/2*(1 - tanh((x-x̃)/ã)) + q)
+    Vₖ(x) = V̄ₖ * ((1-q)/2*(1 - tanh((x-x̃)/ã)) + q) # coupling energy eq(20) https://journals.aps.org/prb/pdf/10.1103/PhysRevB.97.235452
 
     V11 = ϵ₀(r)
     V22 = ϵ₁(r)
     V12 = Vₖ(r)
-    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22)) # Diabatic Hamiltonian
 end
 
 function NQCModels.derivative(model::ErpenbeckThoss, r::Real)
