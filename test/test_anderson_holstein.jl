@@ -24,11 +24,28 @@ end
 m = ErpenbeckThoss(;Γ=0.1)
 
 # discretise the bath
-b = TrapezoidalRule(10, -10, 10)
-b_2 = ShenviGaussLegendre(10, -10, 10)
+bath_T = TrapezoidalRule(10, -10, 10)
+bath_L = ShenviGaussLegendre(10, -10, 10)
 
-model = AndersonHolstein(m, b_2) # fermilevel defaults to zero
-
-V = NQCModels.potential!(model, Hermitian(zeros(11,11)), zeros(1,1))
+model = AndersonHolstein(m, bath_L) # fermilevel defaults to zero
 
 
+#V = NQCModels.potential!(model, Hermitian(zeros(11,11)), zeros(1,1))
+
+#@info "The potential matrix V"
+#display(V)
+
+"""
+    In this part, we will focus on the derivative compulation for the potential matrix.
+
+    model :AndersonHolstein
+    M :Matrix{Hermitian{Float64, Matrix{Float64}}}
+    zeros(1,1) : derivative evaluated at the position r
+
+"""
+
+# M is 1×1 Matrix{Hermitian{Float64, Matrix{Float64}}}:
+M = Matrix{Hermitian{Float64, Matrix{Float64}}}(undef, 1, 1)
+M[1] = Hermitian(zeros(2,2))
+
+D = NQCModels.derivative!(model, M, zeros(1,1))
