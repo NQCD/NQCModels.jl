@@ -1,17 +1,20 @@
+__precompile__()
+module MACE
 using PyCall
 using Unitful
 using UnitfulAtomic
 using NQCBase
 using Statistics
+using ..NQCModels: NQCModels, AdiabaticModels.AdiabaticModel
 
-const mace_data = PyNULL
-const torch = PyNULL
-const mace_tools = PyNULL
-const numpy = PyNULL
+const torch = PyNULL()
+const mace_data = PyNULL()
+const mace_tools = PyNULL()
+const numpy = PyNULL()
 
 function __init__()
-    copy!(mace_data, pyimport("mace.data"))
     copy!(torch, pyimport("torch"))
+    copy!(mace_data, pyimport("mace.data"))
     copy!(mace_tools, pyimport("mace.tools"))
     copy!(numpy, pyimport("numpy"))
 end
@@ -19,23 +22,22 @@ end
 mutable struct MACEPredictionCache{T}
     energies::Vector{Vector{T}}
     node_energy::Vector{Matrix{T}}
-    forces::Vector{AbstractArray{T, 3}}
-    stress::Vector{AbstractArray{T, 3}}
+    forces::Vector{<:AbstractArray{T, 3}}
+    stress::Vector{<:AbstractArray{T, 3}}
     input_structures::Vector
 end
 
 """
 MACE interface with support for ensemble of models and batch size selection for potentially faster inference. 
 
-
 """
-struct MACEModel{A} <: AdiabaticModel
+struct MACEModel{T} <: AdiabaticModel
     model_paths::Vector{String}
     models::Vector
     device::Vector{String}
-    default_dtype::A
+    default_dtype::Type{T}
     batch_size::Union{Int, Nothing}
-    cutoff_radius::A
+    cutoff_radius::T
     last_eval_cache::MACEPredictionCache
     z_table
 end
@@ -75,30 +77,26 @@ function MACEModel(model_paths::Vector{String}, device::Union{String, Vector{Str
     
     # Load MACE models
     models = []
-    for file_path in model_paths
+    for (i,file_path) in enumerate(model_paths)
         try
-            model=torch.load(f=file_path, map_location=device)
-            model=model.to(device)
+            model=torch.load(f=file_path, map_location=device[i])
+            model=model.to(device[i])
             push!(models, model)
-        catch
+        catch e
+            throw(e)
             @error "Error loading model from file: $file_path"
         end
     end
 
-    # Store in models vector
-    for model_path in model_paths
-        push!(models, pyimport("torch").jit.load(model_path))
-    end
-
     # Check cutoff radii are identical
-    cutoff_radii = [model.r_max.cpu() for model in models]
+    cutoff_radii = [model.r_max.cpu().item() for model in models]
     if length(unique(cutoff_radii)) > 1
         @warn "Cutoff radii are not identical for all models."
     end
-    cutoff_radius = unique(cutoff_radii)[1]
+    cutoff_radius = convert(default_dtype, unique(cutoff_radii)[1])
 
     # Build z-table (needs PyVector representation)
-    z_table = mace_tools.utils.AtomicNumberTable(PyVector([Int(Z) for Z in models[1].atomic_numbers]))
+    z_table = mace_tools.utils.AtomicNumberTable(PyVector(py"[int(Z) for Z in $models[0].atomic_numbers]"))
 
     # Freeze parameters
     for model in models
@@ -329,3 +327,4 @@ end
 #? Unsure whether to implement functions such as evaluate_forces(model, R) since predict!() isn't too difficult to understand. 
 
 export predict!, get_energy_mean, get_energy_variance, get_energy_ensemble, get_forces_mean, get_forces_variance, get_forces_ensemble, MACEModel, MACEPredictionCache
+end
