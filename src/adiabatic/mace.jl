@@ -176,7 +176,7 @@ function predict!(
         dataset = Vector{PyObject}(undef, length(R))
         @views for i in axes(R, 3)
             config = mace_configuration_from_nqcd_configuration(atoms[i], cell[i], R[i])
-            dataset[i] = mace_data.utils.AtomicData.from_config(config, mace_interface.z_table, mace_interface.cutoff_radius)
+            dataset[i] = mace_data.AtomicData.from_config(config, mace_interface.z_table, mace_interface.cutoff_radius)
         end
         # Initialise DataLoader
         batch_size = mace_interface.batch_size === nothing ? length(dataset) : mace_interface.batch_size # Ensure there is a batch size
