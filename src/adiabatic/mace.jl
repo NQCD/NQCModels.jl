@@ -167,9 +167,9 @@ end
 
 function predict!(
     mace_interface::MACEModel, 
-    atoms::Vector{Atoms},
-    R::Vector{AbstractMatrix},
-    cell::Vector{Union{InfiniteCell, PeriodicCell}},
+    atoms::Vector{<:Atoms},
+    R::Vector{<:AbstractMatrix},
+    cell::Vector{<:AbstractCell},
     )
     if R != mace_interface.last_eval_cache.input_structures
         # Create MACE atomicdata representation
@@ -217,9 +217,9 @@ function predict!(
 end
 
 # Same atoms and cell for multiple structures
-predict!(mace_interface::MACEModel, atoms::Atoms, R::Vector{AbstractMatrix}, cell::Union{InfiniteCell, PeriodicCell}) = predict!(mace_interface, [atoms for _ in 1:length(R)], R, [cell for _ in 1:length(R)])
+predict!(mace_interface::MACEModel, atoms::Atoms, R::Vector{<:AbstractMatrix}, cell::AbstractCell) = predict!(mace_interface, [atoms for _ in 1:length(R)], R, [cell for _ in 1:length(R)])
 # Single structure version
-predict!(mace_interface::MACEModel, atoms::Atoms, R::AbstractMatrix, cell::Union{InfiniteCell, PeriodicCell}) = predict!(mace_interface, [atoms], [R], [cell])
+predict!(mace_interface::MACEModel, atoms::Atoms, R::AbstractMatrix, cell::AbstractCell) = predict!(mace_interface, [atoms], [R], [cell])
 
 
 
