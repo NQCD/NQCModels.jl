@@ -35,7 +35,7 @@ end
 
 # ToDo: Nice constructor for MACEModel and simpler input for single model. 
 
-function MACEModel(model_paths::Vector{String}, device::Union{String, Vector{String}}="cpu", default_dtype::Union{Float64, Float32}=Float64, batch_size::Int=1)
+function MACEModel(model_paths::Vector{String}, device::Union{String, Vector{String}}="cpu", default_dtype::Type=Float64, batch_size::Int=1)
     # Assign device to all models if only one device is given
     isa(device, String) ? device = [device for _ in 1:length(model_paths)] : nothing
     # Check selected device types are available
