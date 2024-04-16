@@ -173,7 +173,7 @@ function predict!(
     )
     if R != mace_interface.last_eval_cache.input_structures
         # Create MACE atomicdata representation
-        dataset = Vector{PyObject}(undef, length(R))
+        dataset = Vector{Any}(undef, length(R))
         @views for i in axes(R, 3)
             config = mace_configuration_from_nqcd_configuration(atoms[i], cell[i], R[i])
             dataset[i] = mace_data.AtomicData.from_config(config, mace_interface.z_table, mace_interface.cutoff_radius)
