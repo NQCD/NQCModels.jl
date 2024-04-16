@@ -4,10 +4,17 @@ using UnitfulAtomic
 using NQCBase
 using Statistics
 
-mace_data = pyimport("mace.data")
-torch = pyimport("torch")
-mace_tools = pyimport("mace.tools")
-numpy = pyimport("numpy")
+const mace_data = PyNULL
+const torch = PyNULL
+const mace_tools = PyNULL
+const numpy = PyNULL
+
+function __init__()
+    copy!(mace_data, pyimport("mace.data"))
+    copy!(torch, pyimport("torch"))
+    copy!(mace_tools, pyimport("mace.tools"))
+    copy!(numpy, pyimport("numpy"))
+end
 
 mutable struct MACEPredictionCache{T}
     energies::Vector{Vector{T}}
@@ -30,7 +37,7 @@ struct MACEModel{A} <: AdiabaticModel
     batch_size::Union{Int, Nothing}
     cutoff_radius::A
     last_eval_cache::MACEPredictionCache
-    z_table::PyObject
+    z_table
 end
 
 # ToDo: Nice constructor for MACEModel and simpler input for single model. 
@@ -40,20 +47,30 @@ function MACEModel(model_paths::Vector{String}, device::Union{String, Vector{Str
     isa(device, String) ? device = [device for _ in 1:length(model_paths)] : nothing
     # Check selected device types are available
     for dev in device
-        if split(dev, ":")[1] == "cuda" && torch.cuda.is_available()
-            @debug "CUDA device available, using GPU."
+        if split(dev, ":")[1] == "cuda"
+            if torch.cuda.is_available()
+                @debug "CUDA device available, using GPU."
+            else
+                @warn "CUDA device not available, falling back to CPU."
+                dev = "cpu"
+            end
             if length(split(dev, ":")) == 2
                 torch.cuda.device_count() < parse(Int, split(dev, ":")[2]) || throw(ArgumentError("CUDA device index out of range."))
             end
-        elseif dev == "mps" && torch.backends.mps.is_available()
-            @debug "MPS device available, using GPU."
+        elseif dev == "mps"
+            if torch.backends.mps.is_available()
+                @debug "MPS device available, using GPU."
+            else
+                @warn "MPS device not available, falling back to CPU."
+                dev = "cpu"
+            end
         else
-            @warn "No CUDA device available, falling back to CPU."
+            @debug "CPU selected as torch.device"
             dev = "cpu"
         end
     end
     # Set default dtype for torch
-    dtypes_julia_python = Dict(Float32 => torch.float32, Float64 => torch.float64)
+    dtypes_julia_python = Dict{Type, Any}(Float32 => torch.float32, Float64 => torch.float64)
     torch.set_default_dtype(dtypes_julia_python[default_dtype])
     
     # Load MACE models
