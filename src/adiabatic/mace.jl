@@ -9,6 +9,14 @@ torch = pyimport("torch")
 mace_tools = pyimport("mace.tools")
 numpy = pyimport("numpy")
 
+mutable struct MACEPredictionCache{T}
+    energies::Vector{Vector{T}}
+    node_energy::Vector{Matrix{T}}
+    forces::Vector{AbstractArray{T, 3}}
+    stress::Vector{AbstractArray{T, 3}}
+    input_structures::Vector
+end
+
 """
 MACE interface with support for ensemble of models and batch size selection for potentially faster inference. 
 
@@ -25,17 +33,9 @@ struct MACEModel{A} <: AdiabaticModel
     z_table::PyObject
 end
 
-mutable struct MACEPredictionCache{T}
-    energies::Vector{Vector{T}}
-    node_energy::Vector{Matrix{T}}
-    forces::Vector{AbstractArray{T, 3}}
-    stress::Vector{AbstractArray{T, 3}}
-    input_structures::Vector
-end
-
 # ToDo: Nice constructor for MACEModel and simpler input for single model. 
 
-function MACEModel(model_paths::Vector{String}, device::Unsion{String, Vector{String}}="cpu", default_dtype::Union{Float64, Float32}=Float64, batch_size::Int=1)
+function MACEModel(model_paths::Vector{String}, device::Union{String, Vector{String}}="cpu", default_dtype::Union{Float64, Float32}=Float64, batch_size::Int=1)
     # Assign device to all models if only one device is given
     isa(device, String) ? device = [device for _ in 1:length(model_paths)] : nothing
     # Check selected device types are available
@@ -305,12 +305,7 @@ function NQCModels.derivative!(model::MACEModel, D::AbstractMatrix, atoms::Atoms
 end
 
 # ToDo: Potential and derivative for multiple structures
-function NQCModels.potential(model::MACEModel, atoms::Atoms, R::AbstractMatrix, cell::Union{InfiniteCell, PeriodicCell})
-    # Evaluate model
-    predict!(model, atoms, cat(R; dims=3), cell)
-    # Return potential (mean is trivial here)
-    return get_energy_mean(model.last_eval_cache)
-end
+
 
 # ToDo: Evaluation functions for the model which check whether the prediction is up to date and only evaluate if necessary.
 
