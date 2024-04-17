@@ -1,11 +1,25 @@
 __precompile__()
 module MACE
+"""
+This module contains an interface to the MACE machine learning interatomic potential, borrowing heavily from eval_configs.py and the MACE ase calculator. 
+
+MIT License
+
+Copyright (c) 2022 ACEsuit/mace
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
+to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+"""
+
 using PyCall
 using Unitful
 using UnitfulAtomic
 using NQCBase
 using Statistics
-using ..NQCModels: NQCModels, AdiabaticModels.AdiabaticModel
+using ..NQCModels: NQCModels, AdiabaticModels.AdiabaticChemicalEnvironmentModel
 
 const torch = PyNULL()
 const mace_data = PyNULL()
@@ -30,8 +44,10 @@ end
 """
 MACE interface with support for ensemble of models and batch size selection for potentially faster inference. 
 
+DOFs currently hardcoded at 3. 
+
 """
-struct MACEModel{T} <: AdiabaticModel
+struct MACEModel{T} <: AdiabaticChemicalEnvironmentModel
     model_paths::Vector{String}
     models::Vector
     device::Vector{String}
@@ -40,7 +56,11 @@ struct MACEModel{T} <: AdiabaticModel
     cutoff_radius::T
     last_eval_cache::MACEPredictionCache
     z_table
+    ndofs::Int
 end
+
+NQCModels.ndofs(model::MACEModel) = 3
+NQCModels.dofs(model::MACEModel) = Base.OneTo(3)
 
 # ToDo: Nice constructor for MACEModel and simpler input for single model. 
 
@@ -114,7 +134,7 @@ function MACEModel(model_paths::Vector{String}, device::Union{String, Vector{Str
         [], # Input structures
     )
 
-    return MACEModel(model_paths, models, device, default_dtype, batch_size, cutoff_radius, starter_mace_cache, z_table)
+    return MACEModel(model_paths, models, device, default_dtype, batch_size, cutoff_radius, starter_mace_cache, z_table, 3)
 end
 
 # ToDo: Entry point into MACE's configuration data handling - py-Configuration from NQCD objects.
@@ -174,7 +194,7 @@ function predict!(
     if R != mace_interface.last_eval_cache.input_structures
         # Create MACE atomicdata representation
         dataset = Vector{Any}(undef, length(R))
-        @views for i in axes(R, 3)
+        for i in eachindex(R)
             config = mace_configuration_from_nqcd_configuration(atoms[i], cell[i], R[i])
             dataset[i] = mace_data.AtomicData.from_config(config, mace_interface.z_table, mace_interface.cutoff_radius)
         end
@@ -188,10 +208,10 @@ function predict!(
         )
         # Update evaluation cache for outputs
         mace_interface.last_eval_cache.input_structures = R 
-        mace_interface.last_eval_cache.energies = [zeros(mace_interface.default_dtype, length(mace_interface.models)) for _ in 1:length(dataset)]
-        mace_interface.last_eval_cache.node_energy = [zeros(mace_interface.default_dtype, (size(i, 2), length(mace_interface.models))) for i in dataset]
-        mace_interface.last_eval_cache.forces = [zeros(mace_interface.default_dtype, (size(i, 2), size(i, 1), length(mace_interface.models))) for i in dataset] 
-        mace_interface.last_eval_cache.stress = [zeros(mace_interface.default_dtype, (3, 3, length(mace_interface.models))) for _ in 1:length(dataset)]
+        mace_interface.last_eval_cache.energies = [zeros(mace_interface.default_dtype, length(mace_interface.models)) for _ in R]
+        mace_interface.last_eval_cache.node_energy = [zeros(mace_interface.default_dtype, (size(i, 2), length(mace_interface.models))) for i in R]
+        mace_interface.last_eval_cache.forces = [zeros(mace_interface.default_dtype, (size(i, 2), size(i, 1), length(mace_interface.models))) for i in R] 
+        mace_interface.last_eval_cache.stress = [zeros(mace_interface.default_dtype, (3, 3, length(mace_interface.models))) for _ in R]
 
         # Iterate through dataloader and evaluate each model
         for batch in mace_DataLoader
@@ -200,16 +220,14 @@ function predict!(
                 clone = batch.clone().to(mace_interface.device[index])
                 # Evaluate model
                 model_output = model(clone.to_dict(), compute_stress=true)
-                # Update evaluation cache
-                setindex!.(mace_interface.last_eval_cache.energy, model_output["energy"].cpu().detach().numpy(), index)
-                # Split forces according to batching 
+                # Split according to batching
                 #! Check how well this performs and whether this actually saves memory
-                energies = model_output["energies"].cpu().detach().numpy() 
+                energies = model_output["energy"].cpu().detach().numpy() 
                 forces = model_output["forces"].cpu().detach().numpy() 
-                splitting = clone.ptr.cpu().detach().numpy() # Array of batch item bounds in output arrays
+                splitting = clone.ptr.cpu().detach().numpy() .+1 # Array of batch item bounds in output arrays, +1 due to Julia-Python conversion
                 for batch_structure in 2:length(splitting)
-                    mace_interface.last_eval_cache.energies[batch_structure-1] = energies[batch_structure-1]
-                    @views mace_interface.last_eval_cache.forces[batch_structure][:, :, index] .= forces[splitting[batch_structure-1]:splitting[batch_structure], :]
+                    mace_interface.last_eval_cache.energies[batch_structure-1][index] = energies[batch_structure-1]
+                    @views mace_interface.last_eval_cache.forces[batch_structure-1][:, :, index] .= forces[splitting[batch_structure-1]:splitting[batch_structure]-1, :] # last index -1 because Julia includes last index in a slice
                 end
             end
         end
@@ -225,10 +243,10 @@ predict!(mace_interface::MACEModel, atoms::Atoms, R::AbstractMatrix, cell::Abstr
 
 
 # ToDo: Methods using MACEPredictionCache that convert MACE outputs to NQCD's atomic unit scheme. Snip length 1 caches to the basic outputs instead of unnecessary vector wrapping. 
-function get_energy_mean(mace_cache::MACEPredictionCache)
+function get_energy_mean(mace_cache::MACEPredictionCache; dtype=nothing)
     mean_energies = zeros(eltype(mace_cache.energies[1]), length(mace_cache.energies))
     for index in eachindex(mace_cache.energies)
-        mean_energies[index] = mean(austrip(mace_cache.energies[index] .* u"eV")) # Energy is given in eV
+        mean_energies[index] = mean(austrip.(mace_cache.energies[index] .* u"eV")) # Energy is given in eV
     end
     if length(mean_energies) == 1 
         return mean_energies[1]
@@ -240,7 +258,7 @@ end
 function get_energy_variance(mace_cache::MACEPredictionCache)
     mean_energies = zeros(eltype(mace_cache.energies[1]), length(mace_cache.energies))
     for index in eachindex(mace_cache.energies)
-        mean_energies[index] = var(austrip(mace_cache.energies[index] .* u"eV")) # Energy is given in eV
+        mean_energies[index] = var(austrip.(mace_cache.energies[index] .* u"eV")) # Energy is given in eV
     end
     if length(mean_energies) == 1 
         return mean_energies[1]
@@ -250,9 +268,9 @@ function get_energy_variance(mace_cache::MACEPredictionCache)
 end
 
 function get_energy_ensemble(mace_cache::MACEPredictionCache)
-    ensemble_energies = zeros(type(mace_cache.energies[1]), length(mace_cache.energies))
+    ensemble_energies = zeros(typeof(mace_cache.energies[1]), length(mace_cache.energies))
     for index in eachindex(mace_cache.energies)
-        ensemble_energies[index] = austrip(mace_cache.energies[index] .* u"eV") # Energy is given in eV
+        ensemble_energies[index] = austrip.(mace_cache.energies[index] .* u"eV") # Energy is given in eV
     end
     if length(ensemble_energies) == 1 
         return ensemble_energies[1]
@@ -262,9 +280,9 @@ function get_energy_ensemble(mace_cache::MACEPredictionCache)
 end
 
 function get_forces_mean(mace_cache::MACEPredictionCache)
-    mean_forces = zeros(type(mace_cache.forces[1]), size(mace_cache.forces[1]))
+    mean_forces = Vector{Matrix{eltype(mace_cache.forces[1])}}(undef,  size(mace_cache.forces))
     for index in eachindex(mace_cache.forces)
-        mean_forces[index] = dropdims(mean(austrip.(mace_cache.forces[index] .* u"eV/Å"); dims=3); dims=3)' # Force is given in eV/Å
+        mean_forces[index] = permutedims(dropdims(mean(austrip.(mace_cache.forces[index] .* u"eV/Å"); dims=3); dims=3), (2,1)) # Force is given in eV/Å
     end
     if length(mean_forces) == 1 
         return mean_forces[1]
@@ -274,7 +292,7 @@ function get_forces_mean(mace_cache::MACEPredictionCache)
 end
 
 function get_forces_variance(mace_cache::MACEPredictionCache)
-    mean_forces = zeros(type(mace_cache.forces[1]), size(mace_cache.forces[1]))
+    mean_forces = zeros(typeof(mace_cache.forces[1]), size(mace_cache.forces[1]))
     for index in eachindex(mace_cache.forces)
         mean_forces[index] = dropdims(var(austrip.(mace_cache.forces[index] .* u"eV/Å"); dims=3); dims=3)' # Force is given in eV/Å
     end
@@ -286,7 +304,7 @@ function get_forces_variance(mace_cache::MACEPredictionCache)
 end
 
 function get_forces_ensemble(mace_cache::MACEPredictionCache)
-    ensemble_forces = zeros(type(mace_cache.forces[1]), size(mace_cache.forces[1]))
+    ensemble_forces = zeros(typeof(mace_cache.forces[1]), size(mace_cache.forces[1]))
     for index in eachindex(mace_cache.forces)
         ensemble_forces[index] = austrip.(mace_cache.forces[index] .* u"eV/Å") # Force is given in eV/Å
     end
@@ -298,23 +316,30 @@ function get_forces_ensemble(mace_cache::MACEPredictionCache)
 end
 
 # ToDo: Potential and derivative for a single structure
-function NQCModels.potential(model::MACEModel, atoms::Atoms, R::AbstractMatrix, cell::Union{InfiniteCell, PeriodicCell})
+function NQCModels.potential(model::MACEModel, atoms::Atoms, R::AbstractMatrix, cell::AbstractCell)
     # Evaluate model
-    predict!(model, atoms, cat(R; dims=3), cell)
+    predict!(model, atoms, [R], cell)
+    # Return potential (mean is trivial here)
+    return get_energy_mean(model.last_eval_cache)
+end
+
+function NQCModels.potential(model::MACEModel, atoms::Atoms, R::Vector{<:AbstractMatrix}, cell::AbstractCell)
+    # Evaluate model
+    predict!(model, atoms, R, cell)
     # Return potential (mean is trivial here)
     return get_energy_mean(model.last_eval_cache)
 end
 
 function NQCModels.derivative(model::MACEModel, atoms::Atoms, R::AbstractMatrix, cell::Union{InfiniteCell, PeriodicCell})
     # Evaluate model
-    predict!(model, atoms, cat(R; dims=3), cell)
+    predict!(model, atoms, [R], cell)
     # Return derivative (mean is trivial)
     return -get_forces_mean(model.last_eval_cache)
 end
 
 function NQCModels.derivative!(model::MACEModel, D::AbstractMatrix, atoms::Atoms, R::AbstractMatrix, cell::Union{InfiniteCell, PeriodicCell})
     # Evaluate model
-    predict!(model, atoms, cat(R; dims=3), cell)
+    predict!(model, atoms, [R], cell)
     # Return derivative
     D .-= get_forces_mean(model.last_eval_cache)
 end
