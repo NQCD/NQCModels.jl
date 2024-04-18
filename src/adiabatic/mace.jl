@@ -377,6 +377,13 @@ function NQCModels.derivative(model::MACEModel, atoms::Atoms, R::AbstractMatrix,
     return -get_forces_mean(model.last_eval_cache)
 end
 
+function NQCModels.derivative(model::MACEModel, atoms::Atoms, R::Vector{<:AbstractMatrix}, cell::Union{InfiniteCell, PeriodicCell})
+    # Evaluate model
+    predict!(model, atoms, R, cell)
+    # Return derivative (mean is trivial)
+    return .- get_forces_mean(model.last_eval_cache)
+end
+
 function NQCModels.derivative!(model::MACEModel, D::AbstractMatrix, atoms::Atoms, R::AbstractMatrix, cell::Union{InfiniteCell, PeriodicCell})
     # Evaluate model
     predict!(model, atoms, [R], cell)
