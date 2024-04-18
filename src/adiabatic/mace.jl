@@ -223,9 +223,11 @@ function predict!(
     if R != mace_interface.last_eval_cache.input_structures
         # Create MACE atomicdata representation
         dataset = Vector{Any}(undef, length(R))
-        @. config = mace_configuration_from_nqcd_configuration(atoms, cell, R)
+        isa(cell, AbstractCell) ? cell = [cell for _ in 1:length(R)] : nothing
+        isa(atoms, Atoms) ? atoms = [atoms for _ in 1:length(R)] : nothing
         for i in eachindex(R)
-            dataset[i] = mace_data.AtomicData.from_config(config[i], mace_interface.z_table, mace_interface.cutoff_radius)
+            config = mace_configuration_from_nqcd_configuration(atoms[i], cell[i], R[i])
+            dataset[i] = mace_data.AtomicData.from_config(config, mace_interface.z_table, mace_interface.cutoff_radius)
         end
         # Initialise DataLoader
         batch_size = mace_interface.batch_size === nothing ? length(dataset) : mace_interface.batch_size # Ensure there is a batch size
@@ -299,7 +301,7 @@ function get_energy_variance(mace_cache::MACEPredictionCache)
 end
 
 function get_energy_ensemble(mace_cache::MACEPredictionCache)
-    ensemble_energies = zeros(typeof(mace_cache.energies[1]), length(mace_cache.energies))
+    ensemble_energies = Vector{typeof(mace_cache.energies[1])}(undef , length(mace_cache.energies))
     for index in eachindex(mace_cache.energies)
         ensemble_energies[index] = austrip.(mace_cache.energies[index] .* u"eV") # Energy is given in eV
     end
@@ -311,7 +313,7 @@ function get_energy_ensemble(mace_cache::MACEPredictionCache)
 end
 
 function get_forces_mean(mace_cache::MACEPredictionCache)
-    mean_forces = Vector{Matrix{eltype(mace_cache.forces[1])}}(undef,  size(mace_cache.forces))
+    mean_forces = Vector{Matrix{eltype(mace_cache.forces[1])}}(undef,  length(mace_cache.forces))
     for index in eachindex(mace_cache.forces)
         mean_forces[index] = permutedims(dropdims(mean(austrip.(mace_cache.forces[index] .* u"eV/Å"); dims=3); dims=3), (2,1)) # Force is given in eV/Å
     end
@@ -323,9 +325,9 @@ function get_forces_mean(mace_cache::MACEPredictionCache)
 end
 
 function get_forces_variance(mace_cache::MACEPredictionCache)
-    mean_forces = zeros(typeof(mace_cache.forces[1]), size(mace_cache.forces[1]))
+    mean_forces = Vector{Matrix{eltype(mace_cache.forces[1])}}(undef,  length(mace_cache.forces))
     for index in eachindex(mace_cache.forces)
-        mean_forces[index] = dropdims(var(austrip.(mace_cache.forces[index] .* u"eV/Å"); dims=3); dims=3)' # Force is given in eV/Å
+        mean_forces[index] = permutedims(dropdims(var(austrip.(mace_cache.forces[index] .* u"eV/Å"); dims=3); dims=3), (2,1)) # Force is given in eV/Å
     end
     if length(mean_forces) == 1 
         return mean_forces[1]
@@ -335,9 +337,10 @@ function get_forces_variance(mace_cache::MACEPredictionCache)
 end
 
 function get_forces_ensemble(mace_cache::MACEPredictionCache)
-    ensemble_forces = zeros(typeof(mace_cache.forces[1]), size(mace_cache.forces[1]))
+    ensemble_forces = Vector{typeof(mace_cache.forces[1])}(undef, length(mace_cache.forces))
     for index in eachindex(mace_cache.forces)
-        ensemble_forces[index] = austrip.(mace_cache.forces[index] .* u"eV/Å") # Force is given in eV/Å
+        ensemble_forces[index] =  zeros(eltype(mace_cache.forces[index]), size(mace_cache.forces[index])[[2,1,3]])
+        permutedims!(ensemble_forces[index], austrip.(mace_cache.forces[index] .* u"eV/Å"), (2,1,3)) # Force is given in eV/Å
     end
     if length(ensemble_forces) == 1 
         return ensemble_forces[1]
