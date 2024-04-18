@@ -87,12 +87,12 @@ Interface to MACE machine learning interatomic potentials with support for ensem
 - `cell`: Cell object for the system. `predict!` can be called with a Vector of different Cell objects to evaluate different structures.
 """
 function MACEModel(
+    atoms::Atoms,
+    cell::AbstractCell,
     model_paths::Vector{String}, 
     device::Union{String, Vector{String}}="cpu", 
     default_dtype::Type=Float32, 
     batch_size::Int=1,
-    atoms,
-    cell,
 )
     # Assign device to all models if only one device is given
     isa(device, String) ? device = [device for _ in 1:length(model_paths)] : nothing
@@ -218,14 +218,14 @@ function predict!(
     mace_interface::MACEModel, 
     atoms::Union{Vector{<:Atoms}, Atoms},
     R::Vector{<:AbstractMatrix},
-    cell::Union{Vector{<:AbstractCell}, Atoms},
+    cell::Union{Vector{<:AbstractCell}, AbstractCell},
     )
     if R != mace_interface.last_eval_cache.input_structures
         # Create MACE atomicdata representation
         dataset = Vector{Any}(undef, length(R))
-        @. config = mace_configuration_from_nqcd_configuration(atoms[i], cell[i], R[i])
-        for i in eachindex(config)
-            dataset[i] = mace_data.AtomicData.from_config(config, mace_interface.z_table, mace_interface.cutoff_radius)
+        @. config = mace_configuration_from_nqcd_configuration(atoms, cell, R)
+        for i in eachindex(R)
+            dataset[i] = mace_data.AtomicData.from_config(config[i], mace_interface.z_table, mace_interface.cutoff_radius)
         end
         # Initialise DataLoader
         batch_size = mace_interface.batch_size === nothing ? length(dataset) : mace_interface.batch_size # Ensure there is a batch size
@@ -261,6 +261,16 @@ function predict!(
             end
         end
     end
+end
+
+function predict(
+    mace_interface::MACEModel, 
+    atoms::Union{Vector{<:Atoms}, Atoms},
+    R::Vector{<:AbstractMatrix},
+    cell::Union{Vector{<:AbstractCell}, Atoms},
+    )
+    predict!(mace_interface, atoms, R, cell)
+    return mace_interface.last_eval_cache
 end
 
 # ToDo: Methods using MACEPredictionCache that convert MACE outputs to NQCD's atomic unit scheme. Snip length 1 caches to the basic outputs instead of unnecessary vector wrapping. 
@@ -378,5 +388,5 @@ end
 
 #? Unsure whether to implement functions such as evaluate_forces(model, R) since predict!() isn't too difficult to understand. 
 
-export predict!, get_energy_mean, get_energy_variance, get_energy_ensemble, get_forces_mean, get_forces_variance, get_forces_ensemble, MACEModel, MACEPredictionCache
+export predict, predict!, get_energy_mean, get_energy_variance, get_energy_ensemble, get_forces_mean, get_forces_variance, get_forces_ensemble, MACEModel, MACEPredictionCache
 end
