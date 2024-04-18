@@ -19,7 +19,7 @@ using Unitful
 using UnitfulAtomic
 using NQCBase
 using Statistics
-using ..NQCModels: NQCModels, AdiabaticModels.AdiabaticChemicalEnvironmentModel
+using ..NQCModels: NQCModels, AdiabaticModels.AdiabaticChemicalEnvironmentMLIP
 
 const torch = PyNULL()
 const mace_data = PyNULL()
@@ -47,7 +47,7 @@ MACE interface with support for ensemble of models and batch size selection for 
 DOFs currently hardcoded at 3. 
 
 """
-struct MACEModel{T} <: AdiabaticChemicalEnvironmentModel
+struct MACEModel{T} <: AdiabaticChemicalEnvironmentMLIP
     model_paths::Vector{String}
     models::Vector
     device::Vector{String}
@@ -56,6 +56,8 @@ struct MACEModel{T} <: AdiabaticChemicalEnvironmentModel
     cutoff_radius::T
     last_eval_cache::MACEPredictionCache
     z_table
+    atoms::Atoms
+    cell::PeriodicCell
     ndofs::Int
 end
 
@@ -64,7 +66,34 @@ NQCModels.dofs(model::MACEModel) = Base.OneTo(3)
 
 # ToDo: Nice constructor for MACEModel and simpler input for single model. 
 
-function MACEModel(model_paths::Vector{String}, device::Union{String, Vector{String}}="cpu", default_dtype::Type=Float64, batch_size::Int=1)
+"""
+    MACEModel(
+    model_paths::Vector{String}, 
+    device::Union{String, Vector{String}}="cpu", 
+    default_dtype::Type=Float64, 
+    batch_size::Int=1,
+    atoms,
+    cell,
+)
+
+Interface to MACE machine learning interatomic potentials with support for ensemble of models and batch size selection for potentially faster inference.
+
+# Arguments
+- `model_paths::Vector{String}`: Model paths to load. If multiple paths are given, an ensemble of models is used and mean energies/forces used to propagate dynamics. 
+- `device::Union{String, Vector{String}}`: Device to use for inference. If a single device is given, all models will be loaded on that device. If multiple devices are given, each model will be loaded on the corresponding device. Default is `"cpu"`.
+- `default_dtype::Type`: Default data type for PyTorch (usually Float32)
+- `batch_size::Int`: Batch size for inference. Can be set to `nothing` to always adapt batch size to the number of structures provided. Ring-polymer methods benefit from this. 
+- `atoms`: Atoms object for the system. `predict!` can be called with a Vector of different Atoms objects to evaluate different structures. 
+- `cell`: Cell object for the system. `predict!` can be called with a Vector of different Cell objects to evaluate different structures.
+"""
+function MACEModel(
+    model_paths::Vector{String}, 
+    device::Union{String, Vector{String}}="cpu", 
+    default_dtype::Type=Float32, 
+    batch_size::Int=1,
+    atoms,
+    cell,
+)
     # Assign device to all models if only one device is given
     isa(device, String) ? device = [device for _ in 1:length(model_paths)] : nothing
     # Check selected device types are available
@@ -134,7 +163,7 @@ function MACEModel(model_paths::Vector{String}, device::Union{String, Vector{Str
         [], # Input structures
     )
 
-    return MACEModel(model_paths, models, device, default_dtype, batch_size, cutoff_radius, starter_mace_cache, z_table, 3)
+    return MACEModel(model_paths, models, device, default_dtype, batch_size, cutoff_radius, starter_mace_cache, z_table, atoms, cell, 3)
 end
 
 # ToDo: Entry point into MACE's configuration data handling - py-Configuration from NQCD objects.
@@ -187,15 +216,15 @@ end
 
 function predict!(
     mace_interface::MACEModel, 
-    atoms::Vector{<:Atoms},
+    atoms::Union{Vector{<:Atoms}, Atoms},
     R::Vector{<:AbstractMatrix},
-    cell::Vector{<:AbstractCell},
+    cell::Union{Vector{<:AbstractCell}, Atoms},
     )
     if R != mace_interface.last_eval_cache.input_structures
         # Create MACE atomicdata representation
         dataset = Vector{Any}(undef, length(R))
-        for i in eachindex(R)
-            config = mace_configuration_from_nqcd_configuration(atoms[i], cell[i], R[i])
+        @. config = mace_configuration_from_nqcd_configuration(atoms[i], cell[i], R[i])
+        for i in eachindex(config)
             dataset[i] = mace_data.AtomicData.from_config(config, mace_interface.z_table, mace_interface.cutoff_radius)
         end
         # Initialise DataLoader
@@ -234,16 +263,8 @@ function predict!(
     end
 end
 
-# Same atoms and cell for multiple structures
-predict!(mace_interface::MACEModel, atoms::Atoms, R::Vector{<:AbstractMatrix}, cell::AbstractCell) = predict!(mace_interface, [atoms for _ in 1:length(R)], R, [cell for _ in 1:length(R)])
-# Single structure version
-predict!(mace_interface::MACEModel, atoms::Atoms, R::AbstractMatrix, cell::AbstractCell) = predict!(mace_interface, [atoms], [R], [cell])
-
-
-
-
 # ToDo: Methods using MACEPredictionCache that convert MACE outputs to NQCD's atomic unit scheme. Snip length 1 caches to the basic outputs instead of unnecessary vector wrapping. 
-function get_energy_mean(mace_cache::MACEPredictionCache; dtype=nothing)
+function get_energy_mean(mace_cache::MACEPredictionCache)
     mean_energies = zeros(eltype(mace_cache.energies[1]), length(mace_cache.energies))
     for index in eachindex(mace_cache.energies)
         mean_energies[index] = mean(austrip.(mace_cache.energies[index] .* u"eV")) # Energy is given in eV
@@ -316,6 +337,12 @@ function get_forces_ensemble(mace_cache::MACEPredictionCache)
 end
 
 # ToDo: Potential and derivative for a single structure
+# Passthrough for NQCDynamics Calculators
+NQCModels.potential(model::MACEModel, R::AbstractMatrix) = NQCModels.potential(model, model.atoms, R, model.cell)
+NQCModels.derivative(model::MACEModel, R::AbstractMatrix) = NQCModels.derivative(model, model.atoms, R, model.cell)
+NQCModels.derivative!(model::MACEModel, D::AbstractMatrix, R::AbstractMatrix) = NQCModels.derivative!(model, D, model.atoms, R, model.cell)
+
+# Single structure evaluation with custom atoms and cell. 
 function NQCModels.potential(model::MACEModel, atoms::Atoms, R::AbstractMatrix, cell::AbstractCell)
     # Evaluate model
     predict!(model, atoms, [R], cell)
