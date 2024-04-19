@@ -245,10 +245,11 @@ function predict!(
         mace_interface.last_eval_cache.stress = [zeros(mace_interface.default_dtype, (3, 3, length(mace_interface.models))) for _ in R]
 
         # Iterate through dataloader and evaluate each model
-        for batch in mace_DataLoader
-            for (index, model) in enumerate(mace_interface.models)
+        for (batch_index, batch) in enumerate(mace_DataLoader)
+            evalcache_index = (batch_index - 1) * batch_size + 1 # Pointer to the start of the batch in the output arrays
+            for (model_index, model) in enumerate(mace_interface.models)
                 # Place copy of batch on model device
-                clone = batch.clone().to(mace_interface.device[index])
+                clone = batch.clone().to(mace_interface.device[model_index])
                 # Evaluate model
                 model_output = model(clone.to_dict(), compute_stress=true)
                 # Split according to batching
@@ -256,9 +257,9 @@ function predict!(
                 energies = model_output["energy"].cpu().detach().numpy() 
                 forces = model_output["forces"].cpu().detach().numpy() 
                 splitting = clone.ptr.cpu().detach().numpy() .+1 # Array of batch item bounds in output arrays, +1 due to Julia-Python conversion
-                for batch_structure in 2:length(splitting)
-                    mace_interface.last_eval_cache.energies[batch_structure-1][index] = energies[batch_structure-1]
-                    @views mace_interface.last_eval_cache.forces[batch_structure-1][:, :, index] .= forces[splitting[batch_structure-1]:splitting[batch_structure]-1, :] # last index -1 because Julia includes last index in a slice
+                for structure_index in 2:length(splitting)
+                    mace_interface.last_eval_cache.energies[evalcache_index+structure_index-1][model_index] = energies[structure_index-1]
+                    @views mace_interface.last_eval_cache.forces[evalcache_index+structure_index-1][:, :, model_index] .= forces[splitting[structure_index-1]:splitting[structure_index]-1, :] # last index -1 because Julia includes last index in a slice
                 end
             end
         end
@@ -272,7 +273,7 @@ function predict(
     cell::Union{Vector{<:AbstractCell}, Atoms},
     )
     predict!(mace_interface, atoms, R, cell)
-    return mace_interface.last_eval_cache
+    return deepcopy(mace_interface.last_eval_cache)
 end
 
 # ToDo: Methods using MACEPredictionCache that convert MACE outputs to NQCD's atomic unit scheme. Snip length 1 caches to the basic outputs instead of unnecessary vector wrapping. 
