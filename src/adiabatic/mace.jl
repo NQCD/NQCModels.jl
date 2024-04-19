@@ -246,7 +246,7 @@ function predict!(
 
         # Iterate through dataloader and evaluate each model
         for (batch_index, batch) in enumerate(mace_DataLoader)
-            evalcache_index = (batch_index - 1) * batch_size + 1 # Pointer to the start of the batch in the output arrays
+            evalcache_index = (batch_index - 1) * batch_size # Pointer to the start of the batch in the output arrays
             for (model_index, model) in enumerate(mace_interface.models)
                 # Place copy of batch on model device
                 clone = batch.clone().to(mace_interface.device[model_index])
