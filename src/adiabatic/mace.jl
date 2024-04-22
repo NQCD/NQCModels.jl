@@ -270,7 +270,7 @@ function predict(
     mace_interface::MACEModel, 
     atoms::Union{Vector{<:Atoms}, Atoms},
     R::Vector{<:AbstractMatrix},
-    cell::Union{Vector{<:AbstractCell}, Atoms},
+    cell::Union{Vector{<:AbstractCell}, AbstractCell},
     )
     predict!(mace_interface, atoms, R, cell)
     return deepcopy(mace_interface.last_eval_cache)
