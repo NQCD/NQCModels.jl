@@ -166,7 +166,6 @@ function MACEModel(
     return MACEModel(model_paths, models, device, default_dtype, batch_size, cutoff_radius, starter_mace_cache, z_table, atoms, cell, 3)
 end
 
-# ToDo: Entry point into MACE's configuration data handling - py-Configuration from NQCD objects.
 """
     mace_configuration_from_nqcd_configuration(
     atoms::Atoms,  
@@ -214,6 +213,30 @@ end
 
 # ToDo: Evaluation function that handles model evaluation and caching of results. 
 
+"""
+    predict!(
+    mace_interface::MACEModel, 
+    atoms::Union{Vector{<:Atoms}, Atoms},
+    R::Vector{<:AbstractMatrix},
+    cell::Union{Vector{<:AbstractCell}, AbstractCell},
+    )
+
+Evaluate the MACE model on a set of structures if they haven't already been evaluated. 
+The results are stored in `mace_interface.last_eval_cache`.
+
+Use `methodswith(MACEPredictionCache)` to see what data is provided from the results
+
+# Arguments
+`mace_interface`: `MACEModel` to evaluate with. 
+
+`atoms`: Atoms object for the structures passed for evaluation. 
+Can be either a vector of different Atoms objects or a single Atoms object.
+
+`R`: Vector of structures to evaluate.
+
+`cell`: Cell object for the structures passed for evaluation.
+Can be either a vector of different Cell objects or a single Cell object.
+"""
 function predict!(
     mace_interface::MACEModel, 
     atoms::Union{Vector{<:Atoms}, Atoms},
@@ -266,6 +289,30 @@ function predict!(
     end
 end
 
+"""
+    predict(
+    mace_interface::MACEModel, 
+    atoms::Union{Vector{<:Atoms}, Atoms},
+    R::Vector{<:AbstractMatrix},
+    cell::Union{Vector{<:AbstractCell}, AbstractCell},
+    )
+
+Evaluate the MACE model on a set of structures if they haven't already been evaluated. 
+The results are returned as a `MACEPredictionCache`.
+
+Use `methodswith(MACEPredictionCache)` to see what data is provided from the results.
+
+# Arguments
+`mace_interface`: `MACEModel` to evaluate with. 
+
+`atoms`: Atoms object for the structures passed for evaluation. 
+Can be either a vector of different Atoms objects or a single Atoms object.
+
+`R`: Vector of structures to evaluate.
+
+`cell`: Cell object for the structures passed for evaluation.
+Can be either a vector of different Cell objects or a single Cell object.
+"""
 function predict(
     mace_interface::MACEModel, 
     atoms::Union{Vector{<:Atoms}, Atoms},
@@ -276,7 +323,15 @@ function predict(
     return deepcopy(mace_interface.last_eval_cache)
 end
 
-# ToDo: Methods using MACEPredictionCache that convert MACE outputs to NQCD's atomic unit scheme. Snip length 1 caches to the basic outputs instead of unnecessary vector wrapping. 
+# Methods using MACEPredictionCache that convert MACE outputs to NQCD's atomic unit scheme. Snip length 1 caches to the basic outputs instead of unnecessary vector wrapping. 
+
+"""
+    get_energy_mean(mace_cache::MACEPredictionCache)
+
+Returns the mean potential energy of the structures stored in the evaluation cache. 
+
+Energy is returned in units of **Hartree**. 
+"""
 function get_energy_mean(mace_cache::MACEPredictionCache)
     mean_energies = zeros(eltype(mace_cache.energies[1]), length(mace_cache.energies))
     for index in eachindex(mace_cache.energies)
@@ -289,6 +344,11 @@ function get_energy_mean(mace_cache::MACEPredictionCache)
     end
 end
 
+"""
+    get_energy_variance(mace_cache::MACEPredictionCache)
+
+Returns the variance of the potential energy in **Hartree²**. 
+"""
 function get_energy_variance(mace_cache::MACEPredictionCache)
     mean_energies = zeros(eltype(mace_cache.energies[1]), length(mace_cache.energies))
     for index in eachindex(mace_cache.energies)
@@ -301,6 +361,11 @@ function get_energy_variance(mace_cache::MACEPredictionCache)
     end
 end
 
+"""
+    get_energy_ensemble(mace_cache::MACEPredictionCache)
+
+Returns the potential energy evaluated by each model in the ensemble in units of **Hartree**.
+"""
 function get_energy_ensemble(mace_cache::MACEPredictionCache)
     ensemble_energies = Vector{typeof(mace_cache.energies[1])}(undef , length(mace_cache.energies))
     for index in eachindex(mace_cache.energies)
@@ -313,6 +378,12 @@ function get_energy_ensemble(mace_cache::MACEPredictionCache)
     end
 end
 
+"""
+    get_forces_mean(mace_cache::MACEPredictionCache)
+
+Returns the mean forces of the structures stored in the evaluation cache.
+Forces are returned in units of **Hartree/Bohr**.
+"""
 function get_forces_mean(mace_cache::MACEPredictionCache)
     mean_forces = Vector{Matrix{eltype(mace_cache.forces[1])}}(undef,  length(mace_cache.forces))
     for index in eachindex(mace_cache.forces)
@@ -325,6 +396,12 @@ function get_forces_mean(mace_cache::MACEPredictionCache)
     end
 end
 
+"""
+    get_forces_variance(mace_cache::MACEPredictionCache)
+
+Returns the force variance of the structures stored in the evaluation cache.
+Forces are returned in units of **Hartree²/Bohr²**.
+"""
 function get_forces_variance(mace_cache::MACEPredictionCache)
     mean_forces = Vector{Matrix{eltype(mace_cache.forces[1])}}(undef,  length(mace_cache.forces))
     for index in eachindex(mace_cache.forces)
@@ -337,6 +414,11 @@ function get_forces_variance(mace_cache::MACEPredictionCache)
     end
 end
 
+"""
+    get_forces_ensemble(mace_cache::MACEPredictionCache)
+
+Returns the forces evaluated by each model in the ensemble in units of **Hartree/Bohr**.
+"""
 function get_forces_ensemble(mace_cache::MACEPredictionCache)
     ensemble_forces = Vector{typeof(mace_cache.forces[1])}(undef, length(mace_cache.forces))
     for index in eachindex(mace_cache.forces)
@@ -364,12 +446,6 @@ function NQCModels.potential(model::MACEModel, atoms::Atoms, R::AbstractMatrix, 
     return get_energy_mean(model.last_eval_cache)
 end
 
-function NQCModels.potential(model::MACEModel, atoms::Atoms, R::Vector{<:AbstractMatrix}, cell::AbstractCell)
-    # Evaluate model
-    predict!(model, atoms, R, cell)
-    # Return potential (mean is trivial here)
-    return get_energy_mean(model.last_eval_cache)
-end
 
 function NQCModels.derivative(model::MACEModel, atoms::Atoms, R::AbstractMatrix, cell::Union{InfiniteCell, PeriodicCell})
     # Evaluate model
@@ -378,12 +454,7 @@ function NQCModels.derivative(model::MACEModel, atoms::Atoms, R::AbstractMatrix,
     return -get_forces_mean(model.last_eval_cache)
 end
 
-function NQCModels.derivative(model::MACEModel, atoms::Atoms, R::Vector{<:AbstractMatrix}, cell::Union{InfiniteCell, PeriodicCell})
-    # Evaluate model
-    predict!(model, atoms, R, cell)
-    # Return derivative (mean is trivial)
-    return .- get_forces_mean(model.last_eval_cache)
-end
+
 
 function NQCModels.derivative!(model::MACEModel, D::AbstractMatrix, atoms::Atoms, R::AbstractMatrix, cell::Union{InfiniteCell, PeriodicCell})
     # Evaluate model
@@ -393,7 +464,44 @@ function NQCModels.derivative!(model::MACEModel, D::AbstractMatrix, atoms::Atoms
 end
 
 # ToDo: Potential and derivative for multiple structures
+"""
+    NQCModels.potential(model::MACEModel, atoms::Atoms, R::Vector{<:AbstractMatrix}, cell::AbstractCell)
 
+This variant of `NQCModels.potential` can make use of batch evaluation to speed up 
+inference for multiple structures.
+"""
+function NQCModels.potential(model::MACEModel, atoms::Atoms, R::Vector{<:AbstractMatrix}, cell::AbstractCell)
+    # Evaluate model
+    predict!(model, atoms, R, cell)
+    # Return potential (mean is trivial here)
+    return get_energy_mean(model.last_eval_cache)
+end
+
+"""
+    NQCModels.derivative(model::MACEModel, atoms::Atoms, R::Vector{<:AbstractMatrix}, cell::Union{InfiniteCell, PeriodicCell})
+
+This variant of `NQCModels.derivative` can make use of batch evaluation to speed up 
+inference for multiple structures.
+"""
+function NQCModels.derivative(model::MACEModel, atoms::Atoms, R::Vector{<:AbstractMatrix}, cell::Union{InfiniteCell, PeriodicCell})
+    # Evaluate model
+    predict!(model, atoms, R, cell)
+    # Return derivative (mean is trivial)
+    return .- get_forces_mean(model.last_eval_cache)
+end
+
+"""
+    NQCModels.derivative(model::MACEModel, atoms::Atoms, R::Vector{<:AbstractMatrix}, cell::Union{InfiniteCell, PeriodicCell})
+
+This variant of `NQCModels.derivative` can make use of batch evaluation to speed up 
+inference for multiple structures.
+"""
+function NQCModels.derivative!(model::MACEModel, atoms::Atoms, D::AbstractArray{T, 3} R::Vector{<:AbstractMatrix}, cell::Union{InfiniteCell, PeriodicCell}) where T
+    # Evaluate model
+    predict!(model, atoms, R, cell)
+    # Return derivative (mean is trivial)
+    return D .- get_forces_mean(model.last_eval_cache)
+end
 
 # ToDo: Evaluation functions for the model which check whether the prediction is up to date and only evaluate if necessary.
 
