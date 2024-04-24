@@ -496,7 +496,7 @@ end
 This variant of `NQCModels.derivative` can make use of batch evaluation to speed up 
 inference for multiple structures.
 """
-function NQCModels.derivative!(model::MACEModel, atoms::Atoms, D::AbstractArray{T, 3} R::Vector{<:AbstractMatrix}, cell::Union{InfiniteCell, PeriodicCell}) where T
+function NQCModels.derivative!(model::MACEModel, atoms::Atoms, D::AbstractArray{T, 3}, R::Vector{<:AbstractMatrix}, cell::Union{InfiniteCell, PeriodicCell}) where T
     # Evaluate model
     predict!(model, atoms, R, cell)
     # Return derivative (mean is trivial)
