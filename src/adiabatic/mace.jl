@@ -33,6 +33,12 @@ function __init__()
     copy!(numpy, pyimport("numpy"))
 end
 
+"""
+Cache which stores the results of the last evaluation of the MACE model.
+This is used to speed up concurrent energy and force evaluations, as well as to give access to ensemble predictions.
+
+Use e.g. `get_energy_mean(MACEModel.last_eval_cache)` to access results of the last prediction made by the model.
+"""
 mutable struct MACEPredictionCache{T}
     energies::Vector{Vector{T}}
     node_energy::Vector{Matrix{T}}
@@ -46,6 +52,19 @@ MACE interface with support for ensemble of models and batch size selection for 
 
 DOFs currently hardcoded at 3.
 
+# Fields
+- `model_paths::Vector{String}`: Model paths to load. If multiple paths are given, an ensemble of models is used and mean energies/forces used to propagate dynamics.
+- `models::Vector`: Loaded models.
+- `device::Vector{String}`: Device to use for inference. If a single device is given, all models will be loaded on that device. If multiple devices are given, each model will be loaded on the corresponding device. Default is `"cpu"`.
+- `default_dtype::Type{T}`: Default data type for inference. Default is `Float32`.
+- `batch_size::Union{Int,Nothing}`: Batch size for inference. Default is `1`.
+- `cutoff_radius::T`: Cutoff radius for the models.
+- `last_eval_cache::MACEPredictionCache`: Cache for the last evaluation.
+- `z_table`: Table of atomic numbers.
+- `atoms::Atoms`: Atoms object for the system.
+- `cell::PeriodicCell`: Periodic cell for the system.
+- `ndofs::Int`: Number of degrees of freedom in the system.
+- `mobile_atoms::Vector{Int}`: Indices of mobile atoms in the system.
 """
 struct MACEModel{T} <: AdiabaticChemicalEnvironmentMLIP
     model_paths::Vector{String}
@@ -70,6 +89,14 @@ mobileatoms(model::MACEModel, n::Int) = model.mobile_atoms # Return all mobile a
 
 """
     MACEModel(
+    atoms::Atoms,
+    cell::AbstractCell,
+    model_paths::Vector{String};
+    device::Union{String,Vector{String}}="cpu",
+    default_dtype::Type=Float32,
+    batch_size::Int=1,
+    mobile_atoms::Vector{Int}=collect(1:length(atoms)),
+)
     model_paths::Vector{String},
     device::Union{String, Vector{String}}="cpu",
     default_dtype::Type=Float64,
@@ -81,12 +108,13 @@ mobileatoms(model::MACEModel, n::Int) = model.mobile_atoms # Return all mobile a
 Interface to MACE machine learning interatomic potentials with support for ensemble of models and batch size selection for potentially faster inference.
 
 # Arguments
+- `atoms`: Atoms object for the system. `predict!` can be called with a Vector of different Atoms objects to evaluate different structures.
+- `cell`: Cell object for the system. `predict!` can be called with a Vector of different Cell objects to evaluate different structures.
 - `model_paths::Vector{String}`: Model paths to load. If multiple paths are given, an ensemble of models is used and mean energies/forces used to propagate dynamics.
 - `device::Union{String, Vector{String}}`: Device to use for inference. If a single device is given, all models will be loaded on that device. If multiple devices are given, each model will be loaded on the corresponding device. Default is `"cpu"`.
 - `default_dtype::Type`: Default data type for PyTorch (usually Float32)
 - `batch_size::Int`: Batch size for inference. Can be set to `nothing` to always adapt batch size to the number of structures provided. Ring-polymer methods benefit from this.
-- `atoms`: Atoms object for the system. `predict!` can be called with a Vector of different Atoms objects to evaluate different structures.
-- `cell`: Cell object for the system. `predict!` can be called with a Vector of different Cell objects to evaluate different structures.
+- `mobile_atoms::Vector{Int}`: Indices of mobile atoms in the system. Default is all atoms.
 """
 function MACEModel(
     atoms::Atoms,
@@ -303,7 +331,7 @@ end
 Evaluate the MACE model on a set of structures if they haven't already been evaluated.
 The results are returned as a `MACEPredictionCache`.
 
-Use `methodswith(MACEPredictionCache)` to see what data is provided from the results.
+Use `methodswith(MACEPredictionCache)` to see what data can be provided from the results.
 
 # Arguments
 `mace_interface`: `MACEModel` to evaluate with.
