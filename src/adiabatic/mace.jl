@@ -59,10 +59,12 @@ struct MACEModel{T} <: AdiabaticChemicalEnvironmentMLIP
     atoms::Atoms
     cell::PeriodicCell
     ndofs::Int
+    mobile_atoms::Vector{Int}
 end
 
 NQCModels.ndofs(model::MACEModel) = 3
 NQCModels.dofs(model::MACEModel) = Base.OneTo(3)
+mobileatoms(model::MACEModel, n::Int) = model.mobile_atoms # Return all mobile atoms in the system.
 
 # ToDo: Nice constructor for MACEModel and simpler input for single model.
 
@@ -89,10 +91,11 @@ Interface to MACE machine learning interatomic potentials with support for ensem
 function MACEModel(
     atoms::Atoms,
     cell::AbstractCell,
-    model_paths::Vector{String},
+    model_paths::Vector{String};
     device::Union{String,Vector{String}}="cpu",
     default_dtype::Type=Float32,
     batch_size::Int=1,
+    mobile_atoms::Vector{Int}=collect(1:length(atoms)),
 )
     # Assign device to all models if only one device is given
     isa(device, String) ? device = [device for _ in 1:length(model_paths)] : nothing
@@ -163,7 +166,7 @@ function MACEModel(
         [], # Input structures
     )
 
-    return MACEModel(model_paths, models, device, default_dtype, batch_size, cutoff_radius, starter_mace_cache, z_table, atoms, cell, 3)
+    return MACEModel(model_paths, models, device, default_dtype, batch_size, cutoff_radius, starter_mace_cache, z_table, atoms, cell, 3, mobile_atoms)
 end
 
 """
@@ -449,18 +452,18 @@ end
 
 function NQCModels.derivative(model::MACEModel, atoms::Atoms, R::AbstractMatrix, cell::Union{InfiniteCell,PeriodicCell})
     # Evaluate model
+    D = zeros(eltype(R), size(R))
     predict!(model, atoms, [R], cell)
     # Return derivative (mean is trivial)
-    return -get_forces_mean(model.last_eval_cache)
+    @views D[:, model.mobile_atoms] .= -get_forces_mean(model.last_eval_cache)[:, model.mobile_atoms]
+    return D
 end
-
-
 
 function NQCModels.derivative!(model::MACEModel, D::AbstractMatrix, atoms::Atoms, R::AbstractMatrix, cell::Union{InfiniteCell,PeriodicCell})
     # Evaluate model
     predict!(model, atoms, [R], cell)
     # Return derivative
-    D .-= get_forces_mean(model.last_eval_cache)
+    @views D[:, model.mobile_atoms] .-= get_forces_mean(model.last_eval_cache)[:, model.mobile_atoms]
 end
 
 # ToDo: Potential and derivative for multiple structures
@@ -485,9 +488,14 @@ inference for multiple structures.
 """
 function NQCModels.derivative(model::MACEModel, atoms::Atoms, R::Vector{<:AbstractMatrix}, cell::Union{InfiniteCell,PeriodicCell})
     # Evaluate model
+    D = zeros(eltype(R), size(R))
     predict!(model, atoms, R, cell)
     # Return derivative (mean is trivial)
-    return .-get_forces_mean(model.last_eval_cache)
+    D_full = get_forces_mean(model.last_eval_cache)
+    for i in axes(D, 3)
+        @views D[i][:, model.mobile_atoms] .= -D_full[i][:, model.mobile_atoms]
+    end
+    return D
 end
 
 """
@@ -500,12 +508,8 @@ function NQCModels.derivative!(model::MACEModel, atoms::Atoms, D::AbstractArray{
     # Evaluate model
     predict!(model, atoms, R, cell)
     # Return derivative (mean is trivial)
-    return D .- get_forces_mean(model.last_eval_cache)
+    @views D[:, model.mobile_atoms, :] .- get_forces_mean(model.last_eval_cache)[:, model.mobile_atoms, :]
 end
-
-# ToDo: Evaluation functions for the model which check whether the prediction is up to date and only evaluate if necessary.
-
-#? Unsure whether to implement functions such as evaluate_forces(model, R) since predict!() isn't too difficult to understand.
 
 export predict, predict!, get_energy_mean, get_energy_variance, get_energy_ensemble, get_forces_mean, get_forces_variance, get_forces_ensemble, MACEModel, MACEPredictionCache
 end
