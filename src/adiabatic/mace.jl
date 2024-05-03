@@ -305,7 +305,7 @@ function predict!(
             drop_last=false,
         )
         # Update evaluation cache for outputs
-        mace_interface.last_eval_cache.input_structures = R
+        mace_interface.last_eval_cache.input_structures = deepcopy(R)
         mace_interface.last_eval_cache.energies = [zeros(mace_interface.default_dtype, length(mace_interface.models)) for _ in R]
         mace_interface.last_eval_cache.node_energy = [zeros(mace_interface.default_dtype, (size(i, 2), length(mace_interface.models))) for i in R]
         mace_interface.last_eval_cache.forces = [zeros(mace_interface.default_dtype, (size(i, 2), size(i, 1), length(mace_interface.models))) for i in R]
@@ -540,7 +540,7 @@ function NQCModels.derivative(model::MACEModel, atoms::Atoms, R::Vector{<:Abstra
 end
 
 """
-    NQCModels.derivative(model::MACEModel, atoms::Atoms, R::Vector{<:AbstractMatrix}, cell::Union{InfiniteCell, PeriodicCell})
+    NQCModels.derivative(model::MACEModel, atoms::Atoms, R::AbstractArray{T,3}, cell::Union{InfiniteCell, PeriodicCell})
 
 This variant of `NQCModels.derivative` can make use of batch evaluation to speed up
 inference for multiple structures.
@@ -549,7 +549,9 @@ function NQCModels.derivative!(model::MACEModel, atoms::Atoms, D::AbstractArray{
     # Evaluate model
     predict!(model, atoms, R, cell)
     # Return derivative (mean is trivial)
-    @views D[:, model.mobile_atoms, :] .- get_forces_mean(model.last_eval_cache)[:, model.mobile_atoms, :]
+    for i in axes(D, 3)
+        @views D[:, model.mobile_atoms, i] .-= get_forces_mean(model.last_eval_cache)[i][:, model.mobile_atoms]
+    end
 end
 
 export predict, predict!, get_energy_mean, get_energy_variance, get_energy_ensemble, get_forces_mean, get_forces_variance, get_forces_ensemble, MACEModel, MACEPredictionCache
