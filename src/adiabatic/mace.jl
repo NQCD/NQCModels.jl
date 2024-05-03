@@ -169,7 +169,7 @@ function MACEModel(
     end
 
     # Check cutoff radii are identical
-    cutoff_radii = [model.r_max.cpu().item() for model in models]
+    cutoff_radii = [isa(model.r_max, Number) ? model.r_max : model.r_max.cpu().item() for model in models]
     if length(unique(cutoff_radii)) > 1
         @warn "Cutoff radii are not identical for all models."
     end
@@ -209,11 +209,15 @@ Converter into a single mace.data.utils.Configuration to make use of MACE's data
 function mace_configuration_from_nqcd_configuration(
     atoms::Atoms,
     cell::Union{InfiniteCell,PeriodicCell},
-    R::AbstractMatrix,
+    R::AbstractMatrix;
+    dtype::Type=Float64,
 )
+    if eltype(R) != dtype
+        R = convert(Matrix{dtype}, R)
+    end
     if isa(cell, InfiniteCell)
         pbc = zeros(Bool, size(R, 1))
-        cell_array = zeros(eltype(R), size(R, 1), size(R, 1))
+        cell_array = zeros(dtype, size(R, 1), size(R, 1))
     elseif isa(cell, PeriodicCell)
         pbc = cell.periodicity
         cell_array = Matrix{eltype(R)}(@. ustrip(auconvert(u"Å", cell.vectors')))
@@ -280,7 +284,7 @@ function predict!(
         isa(cell, AbstractCell) ? cell = [cell for _ in 1:length(R)] : nothing
         isa(atoms, Atoms) ? atoms = [atoms for _ in 1:length(R)] : nothing
         for i in eachindex(R)
-            config = mace_configuration_from_nqcd_configuration(atoms[i], cell[i], R[i])
+            config = mace_configuration_from_nqcd_configuration(atoms[i], cell[i], R[i]; dtype=mace_interface.default_dtype)
             dataset[i] = mace_data.AtomicData.from_config(config, mace_interface.z_table, mace_interface.cutoff_radius)
         end
         # Initialise DataLoader
