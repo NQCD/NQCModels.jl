@@ -197,6 +197,15 @@ function MACEModel(
     return MACEModel(model_paths, models, device, default_dtype, batch_size, cutoff_radius, starter_mace_cache, z_table, atoms, cell, 3, mobile_atoms)
 end
 
+function Base.show(io::IO, model::MACEModel)
+    print(
+        io,
+        "MACEModel{$(model.default_dtype)} with $(length(model.models)) models:\n",
+        "\tDevice(s): $(model.device) \n",
+        "\tBatch size: $(model.batch_size) \n"
+    )
+end
+
 """
     mace_configuration_from_nqcd_configuration(
     atoms::Atoms,
