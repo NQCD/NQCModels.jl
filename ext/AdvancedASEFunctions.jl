@@ -11,7 +11,7 @@ function NQCModels.mobileatoms(model::NQCModels.AdiabaticModels.AdiabaticASEMode
 	if length(ase_constraints) == 0
         return 1:length(model.atoms)
 	else
-        return symdiff(1:length(model.atoms), [constraint.get_indices() .+ 1 for constraint in constraints]...)
+        return symdiff(1:length(model.atoms), [constraint.get_indices() .+ 1 for constraint in ase_constraints]...)
     end
 end
 
