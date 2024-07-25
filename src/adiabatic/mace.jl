@@ -191,10 +191,10 @@ function MACEModel(
 
     # Initialise an evaluation cache
     starter_mace_cache = MACEPredictionCache(
-        [zeros(default_dtype, length(models))], # Energies
-        [zeros(default_dtype, (1, length(models)))], # Node energies
-        [zeros(default_dtype, (1, 1, length(models)))], # Forces
-        [zeros(default_dtype, (3, 3, length(models)))], # Stresses
+        [[convert(default_dtype,1.0)]], # Energies
+        [hcat(convert(default_dtype,1.0))], # Node energies
+        [[convert(default_dtype,1.0);;;]], # Forces
+        [[convert(default_dtype,1.0);;;]], # Stresses
         [], # Input structures
     )
 
@@ -239,19 +239,19 @@ function mace_configuration_from_nqcd_configuration(
     ase_positions = @. ustrip(auconvert(u"Å", R'))
 
     config = mace_data[].utils.Configuration(
-        atomic_numbers=PyVector(atoms.numbers), # needs to be a list
+        atomic_numbers=PyList(atoms.numbers), # needs to be a list
         positions=numpy[].array(ase_positions), # Convert from atomic units to Ångström
         energy=Py(zero(eltype(R))), # scalar
-        forces=Py(zeros(eltype(R), size(R'))), # N_atoms * N_dofs
-        stress=pybuiltins.None, # Not implemented in NQCD
-        virials=pybuiltins.None, # Not implemented in NQCD
-        dipole=pybuiltins.None, # Not implemented in NQCD
-        charges=pybuiltins.None, # Not implemented in NQCD
-        weight=Py(one(eltype(R))), # scalar identity weight
-        energy_weight=pybuiltins.None,
-        forces_weight=pybuiltins.None,
-        stress_weight=pybuiltins.None,
-        virials_weight=pybuiltins.None,
+        forces=numpy[].array(zeros(eltype(R), size(R'))), # N_atoms * N_dofs
+        stress=pybuiltins.None, # Avoid unnecessary tensor overhead for functions not implemented in NQCD
+        virials=pybuiltins.None, # Avoid unnecessary tensor overhead for functions not implemented in NQCD
+        dipole=pybuiltins.None, # Avoid unnecessary tensor overhead for functions not implemented in NQCD
+        charges=pybuiltins.None, # Avoid unnecessary tensor overhead for functions not implemented in NQCD
+        weight=Py(one(eltype(R))), # Can't avoid creating these tensors due to logic fallacy in MACE0.3.3
+        energy_weight=Py(one(eltype(R))), # Can't avoid creating these tensors due to logic fallacy in MACE0.3.3
+        forces_weight=Py(one(eltype(R))), # Can't avoid creating these tensors due to logic fallacy in MACE0.3.3
+        stress_weight=Py(one(eltype(R))), # Can't avoid creating these tensors due to logic fallacy in MACE0.3.3
+        virials_weight=Py(one(eltype(R))), # Can't avoid creating these tensors due to logic fallacy in MACE0.3.3
         config_type=Py("Default"),
         pbc=Py(pbc),
         cell=numpy[].array(cell_array),
@@ -291,10 +291,9 @@ function predict!(
     R::Vector{<:AbstractMatrix},
     cell::Union{Vector{<:AbstractCell},AbstractCell},
 )
-    if R != mace_interface.last_eval_cache.input_structures
-        # Create MACE atomicdata representation
+    if R != mace_interface.last_eval_cache.input_structures # Only predict if working on new structures
         dataset = Vector{Any}(undef, length(R))
-        isa(cell, AbstractCell) ? cell = [cell for _ in 1:length(R)] : nothing
+        isa(cell, AbstractCell) ? cell = [cell for _ in 1:length(R)] : nothing # Always have atoms, positions and cell for each structure
         isa(atoms, Atoms) ? atoms = [atoms for _ in 1:length(R)] : nothing
         for i in eachindex(R)
             config = mace_configuration_from_nqcd_configuration(atoms[i], cell[i], R[i]; dtype=mace_interface.default_dtype)
@@ -308,8 +307,11 @@ function predict!(
             shuffle=false,
             drop_last=false,
         )
-        # Update evaluation cache for outputs
+        # Allocate results arrays for prediction
         mace_interface.last_eval_cache.input_structures = deepcopy(R)
+        mace_interface.last_eval_cache.energies = [zeros(mace_interface.default_dtype, length(mace_interface.models)) for i in eachindex(R)]
+        mace_interface.last_eval_cache.forces = [zeros(mace_interface.default_dtype, mace_interface.ndofs, length(atoms[i]), length(mace_interface.models)) for i in eachindex(R)]
+
 
         # Iterate through dataloader and evaluate each model
         for (batch_index, batch) in enumerate(mace_DataLoader)
@@ -321,12 +323,12 @@ function predict!(
                 model_output = model(clone.to_dict(), compute_stress=true)
                 # Split according to batching
                 #! Check how well this performs and whether this actually saves memory
-                energies = from_dlpack(model_output["energy"])
-                forces = from_dlpack(model_output["forces"])
+                energies = from_dlpack(model_output["energy"].detach())
+                forces = from_dlpack(model_output["forces"].detach())
                 splitting = deepcopy(from_dlpack(clone.ptr)) .+ 1 # Array of batch item bounds in output arrays, +1 due to Julia-Python conversion
                 for structure_index in 2:length(splitting)
                     mace_interface.last_eval_cache.energies[evalcache_index+structure_index-1][model_index] = energies[structure_index-1]
-                    @views mace_interface.last_eval_cache.forces[evalcache_index+structure_index-1][:, :, model_index] .= forces[splitting[structure_index-1]:splitting[structure_index]-1, :] # last index -1 because Julia includes last index in a slice
+                    mace_interface.last_eval_cache.forces[evalcache_index+structure_index-1][:, :, model_index] .= forces[:, splitting[structure_index-1]:splitting[structure_index]-1] # last index -1 because Julia includes last index in a slice
                 end
             end
         end
@@ -413,7 +415,7 @@ Returns the potential energy evaluated by each model in the ensemble in units of
 function get_energy_ensemble(mace_cache::MACEPredictionCache)
     ensemble_energies = Vector{typeof(mace_cache.energies[1])}(undef, length(mace_cache.energies))
     for index in eachindex(mace_cache.energies)
-        ensemble_energies[index] = austrip.(mace_cache.energies[index] .* u"eV") # Energy is given in eV
+        ensemble_energies[index] = @. austrip(mace_cache.energies[index] * u"eV") # Energy is given in eV
     end
     if length(ensemble_energies) == 1
         return ensemble_energies[1]
@@ -431,7 +433,7 @@ Forces are returned in units of **Hartree/Bohr**.
 function get_forces_mean(mace_cache::MACEPredictionCache)
     mean_forces = Vector{Matrix{eltype(mace_cache.forces[1])}}(undef, length(mace_cache.forces))
     for index in eachindex(mace_cache.forces)
-        mean_forces[index] = permutedims(dropdims(mean(austrip.(mace_cache.forces[index] .* u"eV/Å"); dims=3); dims=3), (2, 1)) # Force is given in eV/Å
+        mean_forces[index] = dropdims(mean(austrip.(mace_cache.forces[index] .* u"eV/Å"); dims=3); dims=3) # Force is given in eV/Å
     end
     if length(mean_forces) == 1
         return mean_forces[1]
@@ -449,7 +451,7 @@ Forces are returned in units of **Hartree²/Bohr²**.
 function get_forces_variance(mace_cache::MACEPredictionCache)
     mean_forces = Vector{Matrix{eltype(mace_cache.forces[1])}}(undef, length(mace_cache.forces))
     for index in eachindex(mace_cache.forces)
-        mean_forces[index] = permutedims(dropdims(var(austrip.(mace_cache.forces[index] .* u"eV/Å"); dims=3); dims=3), (2, 1)) # Force is given in eV/Å
+        mean_forces[index] = dropdims(var(austrip.(mace_cache.forces[index] .* u"eV/Å"); dims=3); dims=3) # Force is given in eV/Å
     end
     if length(mean_forces) == 1
         return mean_forces[1]
@@ -466,8 +468,7 @@ Returns the forces evaluated by each model in the ensemble in units of **Hartree
 function get_forces_ensemble(mace_cache::MACEPredictionCache)
     ensemble_forces = Vector{typeof(mace_cache.forces[1])}(undef, length(mace_cache.forces))
     for index in eachindex(mace_cache.forces)
-        ensemble_forces[index] = zeros(eltype(mace_cache.forces[index]), size(mace_cache.forces[index])[[2, 1, 3]])
-        permutedims!(ensemble_forces[index], austrip.(mace_cache.forces[index] .* u"eV/Å"), (2, 1, 3)) # Force is given in eV/Å
+        ensemble_forces[index] = permutedims(austrip.(mace_cache.forces[index] .* u"eV/Å"), (2, 1, 3)) # Force is given in eV/Å
     end
     if length(ensemble_forces) == 1
         return ensemble_forces[1]
