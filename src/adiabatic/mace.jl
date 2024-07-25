@@ -14,23 +14,24 @@ and/or sell copies of the Software, and to permit persons to whom the Software i
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 """
 
-using PyCall
+using PythonCall
+using DLPack
 using Unitful
 using UnitfulAtomic
 using NQCBase
 using Statistics
 using ..NQCModels: NQCModels, AdiabaticModels.AdiabaticChemicalEnvironmentMLIP
 
-const torch = PyNULL()
-const mace_data = PyNULL()
-const mace_tools = PyNULL()
-const numpy = PyNULL()
+const torch = Ref{Py}()
+const mace_data = Ref{Py}()
+const mace_tools = Ref{Py}()
+const numpy = Ref{Py}()
 
 function __init__()
-    copy!(torch, pyimport("torch"))
-    copy!(mace_data, pyimport("mace.data"))
-    copy!(mace_tools, pyimport("mace.tools"))
-    copy!(numpy, pyimport("numpy"))
+    torch[] = pyimport("torch")
+    mace_data[] = pyimport("mace.data")
+    mace_tools[] = pyimport("mace.tools")
+    numpy[] = pyimport("numpy")
 end
 
 """
@@ -76,7 +77,7 @@ struct MACEModel{T} <: AdiabaticChemicalEnvironmentMLIP
     last_eval_cache::MACEPredictionCache
     z_table
     atoms::Atoms
-    cell::PeriodicCell
+    cell::AbstractCell
     ndofs::Int
     mobile_atoms::Vector{Int}
 end
@@ -130,17 +131,17 @@ function MACEModel(
     # Check selected device types are available
     for dev in device
         if split(dev, ":")[1] == "cuda"
-            if torch.backends.cuda.is_built()
+            if torch[].backends.cuda.is_built()
                 @debug "CUDA device available, using GPU."
             else
                 @warn "CUDA device not available, falling back to CPU."
                 dev = "cpu"
             end
             if length(split(dev, ":")) == 2
-                torch.cuda.device_count() < parse(Int, split(dev, ":")[2]) || throw(ArgumentError("CUDA device index out of range."))
+                torch[].cuda.device_count() < parse(Int, split(dev, ":")[2]) || throw(ArgumentError("CUDA device index out of range."))
             end
         elseif dev == "mps"
-            if torch.backends.mps.is_built()
+            if torch[].backends.mps.is_built()
                 @debug "MPS device available, using GPU."
             else
                 @warn "MPS device not available, falling back to CPU."
@@ -152,15 +153,18 @@ function MACEModel(
         end
     end
     # Set default dtype for torch
-    dtypes_julia_python = Dict{Type,Any}(Float32 => torch.float32, Float64 => torch.float64)
-    torch.set_default_dtype(dtypes_julia_python[default_dtype])
+    dtypes_julia_python = Dict{Type,Any}(Float32 => torch[].float32, Float64 => torch[].float64)
+    torch[].set_default_dtype(dtypes_julia_python[default_dtype])
 
     # Load MACE models
     models = []
     for (i, file_path) in enumerate(model_paths)
         try
-            model = torch.load(f=file_path, map_location=device[i])
+            model = torch[].load(f=file_path, map_location=device[i])
             model = model.to(device[i])
+            # Check if any rogue atoms contained in base structure
+            any(sort(unique(atoms.numbers)) ∉ from_dlpack(model.atomic_numbers)) || throw(ArgumentError("Example structure contains atom types not present in MACE model $(i)."))
+            # Model is safe to add to ensemble
             push!(models, model)
         catch e
             throw(e)
@@ -169,14 +173,14 @@ function MACEModel(
     end
 
     # Check cutoff radii are identical
-    cutoff_radii = [isa(model.r_max, Number) ? model.r_max : model.r_max.cpu().item() for model in models]
+    cutoff_radii = [copy(from_dlpack(model.r_max)[]) for model in models]
     if length(unique(cutoff_radii)) > 1
         @warn "Cutoff radii are not identical for all models."
     end
     cutoff_radius = convert(default_dtype, unique(cutoff_radii)[1])
 
-    # Build z-table (needs PyVector representation)
-    z_table = mace_tools.utils.AtomicNumberTable(PyVector(py"[int(Z) for Z in $models[0].atomic_numbers]"))
+    # Build z-table
+    z_table = mace_tools[].utils.AtomicNumberTable(sort(unique(atoms.numbers)))
 
     # Freeze parameters
     for model in models
@@ -217,7 +221,7 @@ Converter into a single mace.data.utils.Configuration to make use of MACE's data
 """
 function mace_configuration_from_nqcd_configuration(
     atoms::Atoms,
-    cell::Union{InfiniteCell,PeriodicCell},
+    cell::AbstractCell,
     R::AbstractMatrix;
     dtype::Type=Float64,
 )
@@ -234,25 +238,25 @@ function mace_configuration_from_nqcd_configuration(
 
     ase_positions = @. ustrip(auconvert(u"Å", R'))
 
-    config = mace_data.utils.Configuration(
+    config = mace_data[].utils.Configuration(
         atomic_numbers=PyVector(atoms.numbers), # needs to be a list
-        positions=ase_positions, # Convert from atomic units to Ångström
-        energy=zero(eltype(R)), # scalar
-        forces=zeros(eltype(R), size(R')), # N_atoms * N_dofs
-        stress=zeros(eltype(R), 2 * size(R, 1)), # 2*N_dofs
-        virials=zeros(eltype(R), (size(R, 1), size(R, 1))), # N_dofs * N_dofs
-        dipole=zeros(eltype(R), size(R, 1)), # N_dofs
-        charges=zeros(eltype(R), size(R, 2)), # N_dofs
-        weight=one(eltype(R)), # scalar identity weight
-        energy_weight=zero(eltype(R)),
-        forces_weight=zero(eltype(R)),
-        stress_weight=zero(eltype(R)),
-        virials_weight=zero(eltype(R)),
-        config_type="Default",
-        pbc=pbc,
-        cell=cell_array,
+        positions=numpy[].array(ase_positions), # Convert from atomic units to Ångström
+        energy=Py(zero(eltype(R))), # scalar
+        forces=Py(zeros(eltype(R), size(R'))), # N_atoms * N_dofs
+        stress=pybuiltins.None, # Not implemented in NQCD
+        virials=pybuiltins.None, # Not implemented in NQCD
+        dipole=pybuiltins.None, # Not implemented in NQCD
+        charges=pybuiltins.None, # Not implemented in NQCD
+        weight=Py(one(eltype(R))), # scalar identity weight
+        energy_weight=pybuiltins.None,
+        forces_weight=pybuiltins.None,
+        stress_weight=pybuiltins.None,
+        virials_weight=pybuiltins.None,
+        config_type=Py("Default"),
+        pbc=Py(pbc),
+        cell=numpy[].array(cell_array),
     )
-    return config
+    return Py(config)
 end
 
 # ToDo: Evaluation function that handles model evaluation and caching of results.
@@ -294,11 +298,11 @@ function predict!(
         isa(atoms, Atoms) ? atoms = [atoms for _ in 1:length(R)] : nothing
         for i in eachindex(R)
             config = mace_configuration_from_nqcd_configuration(atoms[i], cell[i], R[i]; dtype=mace_interface.default_dtype)
-            dataset[i] = mace_data.AtomicData.from_config(config, mace_interface.z_table, mace_interface.cutoff_radius)
+            dataset[i] = mace_data[].AtomicData.from_config(config, mace_interface.z_table, mace_interface.cutoff_radius)
         end
         # Initialise DataLoader
         batch_size = mace_interface.batch_size === nothing ? length(dataset) : mace_interface.batch_size # Ensure there is a batch size
-        mace_DataLoader = mace_tools.torch_geometric.dataloader.DataLoader(
+        mace_DataLoader = mace_tools[].torch_geometric.dataloader.DataLoader(
             dataset=dataset,
             batch_size=batch_size,
             shuffle=false,
@@ -306,10 +310,6 @@ function predict!(
         )
         # Update evaluation cache for outputs
         mace_interface.last_eval_cache.input_structures = deepcopy(R)
-        mace_interface.last_eval_cache.energies = [zeros(mace_interface.default_dtype, length(mace_interface.models)) for _ in R]
-        mace_interface.last_eval_cache.node_energy = [zeros(mace_interface.default_dtype, (size(i, 2), length(mace_interface.models))) for i in R]
-        mace_interface.last_eval_cache.forces = [zeros(mace_interface.default_dtype, (size(i, 2), size(i, 1), length(mace_interface.models))) for i in R]
-        mace_interface.last_eval_cache.stress = [zeros(mace_interface.default_dtype, (3, 3, length(mace_interface.models))) for _ in R]
 
         # Iterate through dataloader and evaluate each model
         for (batch_index, batch) in enumerate(mace_DataLoader)
@@ -321,9 +321,9 @@ function predict!(
                 model_output = model(clone.to_dict(), compute_stress=true)
                 # Split according to batching
                 #! Check how well this performs and whether this actually saves memory
-                energies = model_output["energy"].cpu().detach().numpy()
-                forces = model_output["forces"].cpu().detach().numpy()
-                splitting = clone.ptr.cpu().detach().numpy() .+ 1 # Array of batch item bounds in output arrays, +1 due to Julia-Python conversion
+                energies = from_dlpack(model_output["energy"])
+                forces = from_dlpack(model_output["forces"])
+                splitting = deepcopy(from_dlpack(clone.ptr)) .+ 1 # Array of batch item bounds in output arrays, +1 due to Julia-Python conversion
                 for structure_index in 2:length(splitting)
                     mace_interface.last_eval_cache.energies[evalcache_index+structure_index-1][model_index] = energies[structure_index-1]
                     @views mace_interface.last_eval_cache.forces[evalcache_index+structure_index-1][:, :, model_index] .= forces[splitting[structure_index-1]:splitting[structure_index]-1, :] # last index -1 because Julia includes last index in a slice
