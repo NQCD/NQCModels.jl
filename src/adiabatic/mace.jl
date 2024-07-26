@@ -163,7 +163,7 @@ function MACEModel(
             model = torch[].load(f=file_path, map_location=device[i])
             model = model.to(device[i])
             # Check if any rogue atoms contained in base structure
-            any(sort(unique(atoms.numbers)) ∉ from_dlpack(model.atomic_numbers)) || throw(ArgumentError("Example structure contains atom types not present in MACE model $(i)."))
+            any(sort(unique(atoms.numbers)) ∉ Vector(from_dlpack(model.atomic_numbers))) || throw(ArgumentError("Example structure contains atom types not present in MACE model $(i)."))
             # Model is safe to add to ensemble
             push!(models, model)
         catch e
@@ -173,7 +173,7 @@ function MACEModel(
     end
 
     # Check cutoff radii are identical
-    cutoff_radii = [copy(from_dlpack(model.r_max)[]) for model in models]
+    cutoff_radii = [copy(Vector(from_dlpack(model.r_max))[]) for model in models]
     if length(unique(cutoff_radii)) > 1
         @warn "Cutoff radii are not identical for all models."
     end
@@ -323,9 +323,9 @@ function predict!(
                 model_output = model(clone.to_dict(), compute_stress=true)
                 # Split according to batching
                 #! Check how well this performs and whether this actually saves memory
-                energies = from_dlpack(model_output["energy"].detach())
-                forces = from_dlpack(model_output["forces"].detach())
-                splitting = deepcopy(from_dlpack(clone.ptr)) .+ 1 # Array of batch item bounds in output arrays, +1 due to Julia-Python conversion
+                energies = Array(from_dlpack(model_output["energy"].detach()))
+                forces = Array(from_dlpack(model_output["forces"].detach()))
+                splitting = Array(from_dlpack(clone.ptr)) .+ 1 # Array of batch item bounds in output arrays, +1 due to Julia-Python conversion
                 for structure_index in 2:length(splitting)
                     mace_interface.last_eval_cache.energies[evalcache_index+structure_index-1][model_index] = energies[structure_index-1]
                     mace_interface.last_eval_cache.forces[evalcache_index+structure_index-1][:, :, model_index] .= forces[:, splitting[structure_index-1]:splitting[structure_index]-1] # last index -1 because Julia includes last index in a slice
