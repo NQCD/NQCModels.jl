@@ -1,6 +1,8 @@
 module PythonCallASEext
 
-using ..NQCModels: NQCModels
+using ..NQCModels: AdiabaticASEModel
+using Unitful: @u_str, ustrip
+using UnitfulAtomic: austrip, auconvert
 
 
 function NQCModels.potential(model::AdiabaticASEModel, R::AbstractMatrix)
