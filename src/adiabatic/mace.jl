@@ -131,17 +131,17 @@ function MACEModel(
     # Check selected device types are available
     for dev in device
         if split(dev, ":")[1] == "cuda"
-            if torch[].backends.cuda.is_built()
+            if pyconvert(Bool, torch[].backends.cuda.is_built())
                 @debug "CUDA device available, using GPU."
             else
                 @warn "CUDA device not available, falling back to CPU."
                 dev = "cpu"
             end
             if length(split(dev, ":")) == 2
-                torch[].cuda.device_count() < parse(Int, split(dev, ":")[2]) || throw(ArgumentError("CUDA device index out of range."))
+                pyconvert(Int, torch[].cuda.device_count()) < parse(Int, split(dev, ":")[2]) || throw(ArgumentError("CUDA device index out of range."))
             end
         elseif dev == "mps"
-            if torch[].backends.mps.is_built()
+            if pyconvert(Bool, torch[].backends.mps.is_built())
                 @debug "MPS device available, using GPU."
             else
                 @warn "MPS device not available, falling back to CPU."
