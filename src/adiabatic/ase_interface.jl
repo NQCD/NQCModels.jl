@@ -15,6 +15,9 @@ NQCModels installs a Conda environment containing ase and MACE by default as par
 
 
 """
+
+using PythonCall
+
 struct AdiabaticASEModel{A} <: AdiabaticModel
     atoms::A
 end
