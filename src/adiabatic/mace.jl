@@ -173,7 +173,7 @@ function MACEModel(
     end
 
     # Check cutoff radii are identical
-    cutoff_radii = [copy(Vector(from_dlpack(model.r_max))[]) for model in models]
+    cutoff_radii = [copy(Array(from_dlpack(model.r_max))[]) for model in models]
     if length(unique(cutoff_radii)) > 1
         @warn "Cutoff radii are not identical for all models."
     end
