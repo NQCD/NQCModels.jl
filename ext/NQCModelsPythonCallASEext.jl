@@ -1,6 +1,7 @@
 module PythonCallASEext
 
-using ..NQCModels: AdiabaticASEModel
+using NQCModels: AdiabaticASEModel
+using PythonCall
 using Unitful: @u_str, ustrip
 using UnitfulAtomic: austrip, auconvert
 
