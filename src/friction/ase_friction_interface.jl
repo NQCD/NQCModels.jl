@@ -1,5 +1,6 @@
 using Unitful: @u_str
 using UnitfulAtomic: austrip
+using PythonCall
 
 """
     ASEFrictionProvider{A} <: ElectronicFrictionProvider
@@ -16,7 +17,7 @@ NQCModels.ndofs(::ASEFrictionProvider) = 3
 
 function friction!(model::ASEFrictionProvider, F::AbstractMatrix, R::AbstractMatrix)
     set_coordinates!(model, R)
-    F .= model.atoms.get_friction_tensor()
+    F .= pyconvert(Matrix{eltype(F)}, model.atoms.get_friction_tensor()) # Not transposing since the EFT must be symmetric
     @. F = austrip(F * u"eV/Å/Å")
 end
 
