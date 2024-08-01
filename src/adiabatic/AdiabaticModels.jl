@@ -60,8 +60,6 @@ NQCModels.potential(model, [1 2; 3 4])
 """
 abstract type AdiabaticModel <: NQCModels.Model end
 
-abstract type AdiabaticChemicalEnvironmentMLIP <: AdiabaticModel end
-
 NQCModels.nstates(::AdiabaticModel) = 1
 
 NQCModels.zero_derivative(::AdiabaticModel, R) = zero(R)
@@ -80,9 +78,6 @@ include("ase_interface.jl")
 export AdiabaticASEModel
 include("averaged_potential.jl")
 export AveragedPotential
-include("mace.jl")
-export MACE # To make all methods of getting data out of an evaluation cache accessible
-@reexport using .MACE: MACEModel # To put the MACEModel in the AdiabaticModels namespace
 
 function __init__()
     Requires.@require JuLIP="945c410c-986d-556a-acb1-167a618e0462" @eval include("julip.jl")
