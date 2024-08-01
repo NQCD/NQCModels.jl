@@ -11,8 +11,6 @@ Implements both `potential` and `derivative!`.
 ## Notes on calling Python from Julia
 
 Both PyCall.jl and PythonCall.jl can be used to create the `ase.Atoms` object, but **PythonCall.jl is preferred**.
-NQCModels installs a Conda environment containing ase and MACE by default as part of package installation. 
-
 
 """
 
