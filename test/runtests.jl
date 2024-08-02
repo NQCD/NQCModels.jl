@@ -10,6 +10,14 @@ using SafeTestsets
 
 include("test_utils.jl")
 
+@time @safetestset "ASE with PythonCall.jl" begin
+    include("ase_pythoncall.jl")
+end
+
+@time @safetestset "ASE with PyCall.jl" begin
+    include("ase_pycall.jl")
+end
+
 @testset "Potential abstraction" begin
     struct TestModel <: NQCModels.Model end
 
@@ -81,28 +89,4 @@ end
     JuLIP.set_calculator!(at, JuLIP.StillingerWeber())
     model = AdiabaticModels.JuLIPModel(at)
     @test test_model(model, length(at))
-end
-
-@testset "ASE" begin
-    using PyCall
-
-    ase = pyimport("ase")
-
-    h2 = ase.Atoms("H2", [(0, 0, 0), (0, 0, 0.74)])
-    h2.center(vacuum=2.5)
-
-    @testset "EMT" begin
-        emt = pyimport("ase.calculators.emt")
-        h2.calc = emt.EMT()
-        model = AdiabaticASEModel(h2)
-        @test test_model(model, 2)
-    end
-
-    @testset "GPAW" begin
-        gpaw = pyimport("gpaw")
-        h2.calc = gpaw.GPAW(xc="PBE", mode=gpaw.PW(300), txt="h2.txt")
-        model = AdiabaticASEModel(h2)
-        @test test_model(model, 2, rtol=1e-3)
-    end
-
 end
