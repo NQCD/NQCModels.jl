@@ -46,4 +46,4 @@ jobs:
         env:
           LD_LIBRARY_PATH: $HOME/libxc-5.1.5/lib
           PYTHONPATH: $HOME/libxc-5.1.5/lib
-          JULIA_PYTHONCALL_EXE: PYCALL
+          JULIA_PYTHONCALL_EXE: "@PYCALL"
