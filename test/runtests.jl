@@ -4,9 +4,15 @@ using NQCModels
 using LinearAlgebra
 using SafeTestsets
 
-@time @safetestset "Wide band bath discretisations" begin include("wide_band_bath_discretisations.jl") end
-@time @safetestset "Anderson Holstein" begin include("anderson_holstein.jl") end
-@safetestset "AdiabaticStateSelector" begin include("test_adiabatic_state_selector.jl") end
+@time @safetestset "Wide band bath discretisations" begin
+    include("wide_band_bath_discretisations.jl")
+end
+@time @safetestset "Anderson Holstein" begin
+    include("anderson_holstein.jl")
+end
+@safetestset "AdiabaticStateSelector" begin
+    include("test_adiabatic_state_selector.jl")
+end
 
 include("test_utils.jl")
 
@@ -22,13 +28,13 @@ end
     struct TestModel <: NQCModels.Model end
 
     NQCModels.ndofs(::TestModel) = 3
-    @test_throws MethodError potential(TestModel(), rand(3,1))
+    @test_throws MethodError potential(TestModel(), rand(3, 1))
 
     NQCModels.ndofs(::TestModel) = 1
     NQCModels.potential(::TestModel, ::Real) = 1
     NQCModels.potential(::TestModel, ::AbstractVector) = 2
-    @test potential(TestModel(), rand(1,1)) == 1
-    @test potential(TestModel(), rand(1,2)) == 2
+    @test potential(TestModel(), rand(1, 1)) == 1
+    @test potential(TestModel(), rand(1, 2)) == 2
 end
 
 @testset "Plot" begin
