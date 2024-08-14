@@ -1,3 +1,4 @@
+using PythonCall
 
 """
     AdiabaticASEModel{A} <: AdiabaticModel
@@ -13,9 +14,6 @@ Implements both `potential` and `derivative!`.
 Both PyCall.jl and PythonCall.jl can be used to create the `ase.Atoms` object, but **PythonCall.jl is preferred**.
 
 """
-
-using PythonCall
-
 struct AdiabaticASEModel{A} <: AdiabaticModel
     atoms::A
 end
@@ -25,7 +23,7 @@ NQCModels.ndofs(::AdiabaticASEModel) = 3
 function NQCModels.potential(model::AdiabaticASEModel, R::AbstractMatrix)
     set_coordinates!(model, R)
     V = model.atoms.get_potential_energy()
-    return austrip(pyconvert(eltype(R),V) * u"eV")
+    return austrip(pyconvert(eltype(R), V) * u"eV")
 end
 
 function NQCModels.derivative!(model::AdiabaticASEModel, D::AbstractMatrix, R::AbstractMatrix)
@@ -44,5 +42,5 @@ This module contains methods related to the NQCModels ASE interface that need ac
 """
 
 function NQCModels.mobileatoms(model::AdiabaticASEModel, n::Int)
-    return symdiff(1:length(model.atoms), [pyconvert(Vector,constraint.get_indices()) .+ 1 for constraint in model.atoms.constraints]...)
+    return symdiff(1:length(model.atoms), [pyconvert(Vector, constraint.get_indices()) .+ 1 for constraint in model.atoms.constraints]...)
 end
