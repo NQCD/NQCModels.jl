@@ -42,7 +42,12 @@ jobs:
         run: julia -e 'using Pkg; Pkg.Registry.add(RegistrySpec(url="https://github.com/JuliaMolSim/MolSim"))'
 
       - uses: julia-actions/julia-buildpkg@v1
+        env:
+          LD_LIBRARY_PATH: $HOME/libxc-5.1.5/lib
+          PYTHONPATH: $HOME/libxc-5.1.5/lib
+          JULIA_PYTHONCALL_EXE: "@PyCall"
       - uses: julia-actions/julia-runtest@v1
         env:
           LD_LIBRARY_PATH: $HOME/libxc-5.1.5/lib
           PYTHONPATH: $HOME/libxc-5.1.5/lib
+          JULIA_PYTHONCALL_EXE: "@PyCall"

@@ -16,6 +16,8 @@ using Parameters: Parameters
 using Unitful: @u_str, ustrip
 using UnitfulAtomic: austrip, auconvert
 
+using Reexport: @reexport
+
 """
     AdiabaticModel <: Model
 
