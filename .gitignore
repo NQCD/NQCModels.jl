@@ -26,3 +26,6 @@ Manifest.toml
 .DS_STORE
 .CondaPkg/
 .CondaPkg/*
+
+# IDE files
+.vscode/
