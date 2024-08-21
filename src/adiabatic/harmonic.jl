@@ -4,6 +4,10 @@
 
 Adiabatic harmonic potential. ``V(x) = mω^2(x-r₀)^2 / 2``
 
+m, ω, r₀ are the mass, frequency, and equilibrium position respectively and can be supplied as 
+numbers or Matrices to create a compound model for multiple particles. 
+
+
 ```jldoctest
 julia> using Symbolics;
 
@@ -29,9 +33,9 @@ end
 NQCModels.ndofs(harmonic::Harmonic) = harmonic.dofs
 
 function NQCModels.potential(model::Harmonic, R::AbstractMatrix)
-    return sum(0.5 * model.m* model.ω^2 .* (R .- model.r₀) .^2)
+    return sum(@. 0.5 * model.m* model.ω^2 * (R - model.r₀) ^2)
 end
 
 function NQCModels.derivative!(model::Harmonic, D::AbstractMatrix, R::AbstractMatrix) 
-    D .= model.m* model.ω^2 .* (R .- model.r₀)
+    @. D = model.m * model.ω^2 * (R - model.r₀)
 end

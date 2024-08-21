@@ -40,6 +40,7 @@ function friction! end
 Obtain the friction for the current position `R`.
 
 This is an allocating version of `friction!`.
+
 """
 function friction(model::AdiabaticFrictionModel, R)
     F = zero_friction(model, R)
@@ -48,6 +49,9 @@ function friction(model::AdiabaticFrictionModel, R)
 end
 
 zero_friction(::AdiabaticFrictionModel, R) = zeros(eltype(R), length(R), length(R))
+
+NQCModels.dofs(model::ElectronicFrictionProvider) = 1:model.ndofs
+NQCModels.ndofs(model::ElectronicFrictionProvider) = model.ndofs
 
 include("composite_friction_model.jl")
 export CompositeFrictionModel
