@@ -8,19 +8,19 @@ function fillbathstates!(out::Hermitian, bath::WideBandBathDiscretisation)
     copy!(diagonal, bath.bathstates)
 end
 
-function fillbathcoupling!(out::Hermitian, coupling::Real, bath::WideBandBathDiscretisation)
+function fillbathcoupling!(out::Hermitian, coupling::Real, bath::WideBandBathDiscretisation, coupling_rescale)
     first_column = @view out.data[2:end, 1]
-    setcoupling!(first_column, bath.bathcoupling, coupling)
+    setcoupling!(first_column, bath.bathcoupling, coupling, coupling_rescale)
     first_row = @view out.data[1, 2:end]
     copy!(first_row, first_column)
 end
 
-function setcoupling!(out::AbstractVector, bathcoupling::AbstractVector, coupling::Real)
-    out .= bathcoupling .* coupling
+function setcoupling!(out::AbstractVector, bathcoupling::AbstractVector, coupling::Real, coupling_rescale)
+    out .= bathcoupling .* coupling .* coupling_rescale
 end
 
-function setcoupling!(out::AbstractVector, bathcoupling::Real, coupling::Real)
-    fill!(out, bathcoupling * coupling)
+function setcoupling!(out::AbstractVector, bathcoupling::Real, coupling::Real, coupling_rescale)
+    fill!(out, bathcoupling * coupling .* coupling_rescale)
 end
 
 """
