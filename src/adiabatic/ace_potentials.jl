@@ -25,6 +25,6 @@ end
 function NQCModels.derivative!(model::ACEpotentialsModel, D::AbstractMatrix, R::AbstractMatrix)
     system = System(model.atoms, R, model.cell)
     force = AtomsCalculators.forces(system, model.model)
-    D .= -austrip.(auconvert.(reduce(vcat,transpose.(force))))
+    D .= -austrip.(auconvert.(transpose(reduce(vcat,transpose.(force)))))
     return D
 end
