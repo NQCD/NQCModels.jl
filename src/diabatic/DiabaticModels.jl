@@ -163,6 +163,7 @@ export WideBandBath
 
 include("wide_band_bath_discretisation.jl")
 export TrapezoidalRule
+export WindowedTrapezoidalRule
 export ShenviGaussLegendre
 export ReferenceGaussLegendre
 export FullGaussLegendre
