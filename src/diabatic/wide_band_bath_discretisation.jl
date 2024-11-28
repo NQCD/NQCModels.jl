@@ -49,31 +49,35 @@ end
     WindowedTrapezoidalRule{B,T}
 
 Discretise wide band continuum using the trapezoidal rule with a region of higher state density
-surrounding the Fermi Energy, defined by __.  
+surrounding the Fermi Energy. The position of the energy window containing more densely packed states
+is defined by energy values and the increase in density by a proportion. 
 """
 
 struct WindowedTrapezoidalRule{T} <: WideBandBathDiscretisation
     bathstates::Vector{T} # due to the non-even distribution need to represent as vectors
-    bathcoupling::Vetor{T} 
+    bathcoupling::Vector{T} 
 end
 
 function WindowedTrapezoidalRule(M, bandmin, bandmax, windmin, windmax; densityratio=0.50)
-    M * (1-densityratio) % 2 == 0 || throw(error("The number of states not in the windowed region must be even.")) # constraint enforced such that the a densityratio=0.5 can be utilized and return an integer number of states.
+    (M - (M*densityratio)) % 2 == 0 || throw(error("For the provided arguments, the number of states not in the windowed region is $(M - (M*densityratio)). This value must be even for a symmetric discretisation.")) # constraint enforced such that the a densityratio=0.5 can be utilized and return an integer number of states.
     abs(bandmin) > abs(windmin) || throw(error("Requested window minimum energy lies outside of energy range."))
     abs(bandmax) > abs(windmax) || throw(error("Requested window maximum energy lies outside of energy range."))
     
+    M_sparse = floor(Int, (M - (M*densityratio))/2)
+    M_window = floor(Int, M*densityratio)
+
     # Sparsely distributed trapezoidal rule discretised bath states
     ΔE_sparse1 = windmin - bandmin # Energy range for first sparsely distributed state region
-    bstates_sparse1 = collect(range(bandmin, windmin, length=M*(1-densityratio)/2))
+    bstates_sparse1 = collect(range(bandmin, windmin, length=M_sparse))
     bcoupling_sparse1 = fill!(copy(bstates_sparse1), sqrt(ΔE_sparse1 / (M*(1-densityratio)/2)))
 
     ΔE_sparse2 = bandmax - windmax # Energy Range for second sparsely distributed state region
-    bstates_sparse2 = collect(range(windmax, bandmax, length=M*(1-densityratio)/2))
+    bstates_sparse2 = collect(range(windmax, bandmax, length=M_sparse))
     bcoupling_sparse2 = fill!(copy(bstates_sparse2), sqrt(ΔE_sparse2 / (M*(1-densityratio)/2)))
 
     # densely distributed trapezoidal rule discretised bath states within energy window
     ΔE_window = bandmax - bandmin
-    bstates_window = collect(range(windmin, windmax, length=M*densityratio))
+    bstates_window = collect(range(windmin, windmax, length=M_window))
     bcoupling_window = fill!(copy(bstates_window), sqrt(ΔE_window / (M*densityratio)))
 
     bathstates = [bstates_sparse1; bstates_window; bstates_sparse2] # concatenates arrays vertically (along axis = 1)    
