@@ -58,6 +58,14 @@ function Base.show(io::IO, model::CompositeModel)
     print(io, "CompositeModel with subsystems:\n", [system for system in model.subsystems]...)
 end
 
+"""
+    CompositeModel(subsystems::Subsystem...)
+
+Combine multiple Subsystems into a single model to be handled by NQCDynamics.jl in simulations. 
+Any calls made to `potential`, `derivative` and `friction` will apply each subsystem's model to the respective atoms while ignoring any other atoms. 
+
+Some checks are made to ensure each atom is affected by a model and that each model is applied over the same degrees of freedom, but no other sanity checks are made. 
+"""
 CompositeModel(subsystems::Subsystem...) = CompositeModel(check_models(subsystems...)...) # Check subsystems are a valid combination
 
 get_friction_models(system::Vector{<:Subsystem}) = @view system[findall(x->isa(x.model, FrictionModels.ElectronicFrictionProvider), system)]
@@ -122,7 +130,11 @@ end
 
 function FrictionModels.friction!(system::CompositeModel, F::AbstractMatrix, R::AbstractMatrix)
 	for subsystem in get_friction_models(system)
-		eft_indices=vcat([[(j-1)*ndofs(subsystem.model)+i for i in dofs(subsystem.model)] for j in subsystem.indices]...)
+		if subsystem.indices == Colon()
+			eft_indices=vcat([[(j-1)*ndofs(subsystem.model)+i for i in dofs(subsystem.model)] for j in 1:size(R,2)]...) # Size of friction tensor from positions if applying friction to entire system. 
+		else
+			eft_indices=vcat([[(j-1)*ndofs(subsystem.model)+i for i in dofs(subsystem.model)] for j in subsystem.indices]...)
+		end
 		FrictionModels.friction!(subsystem, view(F, eft_indices, eft_indices), R)
 	end
 end
