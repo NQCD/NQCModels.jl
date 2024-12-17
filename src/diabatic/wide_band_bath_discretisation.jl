@@ -77,7 +77,6 @@ function WindowedTrapezoidalRule(M, bandmin, bandmax, windmin, windmax; densityr
 
     # densely distributed trapezoidal rule discretised bath states within energy window
     ΔE_window = windmax - windmin
-    @info ΔE_window
     bstates_window = collect(range(windmin, windmax, length=M_window))
     bcoupling_window = fill!(copy(bstates_window), sqrt(ΔE_window / M_window))
 
