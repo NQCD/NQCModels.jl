@@ -63,22 +63,24 @@ function WindowedTrapezoidalRule(M, bandmin, bandmax, windmin, windmax; densityr
     abs(bandmin) > abs(windmin) || throw(error("Requested window minimum energy lies outside of energy range."))
     abs(bandmax) > abs(windmax) || throw(error("Requested window maximum energy lies outside of energy range."))
     
-    M_sparse = floor(Int, (M - (M*densityratio))/2)
     M_window = floor(Int, M*densityratio)
-
-    # Sparsely distributed trapezoidal rule discretised bath states
-    ΔE_sparse1 = windmin - bandmin # Energy range for first sparsely distributed state region
-    bstates_sparse1 = collect(range(bandmin, windmin, length=M_sparse))
-    bcoupling_sparse1 = fill!(copy(bstates_sparse1), sqrt(ΔE_sparse1 / M_sparse))
-
-    ΔE_sparse2 = bandmax - windmax # Energy Range for second sparsely distributed state region
-    bstates_sparse2 = collect(range(windmax, bandmax, length=M_sparse))
-    bcoupling_sparse2 = fill!(copy(bstates_sparse2), sqrt(ΔE_sparse2 / M_sparse))
+    M_sparse = floor(Int, (M - (M*densityratio))/2)
+    
 
     # densely distributed trapezoidal rule discretised bath states within energy window
     ΔE_window = windmax - windmin
     bstates_window = collect(range(windmin, windmax, length=M_window))
     bcoupling_window = fill!(copy(bstates_window), sqrt(ΔE_window / M_window))
+
+    # Sparsely distributed trapezoidal rule discretised bath states
+    ΔE_sparse1 = windmin - bandmin # Energy range for first sparsely distributed state region
+    bstates_sparse1 = collect(range(bandmin, windmin, length=M_sparse+1))[1:end-1] # slicing is implemented to rectify energy degeneracy at window bounds
+    bcoupling_sparse1 = fill!(copy(bstates_sparse1), sqrt(ΔE_sparse1 / M_sparse))
+
+    ΔE_sparse2 = bandmax - windmax # Energy Range for second sparsely distributed state region
+    bstates_sparse2 = collect(range(windmax, bandmax, length=M_sparse+1))[2:end]
+    bcoupling_sparse2 = fill!(copy(bstates_sparse2), sqrt(ΔE_sparse2 / M_sparse))
+
 
     bathstates = [bstates_sparse1; bstates_window; bstates_sparse2] # concatenates arrays vertically (along axis = 1)    
     bathcoupling = [bcoupling_sparse1; bcoupling_window; bcoupling_sparse2]
