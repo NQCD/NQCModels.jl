@@ -75,11 +75,13 @@ function WindowedTrapezoidalRule(M, bandmin, bandmax, windmin, windmax; densityr
     # Sparsely distributed trapezoidal rule discretised bath states
     ΔE_sparse1 = windmin - bandmin # Energy range for first sparsely distributed state region
     bstates_sparse1 = collect(range(bandmin, windmin, length=M_sparse+1))[1:end-1] # slicing is implemented to rectify energy degeneracy at window bounds
-    bcoupling_sparse1 = fill!(copy(bstates_sparse1), sqrt(ΔE_sparse1 / M_sparse))
+    bcoupling_sparse1 = fill!(copy(bstates_sparse1), sqrt(ΔE_sparse1 / M_sparse+1))[1:end-1]
+
 
     ΔE_sparse2 = bandmax - windmax # Energy Range for second sparsely distributed state region
     bstates_sparse2 = collect(range(windmax, bandmax, length=M_sparse+1))[2:end]
-    bcoupling_sparse2 = fill!(copy(bstates_sparse2), sqrt(ΔE_sparse2 / M_sparse))
+    bcoupling_sparse2 = fill!(copy(bstates_sparse2), sqrt(ΔE_sparse2 / M_sparse+1))[2:end]
+    
 
 
     bathstates = [bstates_sparse1; bstates_window; bstates_sparse2] # concatenates arrays vertically (along axis = 1)    
