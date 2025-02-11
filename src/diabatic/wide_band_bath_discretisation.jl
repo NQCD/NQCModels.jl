@@ -91,11 +91,11 @@ end
 
 # A = ScalingFn(WindowRegion, ΔCoupling, slope=50, window_energy=1.0)
 
-```
+"""
     WindowedTrapezoidalRule(M, bandmin, bandmax, windmin, windmax; densityratio=0.50)
 
 Original discretisation method.
-```
+"""
 function WindowedTrapezoidalRule(M, bandmin, bandmax, windmin, windmax; densityratio=0.50)
     (M - (M*densityratio)) % 2 == 0 || throw(error("For the provided arguments, the number of states not in the windowed region is $(M - (M*densityratio)). This value must be even for a symmetric discretisation.")) # constraint enforced such that the a densityratio=0.5 can be utilized and return an integer number of states.
     abs(bandmin) > abs(windmin) || throw(error("Requested window minimum energy lies outside of energy range."))
@@ -127,11 +127,11 @@ function WindowedTrapezoidalRule(M, bandmin, bandmax, windmin, windmax; densityr
 end
 
 
-```
+"""
     WindowedTrapezoidalRule2(M, bandmin, bandmax, windmin, windmax; densityratio=0.50)
 
 Adjusted method where the states at the window edges are set to have the same coupling value as the sparse region.
-```
+"""
 function WindowedTrapezoidalRule2(M, bandmin, bandmax, windmin, windmax; densityratio=0.50)
     (M - (M*densityratio)) % 2 == 0 || throw(error("For the provided arguments, the number of states not in the windowed region is $(M - (M*densityratio)). This value must be even for a symmetric discretisation.")) # constraint enforced such that the a densityratio=0.5 can be utilized and return an integer number of states.
     abs(bandmin) > abs(windmin) || throw(error("Requested window minimum energy lies outside of energy range."))
@@ -162,11 +162,11 @@ function WindowedTrapezoidalRule2(M, bandmin, bandmax, windmin, windmax; density
     return WindowedTrapezoidalRule(bathstates, bathcoupling)
 end
 
-```
+"""
     WindowedTrapezoidalRule3(M, bandmin, bandmax, windmin, windmax; densityratio=0.50, correctionslope=50)
 
 Extension to method 2, with a `cosh(x)` type scaling correction applied to the coupling value in the window region.
-```
+"""
 function WindowedTrapezoidalRule3(M, bandmin, bandmax, windmin, windmax; densityratio=0.50, correctionslope=50)
     (M - (M*densityratio)) % 2 == 0 || throw(error("For the provided arguments, the number of states not in the windowed region is $(M - (M*densityratio)). This value must be even for a symmetric discretisation.")) # constraint enforced such that the a densityratio=0.5 can be utilized and return an integer number of states.
     abs(bandmin) > abs(windmin) || throw(error("Requested window minimum energy lies outside of energy range."))
@@ -207,11 +207,11 @@ function CouplingCalc(x, scalingfactor, window, offset, gradient)
     # return (exp.(arg1) + exp.(arg2))
 end
 
-```
+"""
     WindowedTrapezoidalRule4(M, bandmin, bandmax, windmin, windmax; densityratio=0.50, correctionslope=50)
 
 Extension to method 2, with a Fermi Dirac distribution type scaling correction applied to the coupling value around the window energy.
-```
+"""
 function WindowedTrapezoidalRule4(M, bandmin, bandmax, windmin, windmax; densityratio=0.50, correctionslope=50)
     (M - (M*densityratio)) % 2 == 0 || throw(error("For the provided arguments, the number of states not in the windowed region is $(M - (M*densityratio)). This value must be even for a symmetric discretisation.")) # constraint enforced such that the a densityratio=0.5 can be utilized and return an integer number of states.
     abs(bandmin) > abs(windmin) || throw(error("Requested window minimum energy lies outside of energy range."))
@@ -244,11 +244,11 @@ function WindowedTrapezoidalRule4(M, bandmin, bandmax, windmin, windmax; density
     return WindowedTrapezoidalRule(bathstates, bathcoupling)
 end
 
-```
+"""
     WindowedTrapezoidalRule5(M, bandmin, bandmax, windmin, windmax; densityratio=0.50, correctionslope=50)
 
 Extension to method 2, with arbitrary changes made to the coupling values that seem to work to generate a flat DOS - NEEDS REFINING!!!
-```
+"""
 function WindowedTrapezoidalRule5(M, bandmin, bandmax, windmin, windmax; densityratio=0.50)
     (M - (M*densityratio)) % 2 == 0 || throw(error("For the provided arguments, the number of states not in the windowed region is $(M - (M*densityratio)). This value must be even for a symmetric discretisation.")) # constraint enforced such that the a densityratio=0.5 can be utilized and return an integer number of states.
     abs(bandmin) > abs(windmin) || throw(error("Requested window minimum energy lies outside of energy range."))
