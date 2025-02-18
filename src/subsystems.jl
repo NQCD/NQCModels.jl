@@ -25,7 +25,6 @@ function Base.show(io::IO, subsystem::Subsystem)
 end
 
 function Subsystem(model, indices=:)
-	@debug "Outer Subsystem constructor called"
 	# Convert indices to a Vector{Int} or : for consistency
 	if isa(indices, Int)
 		indices = [indices]
