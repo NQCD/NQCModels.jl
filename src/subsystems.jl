@@ -27,7 +27,7 @@ end
 function Subsystem(model, indices=:)
 	# Convert indices to a Vector{Int} or : for consistency
 	if isa(indices, Int)
-		indices = [indices]
+		indices = [indices:indices]
 	elseif isa(indices, UnitRange{Int})
 		indices = collect(indices)
 	end
@@ -117,7 +117,7 @@ end
 
 function derivative!(system::CompositeModel, D::AbstractMatrix, R::AbstractMatrix)
 	for subsystem in get_pes_models(system)
-		derivative!(subsystem, view(D, dofs(subsystem), subsystem.indices), R)
+		@views derivative!(subsystem, view(D, dofs(subsystem), subsystem.indices), R)
 	end
 end
 
