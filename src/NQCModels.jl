@@ -148,4 +148,6 @@ include("diabatic/DiabaticModels.jl")
 
 include("plot.jl")
 
+include("subsystems.jl")
+
 end # module
