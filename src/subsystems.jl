@@ -117,7 +117,9 @@ end
 
 function derivative!(system::CompositeModel, D::AbstractMatrix, R::AbstractMatrix)
 	for subsystem in get_pes_models(system)
-		@views derivative!(subsystem, D[dofs(subsystem), subsystem.indices], R)
+		@debug "Accessing D[$(dofs(subsystem)), $(subsystem.indices)]"
+		subsystem_derivative = derivative(subsystem, R)
+		D[dofs(subsystem), subsystem.indices] .= subsystem_derivative[dofs(subsystem), subsystem.indices]
 	end
 end
 
