@@ -50,7 +50,7 @@ A CompositeModel is composed of multiple Subsystems, creating an effective model
 """
 struct CompositeModel{S<:Vector{<:Subsystem}, D<:Int} <: AdiabaticModels.AdiabaticModel
 	subsystems::S
-	dofs::D
+	ndofs::D
 end
 
 function Base.show(io::IO, model::CompositeModel)
@@ -72,8 +72,8 @@ get_friction_models(system::CompositeModel) = get_friction_models(system.subsyst
 get_pes_models(system::Vector{<:Subsystem}) = @view system[findall(x->isa(x.model, AdiabaticModels.AdiabaticModel) || isa(x.model, DiabaticModels.DiabaticModel), system)]
 get_pes_models(system::CompositeModel) = get_pes_models(system.subsystems)
 
-dofs(system::CompositeModel) = 1:system.dofs
-ndofs(system::CompositeModel) = system.dofs
+dofs(system::CompositeModel) = 1:system.ndofs
+ndofs(system::CompositeModel) = system.ndofs
 
 """
 Subsystem combination logic - We only want to allow combination of subsystems:
@@ -117,7 +117,7 @@ end
 
 function derivative!(system::CompositeModel, D::AbstractMatrix, R::AbstractMatrix)
 	for subsystem in get_pes_models(system)
-		@views derivative!(subsystem, view(D, dofs(subsystem), subsystem.indices), R)
+		@views derivative!(subsystem, D[dofs(subsystem), subsystem.indices], R)
 	end
 end
 
