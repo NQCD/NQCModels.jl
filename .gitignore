@@ -24,3 +24,8 @@ docs/site/
 Manifest.toml
 *.txt
 .DS_STORE
+.CondaPkg/
+.CondaPkg/*
+
+# IDE files
+.vscode/
