@@ -1,7 +1,7 @@
 name = "NQCModels"
 uuid = "c814dc9f-a51f-4eaf-877f-82eda4edad48"
 authors = ["James Gardner <james.gardner1421@gmail.com>"]
-version = "0.9.1"
+version = "0.9.2"
 
 [deps]
 AtomsBase = "a963bdd2-2df7-4f54-a1ee-49d51e6be12a"
@@ -29,7 +29,7 @@ AdvancedASEFunctions = "PyCall"
 [compat]
 FastGaussQuadrature = "0.4, 0.5, 1"
 ForwardDiff = "0.10"
-NQCBase = "0.1, 0.2"
+NQCBase = "0.1, 0.2, 0.3"
 Parameters = "0.12"
 RecipesBase = "1"
 Reexport = "1"
