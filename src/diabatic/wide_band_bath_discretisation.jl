@@ -280,6 +280,59 @@ function WindowedTrapezoidalRule5(M, bandmin, bandmax, windmin, windmax; density
 
     return WindowedTrapezoidalRule(bathstates, bathcoupling)
 end
+
+
+"""
+    WindowedTrapezoidalRule6(M, bandmin, bandmax, windmin, windmax; densityratio=0.50)
+
+Windowed discretisation where spacing increases linearly from window edge to bandwidth edge.                 
+"""
+function WindowedTrapezoidalRule6(M, bandmin, bandmax, windmin, windmax; densityratio=0.50)
+    (M - (M*densityratio)) % 2 == 0 || throw(error("For the provided arguments, the number of states not in the windowed region is $(M - (M*densityratio)). This value must be even for a symmetric discretisation.")) # constraint enforced such that the a densityratio=0.5 can be utilized and return an integer number of states.
+    abs(bandmin) > abs(windmin) || throw(error("Requested window minimum energy lies outside of energy range."))
+    abs(bandmax) > abs(windmax) || throw(error("Requested window maximum energy lies outside of energy range."))
+    
+    M_window = floor(Int, M*densityratio)
+    M_sparse = floor(Int, (M - (M*densityratio))/2)
+
+    # densely distributed trapezoidal rule discretised bath states within energy window
+    ΔE_window = windmax - windmin # Energy range for window region
+    bstates_window = collect(range(windmin, windmax, length=M_window))
+    bcoupling_window = fill!(copy(bstates_window), sqrt(ΔE_window / M_window))
+
+    # ΔE_sparse1 = windmin - bandmin # Energy range for first sparsely distributed state region
+    ΔE_sparse2 = bandmax - windmax # Energy Range for second sparsely distributed state region
+
+    S_0 = ΔE_window/M_window
+    S_max = (M_sparse*ΔE_sparse2 - M_sparse*(M_sparse-1)*S_0 + sum([i*S_0 for i in 1:(M_sparse-1)]))/(M_sparse + sum([i for i in 1:(M_sparse-1)]))
+    gradient = (S_max - S_0)/M_sparse
+    Spacing = [gradient*i + S_0 for i in 1:M_sparse]
+
+
+    bstates_sparse = zeros(M_sparse)
+    for (i, S_i) in enumerate(Spacing)
+        if i == 1
+            bstates_sparse[1] = windmax + S_i
+        else
+            bstates_sparse[i] = bstates_sparse[i-1] + S_i
+        end
+    end
+
+    # Sparsely distributed trapezoidal rule discretised bath states
+    # negative region
+    bstates_sparse1 = -1 .* reverse(copy(bstates_sparse)) 
+    bcoupling_sparse1 = sqrt.(reverse(copy(Spacing)))
+
+    #positive region
+    bstates_sparse2 = bstates_sparse
+    bcoupling_sparse2 = sqrt.(Spacing)
+
+    bathstates = [bstates_sparse1; bstates_window; bstates_sparse2] # concatenates arrays vertically (along axis = 1)    
+    bathcoupling = [bcoupling_sparse1; bcoupling_window; bcoupling_sparse2]
+
+    return WindowedTrapezoidalRule(bathstates, bathcoupling)
+end
+
 # ------------------------------------------------------------------------------------------------ #
 
 """
