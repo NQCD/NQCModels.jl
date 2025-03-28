@@ -333,6 +333,32 @@ function WindowedTrapezoidalRule6(M, bandmin, bandmax, windmin, windmax; density
     return WindowedTrapezoidalRule(bathstates, bathcoupling)
 end
 
+
+"""
+    WindowedTrapezoidalRule7(M, bandmin, bandmax, windmin, windmax; densityratio=0.50)
+
+Windowed discretisation where ShenviGaussLegendre discretisation is used outside the window region.                 
+"""
+function WindowedTrapezoidalRule7(M, bandmin, bandmax, windmin, windmax; densityratio=0.50)
+    (M - (M*densityratio)) % 2 == 0 || throw(error("For the provided arguments, the number of states not in the windowed region is $(M - (M*densityratio)). This value must be even for a symmetric discretisation.")) # constraint enforced such that the a densityratio=0.5 can be utilized and return an integer number of states.
+    abs(bandmin) > abs(windmin) || throw(error("Requested window minimum energy lies outside of energy range."))
+    abs(bandmax) > abs(windmax) || throw(error("Requested window maximum energy lies outside of energy range."))
+    
+    M_window = floor(Int, M*densityratio)
+    M_sparse = floor(Int, (M - (M*densityratio))/2)
+
+    ShenviGauss = ShenviGaussLegendre(M_sparse*2, bandmin - windmin, bandmax - windmax)
+    sparse_region = ShenviGauss.bathstates[M_sparse+1:end] .+ windmax
+
+    Trapezoidal = TrapezoidalRule(M_window, windmin, windmax)
+    window_region = collect(Trapezoidal.bathstates)
+
+    bathstates = [-1*reverse(sparse_region); window_region; sparse_region]
+    bathcoupling = [ShenviGauss.bathcoupling[1:M_sparse]; fill!(copy(window_region), Trapezoidal.bathcoupling); ShenviGauss.bathcoupling[M_sparse+1:end]] 
+
+    return WindowedTrapezoidalRule(bathstates, bathcoupling)
+end
+
 # ------------------------------------------------------------------------------------------------ #
 
 """
