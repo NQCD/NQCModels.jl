@@ -169,6 +169,7 @@ export WindowedTrapezoidalRule3
 export WindowedTrapezoidalRule4
 export WindowedTrapezoidalRule5
 export WindowedTrapezoidalRule6
+export WindowedTrapezoidalRule7
 export ShenviGaussLegendre
 export ReferenceGaussLegendre
 export FullGaussLegendre
