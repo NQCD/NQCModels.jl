@@ -300,11 +300,26 @@ function WindowedTrapezoidalRule6(M, bandmin, bandmax, windmin, windmax; density
     bstates_window = collect(range(windmin, windmax, length=M_window))
     bcoupling_window = fill!(copy(bstates_window), sqrt(ΔE_window / M_window))
 
+    windowfraction = ΔE_window/(bandmax - bandmin)
+    if windowfraction < densityratio
+        @info("Input parameters define a window region denser than the outer region.")
+    elseif windowfraction > densityratio
+        @info("Input parameters define a window region of equal density to the outer region.")
+    elseif windowfraction == densityratio
+        @info("Input parameters define a window region sparser than the outer region.")
+    else
+        throw(error("Invalid parameters provided."))
+    end
+
+
     # ΔE_sparse1 = windmin - bandmin # Energy range for first sparsely distributed state region
     ΔE_sparse2 = bandmax - windmax # Energy Range for second sparsely distributed state region
 
     S_0 = ΔE_window/M_window
     S_max = (M_sparse*ΔE_sparse2 - M_sparse*(M_sparse-1)*S_0 + sum([i*S_0 for i in 1:(M_sparse-1)]))/(M_sparse + sum([i for i in 1:(M_sparse-1)]))
+    
+    S_max > 0 || throw(error("Too few states in window region, changing space in sparse region has extrapolated to a negative spacing"))
+    
     gradient = (S_max - S_0)/M_sparse
     Spacing = [gradient*i + S_0 for i in 1:M_sparse]
 
