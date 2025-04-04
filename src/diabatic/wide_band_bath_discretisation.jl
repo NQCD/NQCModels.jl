@@ -304,9 +304,9 @@ function WindowedTrapezoidalRule6(M, bandmin, bandmax, windmin, windmax; density
     if windowfraction < densityratio
         @info("Input parameters define a window region denser than the outer region.")
     elseif windowfraction > densityratio
-        @info("Input parameters define a window region of equal density to the outer region.")
-    elseif windowfraction == densityratio
         @info("Input parameters define a window region sparser than the outer region.")
+    elseif windowfraction == densityratio
+        @info("Input parameters define a window region of equal density to the outer region.")
     else
         throw(error("Invalid parameters provided."))
     end
