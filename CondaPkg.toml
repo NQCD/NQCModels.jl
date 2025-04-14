@@ -1,0 +1,4 @@
+[deps]
+numpy = "<2" # Fix below 2 for now
+ase = ""
+
