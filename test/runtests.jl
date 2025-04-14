@@ -47,6 +47,12 @@ if GROUP =="All" || GROUP == "ASE"
     end
 end
 
+if GROUP == "All" || GROUP == "ACEpotentials"
+    @time @safetestset "AtomsBase calculators interface for ACEpotentials" begin
+        include("test_ace_potentials.jl")
+    end
+end
+
 @testset "Potential abstraction" begin
     struct TestModel <: NQCModels.Model end
 
