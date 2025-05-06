@@ -8,3 +8,6 @@ Primarily, the package is intended to be used with [NQCDynamics.jl](https://gith
 but it is equally possible to use any of the models separately.
 
 For details on the included models and implementation take a look at the [documentation](https://nqcd.github.io/NQCDynamics.jl/dev/NQCModels/overview/).
+
+> [!NOTE]
+> [ACEregistry](https://github.com/ACEsuit/ACEregistry) must be installed for NQCModels.jl tests to pass
