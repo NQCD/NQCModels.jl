@@ -81,6 +81,7 @@ export AveragedPotential
 
 function __init__()
     Requires.@require JuLIP="945c410c-986d-556a-acb1-167a618e0462" @eval include("julip.jl")
+    Requires.@require AtomsCalculators="a3e0e189-c65a-42c1-833c-339540406eb1" @eval include("ace_potentials.jl")
 end
 
 end # module
