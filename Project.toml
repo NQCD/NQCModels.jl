@@ -5,6 +5,8 @@ version = "0.9.2"
 
 [deps]
 AtomsBase = "a963bdd2-2df7-4f54-a1ee-49d51e6be12a"
+DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 FastGaussQuadrature = "442a2c76-b920-505d-bb47-c5924d526838"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -20,17 +22,17 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 
-[weakdeps]
-PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
-
-[extensions]
-AdvancedASEFunctions = "PyCall"
+[sources]
+JuLIP = {url = "https://github.com/JuliaMolSim/JuLIP.jl.git"}
 
 [compat]
+DataInterpolations = "8.0"
+DelimitedFiles = "1.9.1"
 FastGaussQuadrature = "0.4, 0.5, 1"
 ForwardDiff = "0.10"
 NQCBase = "0.1, 0.2, 0.3"
 Parameters = "0.12"
+PythonCall = "0.9.24"
 RecipesBase = "1"
 Reexport = "1"
 Requires = "1"
@@ -39,9 +41,9 @@ Unitful = "1"
 UnitfulAtomic = "1"
 julia = "≥1.9"
 
-
 [extras]
 FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
+InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 JuLIP = "945c410c-986d-556a-acb1-167a618e0462"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
@@ -50,4 +52,4 @@ SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Plots", "PyCall", "SafeTestsets", "Test", "FiniteDiff", "JuLIP", "PythonCall"]
+test = ["Plots", "PyCall", "SafeTestsets", "Test", "FiniteDiff", "JuLIP", "PythonCall", "InteractiveUtils"]
