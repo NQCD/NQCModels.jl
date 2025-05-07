@@ -36,7 +36,9 @@ end
 
 function TrapezoidalRule(M, bandmin, bandmax; fermilevelstate = false)
 
-    if fermilevelstate == true
+    if fermilevelstate == false
+        nothing
+    elseif fermilevelstate == true
         M = M+1 # increase number of states in window region by 1 to place a state at the fermi level
         @info "Additional state added at Fermi level, number of states in discretisation =$M"
     else
@@ -303,24 +305,27 @@ function WindowedTrapezoidalRule6(M, bandmin, bandmax, windmin, windmax; density
     M_window = floor(Int, M*densityratio)
     M_sparse = floor(Int, (M - (M*densityratio))/2)
     
-    if fermilevelstate == false
-        S_0 = ΔE_window/M_window # window spacing
-    elseif fermilevelstate == true
-        S_0 = ΔE_window/(M_window+1) # window spacing
-        M_new = (M_window + 1) + M_Sparse * 2
-        @info "Additional state added at Fermi level, number of states in discretisation =$M_new"
-    else
-        throw(error("Invalid value provided to `fermilevelstate`. Only Boolean values allowed."))
-    end
-    
 
     # densely distributed trapezoidal rule discretised bath states within energy window
     ΔE_window = windmax - windmin # Energy range for window region
     # bstates_window = collect(range(windmin, windmax, length=M_window))
     # bcoupling_window = fill!(copy(bstates_window), sqrt(ΔE_window / M_window))
-    bstates_window = collect(range(windmin, windmax, length=M_window+1))
+
+    if fermilevelstate == false
+        S_0 = ΔE_window/M_window # window spacing
+    elseif fermilevelstate == true
+        S_0 = ΔE_window/(M_window+1) # window spacing
+        M_window = M_window + 1
+        M_new = M_window + (M_sparse * 2)
+        @info "Additional state added at Fermi level, number of states in discretisation =$M_new"
+    else
+        throw(error("Invalid value provided to `fermilevelstate`. Only Boolean values allowed."))
+    end
+
+    bstates_window = collect(range(windmin, windmax, length=M_window))
     bcoupling_window = fill!(copy(bstates_window), sqrt(S_0))
 
+    
     windowfraction = ΔE_window/(bandmax - bandmin)
     if windowfraction < densityratio
         @info("Input parameters define a window region denser than the outer region.")
@@ -336,7 +341,7 @@ function WindowedTrapezoidalRule6(M, bandmin, bandmax, windmin, windmax; density
     # ΔE_sparse1 = windmin - bandmin # Energy range for first sparsely distributed state region
     ΔE_sparse2 = bandmax - windmax # Energy Range for second sparsely distributed state region
 
-    
+
     S_max = (M_sparse*ΔE_sparse2 - M_sparse*(M_sparse-1)*S_0 + sum([i*S_0 for i in 1:(M_sparse-1)]))/(M_sparse + sum([i for i in 1:(M_sparse-1)]))
     
     S_max > 0 || throw(error("Too few states in window region, changing space in sparse region has extrapolated to a negative spacing"))
@@ -383,9 +388,11 @@ function WindowedTrapezoidalRule7(M, bandmin, bandmax, windmin, windmax; density
     M_window = floor(Int, M*densityratio)
     M_sparse = floor(Int, (M - (M*densityratio))/2)
 
-    if fermilevelstate == true
+    if fermilevelstate == false
+        nothing
+    elseif fermilevelstate == true
         M_window = M_window+1 # increase number of states in window region by 1 to place a state at the fermi level
-        M_new = M_window + M_Sparse * 2
+        M_new = M_window + M_sparse * 2
         @info "Additional state added at Fermi level, number of states in discretisation =$M_new"
     else
         throw(error("Invalid value provided to `fermilevelstate`. Only Boolean values allowed."))
