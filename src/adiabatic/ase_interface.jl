@@ -1,5 +1,3 @@
-using PythonCall
-
 """
     AdiabaticASEModel{A} <: AdiabaticModel
 

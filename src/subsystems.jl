@@ -146,7 +146,14 @@ function FrictionModels.friction(system::CompositeModel, R::AbstractMatrix)
 	return F
 end
 	
+# Overload friction function to map friction_atoms to Subsystem indices
+function FrictionModels.friction!(system::Subsystem{<:FrictionModels.DiagonalFriction}, F::AbstractMatrix, R::AbstractMatrix)
+	F .= get_friction_matrix(system.model, R)
+end
 
-
-
+# Overload friction function to map friction_atoms to Subsystem indices
+function FrictionModels.friction!(system::Subsystem{<:FrictionModels.TensorialFriction}, F::AbstractMatrix, R::AbstractMatrix)
+	indices = FrictionModels.friction_matrix_indices(collect(1:length(system.model.friction_atoms)), NQCModels.ndofs(system))
+	F[indices, indices] .= get_friction_matrix(system.model, R)
+end
 
