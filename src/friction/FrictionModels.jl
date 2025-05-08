@@ -5,6 +5,7 @@ using ..NQCModels: NQCModels
 using ..AdiabaticModels: AdiabaticModel
 
 export friction, friction!
+export density, density!
 
 """
     AdiabaticFrictionModel <: AdiabaticModel
@@ -33,43 +34,17 @@ If atomic masses are required to calculate friction in your ElectronicFrictionPr
 """
 abstract type ElectronicFrictionProvider end
 
-
 """
-    DiagonalFriction
-    
-Abstract model type which yields diagonal friction matrices. This allows some integrators to fall back to simpler routines and save time. 
+    friction_matrix_indices(model, indices)
 
-Subtypes of this must implement `friction!` and `ndofs`.
-Subtypes of this should implement `get_friction_matrix` for functionality with `Subsystem`s and `CompositeModel`s.
-friction! must act on a square Matrix{<:Number} of size ndofs * length(atoms.masses). 
-
-Units of friction are mass-weighted, and the atomic unit of friction is: [E_h / ħ / m_e]
-Convert common friction units such as ps^-1 or meV ps Å^-2 using `UnitfulAtomic.austrip`. 
-If atomic masses are required to calculate friction in your ElectronicFrictionProvider (e.g. for Isotope support), the atomic masses to use should be included as a type field. 
+Returns the indices of the friction matrix corresponding to the given Atom indices.
 """
-abstract type DiagonalFriction <: ElectronicFrictionProvider end
-
-"""
-    TensorialFriction
-    
-Abstract model type which yields full-rank friction matrices. 
-
-If atomic masses are required to calculate friction in your ElectronicFrictionProvider (e.g. for Isotope support), the atomic masses to use should be included as a type field. 
-A `friction_atoms` field should be included - This indicates that the friction matrix is only partially returned. 
-
-Subtypes of this must implement `get_friction_matrix(model::ACEdsODF, R::AbstractMatrix, friction_atoms::AbstractVector) --> ::AbstractMatrix{eltype(R)}`.
-Subtypes of this must implement `ndofs(m::TensorialFriction) --> ::Int`.
-
-Units of friction are mass-weighted, and the atomic unit of friction is: [E_h / ħ / m_e]
-Convert common friction units such as ps^-1 or meV ps Å^-2 using `UnitfulAtomic.austrip`. 
-
-A system-size friction matrix is obtained with `friction(model, positions)`, or `friction!(model, friction_matrix, positions)`
-"""
-abstract type TensorialFriction <: ElectronicFrictionProvider end
-
-function get_friction_matrix(::TensorialFriction, ::AbstractMatrix)
-    @error "Implement this function for your method"
+function friction_matrix_indices(indices::AbstractVector{Int}, dofs::Integer)
+    dof_range = collect(1:dofs)
+    return vcat(broadcast(x -> x .+ dof_range, dofs .* (indices .- 1))...)
 end
+
+function get_friction_matrix end
 NQCModels.ndofs(model::ElectronicFrictionProvider) = model.ndofs
 NQCModels.dofs(model::ElectronicFrictionProvider) = 1:model.ndofs
 
@@ -92,12 +67,6 @@ Used mostly for testing and examples.
 """
 struct RandomFriction <: ElectronicFrictionProvider
     ndofs::Int
-end
-
-function friction!(::RandomFriction, F::AbstractMatrix, ::AbstractMatrix)
-    randn!(F)
-    F .= F'F
-    F .= (F + F')/2
 end
 
 """
@@ -136,9 +105,9 @@ end
 zero_friction(::AdiabaticFrictionModel, R) = zeros(eltype(R), length(R), length(R))
 
 include("diagonal_friction.jl")
-export DiagonalFriction, LDFAFriction, ElectronDensityProvider
+export LDFAFriction
 include("tensorial_friction.jl")
-export get_friction_matrix, TensorialFriction
+export get_friction_matrix
 
 include("composite_friction_model.jl")
 export CompositeFrictionModel

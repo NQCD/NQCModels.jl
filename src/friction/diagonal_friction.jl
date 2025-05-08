@@ -4,12 +4,37 @@ using Unitful, UnitfulAtomic
 using DataInterpolations
 
 
-function friction(model::ConstantFriction{AbstractVector}, R::AbstractMatrix)
-	Diagonal(fill(model.γ, size(R,1)))
+"""
+	DiagonalFriction
+	
+Abstract model type which yields diagonal friction matrices. This allows some integrators to fall back to simpler routines and save time. 
+
+Subtypes of this must implement `ndofs` and `friction_atoms` fields.
+Subtypes of this must implement `get_friction_matrix` for functionality with `Subsystem`s and `CompositeModel`s.
+
+Units of friction are mass-weighted, and the atomic unit of friction is: [E_h / ħ / m_e]
+Convert common friction units such as ps^-1 or meV ps Å^-2 using `UnitfulAtomic.austrip`. 
+If atomic masses are required to calculate friction in your ElectronicFrictionProvider (e.g. for Isotope support), the atomic masses to use should be included as a type field. 
+"""
+abstract type DiagonalFriction <: ElectronicFrictionProvider end
+
+"""
+    friction(model::DiagonalFriction, R::AbstractMatrix)
+
+Allocating version of the `friction` function to work with any model 
+"""
+function friction(model::DiagonalFriction, R::AbstractMatrix)
+	F = Diagonal(diagm(*(size(R)...))) # Creates a diagonal friction matrix of ndofs * n_atoms
+	return friction!(model, F, R)
 end
 
-function friction!(model::ConstantFriction{AbstractVector}, F::AbstractMatrix, ::AbstractMatrix)
-	F[diagind(F)] .= model.γ
+function friction!(model::DiagonalFriction, F::AbstractMatrix, R::AbstractMatrix)
+	indices=friction_matrix_indices(model.friction_atoms, ndofs(model))
+	F.diag[indices, indices] .= get_friction_matrix(model, R)
+end
+
+function get_friction_matrix(model::ConstantFriction{AbstractVector}, R::AbstractMatrix)
+	Diagonal(fill(model.γ, size(R,1)))
 end
 
 """
@@ -27,21 +52,19 @@ This exists mainly for testing purposes.
 """
 struct ConstantDensity{T} <: ElectronDensityProvider
 	density::T
+	friction_atoms
 end
 
-function density!(D::ConstantDensity, rho::AbstractVector, ::AbstractMatrix, friction_atoms::Union{Vector{Int}, Colon})
-	rho[friction_atoms] .= D.density
+function density!(D::ConstantDensity, density_vector::AbstractVector, ::AbstractMatrix, ::Union{AbstractVector{Int}, Colon})
+	density_vector .= D.density
 end
 
-"""
-	density!(D::ElectronDensityProvider, rho::AbstractVector, R::AbstractMatrix, friction_atoms::Vector{Int})
+# This is needed for other packages to multiple dispatch on it. 
+function density! end
 
-This function is used to determine the electron density for all atoms based on the `positions`, modifying an existing Vector `rho`. 
-
-`friction_atoms` is passed in case the density only needs to be evaluated for certain atoms. 
-"""
-function density!(::ElectronDensityProvider, ::AbstractVector, ::AbstractMatrix, ::Union{Vector{Int}, Colon})
-	@error "Implement this for your method."
+function density(D::ElectronDensityProvider, positions::AbstractMatrix, friction_atoms::Union{Vector{Int}, Colon})
+	density_vector = similar(positions, size(positions, 2)...)
+	return density!(D, density_vector, positions, friction_atoms)
 end
 
 struct LDFAFriction{T,S} <: DiagonalFriction
@@ -119,10 +142,4 @@ function get_friction_matrix(model::LDFAFriction, R::AbstractMatrix)
 	eft_diagonal = repeat(η.(model.radii[model.friction_atoms]), inner=NQCModels.ndofs(model)) # Evaluate friction splines for each atom, then repeat the values per atom for all degrees of freedom. 
 	return eft_diagonal |> diagm |> Diagonal # Return the EFT as a diagonal Matrix with the LinearAlgebra type for efficiency. 
 end
-
-function friction!(model::LDFAFriction, F::AbstractMatrix, R::AbstractMatrix)
-	friction_atom_indices = friction_matrix_indices(model.friction_atoms, NQCModels.ndofs(model))
-	F[friction_atom_indices, friction_atom_indices] .= get_friction_matrix(model, R)
-end
-
 
