@@ -49,7 +49,7 @@ end
 
 In-place version of `potential`, used only when mutable arrays are preferred.
 
-Currently used only for `LargeDiabaticModels`, see `diabatic/DiabaticModels.jl`.
+Currently used only for `LargeQuantumModels`, see `quantum_models/QuantumModels.jl`.
 """
 function potential!(model::Model, V, R::AbstractMatrix)
     if ndofs(model) == 1
@@ -109,7 +109,7 @@ end
 
 Create an zeroed array of the right size to match the derivative.
 """
-function zero_derivative end
+function zero_derivative(model::Model, R) end
 
 """
     nstates(::Model)
@@ -137,17 +137,17 @@ eachstate(model::Model) = Base.OneTo(nstates(model))
 
 mobileatoms(::Model, n::Int) = Base.OneTo(n)
 
-include("discretisations/Discretisations.jl")
-@reexport using .Discretisations
+include("bath_discretisations/BathDiscretisations.jl")
+@reexport using .BathDiscretisations
 
-include("adiabatic/AdiabaticModels.jl")
-@reexport using .AdiabaticModels
+include("classical_models/ClassicalModels.jl")
+@reexport using .ClassicalModels
 
-include("friction/FrictionModels.jl")
+include("friction_models/FrictionModels.jl")
 @reexport using .FrictionModels
 
-include("diabatic/DiabaticModels.jl")
-@reexport using .DiabaticModels
+include("quantum_models/QuantumModels.jl")
+@reexport using .QuantumModels
 
 include("plot.jl")
 
