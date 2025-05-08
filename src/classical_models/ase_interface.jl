@@ -1,0 +1,51 @@
+using PythonCall
+
+"""
+    ClassicalASEModel{A} <: ClassicalModel
+
+Wrapper for an `ase.Atoms` object that has a calculator attached.
+This Model will synchronise the positions with the `ase` object and handle the unit conversions.
+
+Implements both `potential` and `derivative!`.
+
+
+## Notes on calling Python from Julia
+
+Both PyCall.jl and PythonCall.jl can be used to create the `ase.Atoms` object, but **PythonCall.jl is preferred**.
+
+"""
+struct ClassicalASEModel{A} <: ClassicalModel
+    atoms::A
+end
+
+NQCModels.ndofs(::ClassicalASEModel) = 3
+
+function NQCModels.potential(model::ClassicalASEModel, R::AbstractMatrix)
+    set_coordinates!(model, R)
+    V = model.atoms.get_potential_energy()
+    return austrip(pyconvert(eltype(R), V) * u"eV")
+end
+
+function NQCModels.potential!(model::ClassicalASEModel, V::Real, R::AbstractMatrix)
+    set_coordinates!(model, R)
+    V = austrip(pyconvert(eltype(R), model.atoms.get_potential_energy()) * u"eV")
+end
+
+function NQCModels.derivative!(model::ClassicalASEModel, D::AbstractMatrix, R::AbstractMatrix)
+    set_coordinates!(model, R)
+    D .= -pyconvert(Matrix{eltype(D)}, model.atoms.get_forces())'
+    @. D = austrip(D * u"eV/Å")
+    return D
+end
+
+function set_coordinates!(model::ClassicalASEModel, R)
+    model.atoms.set_positions(ustrip.(auconvert.(u"Å", R')))
+end
+
+"""
+This module contains methods related to the NQCModels ASE interface that need access to Python types. (e.g. constraint checking)
+"""
+
+function NQCModels.mobileatoms(model::ClassicalASEModel, n::Int)
+    return symdiff(1:length(model.atoms), [pyconvert(Vector, constraint.get_indices()) .+ 1 for constraint in model.atoms.constraints]...)
+end
