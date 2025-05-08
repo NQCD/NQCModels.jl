@@ -32,7 +32,7 @@ the case for the majority of model systems.
 
 # Example
 
-In this example we create a simple 2 state, 1 dimensional diabatic model `MyModel`.
+In this example we create a simple 2 state, 1 dimensional quantum model `MyModel`.
 As noted above, we implement the 4 relevant functions then evaluate the potential.
 Potential and Derivative functions take in positions as abstract matrices, since 
 this is a 1D model the argument `R` should be a `Real` wrapped in a 1x1 matrix. It is
@@ -98,7 +98,7 @@ function NQCModels.derivative!(model::LargeQuantumModel, D, R::AbstractMatrix)
 end
 
 """
-    DiabaticFrictionModel <: LargeQuantumModel
+    QuantumFrictionModel <: LargeQuantumModel
 
 These models are defined identically to the `LargeQuantumModel` but
 allocate extra temporary arrays when used with `NQCDynamics.jl`.
@@ -107,7 +107,7 @@ This allows for the calculation of electronic friction
 internally from the diabatic potential after diagonalisation
 and calculation of nonadiabatic couplings.
 """
-abstract type DiabaticFrictionModel <: LargeQuantumModel end
+abstract type QuantumFrictionModel <: LargeQuantumModel end
 
 function matrix_template(model::QuantumModel, eltype)
     n = NQCModels.nstates(model)
