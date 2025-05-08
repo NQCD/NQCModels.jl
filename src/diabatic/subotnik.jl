@@ -31,8 +31,9 @@ end
 NQCModels.ndofs(::MiaoSubotnik) = 1
 NQCModels.nstates(::MiaoSubotnik) = 2
 
-function NQCModels.potential(model::MiaoSubotnik, x::Real)
+function NQCModels.potential(model::MiaoSubotnik, R::AbstractMatrix)
     (;m, ω, g, ΔG, coupling) = model
+    x = R[1]
 
     V11 = (m*ω^2*x^2)/2
     V22 = (m*ω^2*(x-g)^2)/2 + ΔG
@@ -41,11 +42,33 @@ function NQCModels.potential(model::MiaoSubotnik, x::Real)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NQCModels.derivative(model::MiaoSubotnik, x::Real)
+function NQCModels.potential!(model::MiaoSubotnik, V::Hermitian, R::AbstractMatrix)
+    (;m, ω, g, ΔG, coupling) = model
+    x = R[1]
+
+    V11 = (m*ω^2*x^2)/2
+    V22 = (m*ω^2*(x-g)^2)/2 + ΔG
+    V12 = coupling
+
+    V = Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+end
+
+function NQCModels.derivative(model::MiaoSubotnik, R::AbstractMatrix)
     (;m, ω, g) = model
+    x = R[1]
 
     D11 = m*ω^2*x
     D22 = m*ω^2*(x-g)
     
     return Hermitian(SMatrix{2,2}(D11, 0, 0, D22))
+end
+
+function NQCModels.derivative!(model::MiaoSubotnik, D::Hermitian, R::AbstractMatrix)
+    (;m, ω, g) = model
+    x = R[1]
+    
+    D11 = m*ω^2*x
+    D22 = m*ω^2*(x-g)
+    
+    D = Hermitian(SMatrix{2,2}(D11, 0, 0, D22))
 end

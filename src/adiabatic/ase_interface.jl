@@ -26,6 +26,11 @@ function NQCModels.potential(model::AdiabaticASEModel, R::AbstractMatrix)
     return austrip(pyconvert(eltype(R), V) * u"eV")
 end
 
+function NQCModels.potential!(model::AdiabaticASEModel, V::Real, R::AbstractMatrix)
+    set_coordinates!(model, R)
+    V = austrip(pyconvert(eltype(R), model.atoms.get_potential_energy()) * u"eV")
+end
+
 function NQCModels.derivative!(model::AdiabaticASEModel, D::AbstractMatrix, R::AbstractMatrix)
     set_coordinates!(model, R)
     D .= -pyconvert(Matrix{eltype(D)}, model.atoms.get_forces())'

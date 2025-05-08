@@ -28,12 +28,32 @@ function NQCModels.potential(model::TullyModelOne, q::Real)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
+function NQCModels.potential!(model::TullyModelOne, V::Hermitian, q::Real)
+    Parameters.@unpack a, b, c, d = model
+    if q > 0
+        V11 = a * (1 - exp(-b*q))
+    else
+        V11 = -a * (1 - exp(b*q))
+    end
+    V22 = -V11
+    V12 = c * exp(-d*q^2) # sets both off-diagonals as V is Hermitian
+    V = Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+end
+
 function NQCModels.derivative(model::TullyModelOne, q::Real)
     Parameters.@unpack a, b, c, d = model
     D11 = a * b * exp(-b * abs(q))
     D22 = -D11
     D12 = -2 * c * d * q * exp(-d*q^2)
     return Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+end
+
+function NQCModels.derivative!(model::TullyModelOne, D::Hermitian, q::Real)
+    Parameters.@unpack a, b, c, d = model
+    D11 = a * b * exp(-b * abs(q))
+    D22 = -D11
+    D12 = -2 * c * d * q * exp(-d*q^2)
+    D = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
 end
 
 """
@@ -57,13 +77,30 @@ function NQCModels.potential(model::TullyModelTwo, q::Real)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
+function NQCModels.potential!(model::TullyModelTwo, V::Hermitian, q::Real)
+    Parameters.@unpack a, b, c, d, e = model
+    V11 = 0
+    V22 = -a*exp(-b*q^2) + e
+    V12 = c * exp(-d*q^2)
+    V = Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+end
+
 function NQCModels.derivative(model::TullyModelTwo, q::Real)
     Parameters.@unpack a, b, c, d  = model
     D11 = 0
     D22 = 2*a*b*q*exp(-b*q^2)
     D12 = -2*c*d*q*exp(-d*q^2)
 
-    Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+    return Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+end
+
+function NQCModels.derivative!(model::TullyModelTwo, D::Hermitian, q::Real)
+    Parameters.@unpack a, b, c, d  = model
+    D11 = 0
+    D22 = 2*a*b*q*exp(-b*q^2)
+    D12 = -2*c*d*q*exp(-d*q^2)
+
+    D = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
 end
 
 """
@@ -89,6 +126,18 @@ function NQCModels.potential(model::TullyModelThree, q::Real)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
+function NQCModels.potential!(model::TullyModelThree, V::Hermitian, q::Real)
+    Parameters.@unpack a, b, c = model
+    V11 = a
+    V22 = -a
+    if q > 0
+        V12 = b * (2 - exp(-c*q))
+    else
+        V12 = b * exp(c*q)
+    end
+    V = Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+end
+
 function NQCModels.derivative(model::TullyModelThree, R::Real)
     Parameters.@unpack a, b, c = model
     q = R[1]
@@ -100,4 +149,17 @@ function NQCModels.derivative(model::TullyModelThree, R::Real)
         D12 = b * c * exp(c*q)
     end
     return Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+end
+
+function NQCModels.derivative!(model::TullyModelThree, D::Hermitian, R::Real)
+    Parameters.@unpack a, b, c = model
+    q = R[1]
+    D11 = 0
+    D22 = 0
+    if q > 0
+        D12 = b * c * exp(-c*q)
+    else
+        D12 = b * c * exp(c*q)
+    end
+    D = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
 end

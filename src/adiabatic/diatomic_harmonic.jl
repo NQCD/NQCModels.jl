@@ -15,6 +15,10 @@ function NQCModels.potential(model::DiatomicHarmonic, R::AbstractMatrix)
     return (norm(R[:,1] .- R[:,2]) - model.r₀)^2 / 2
 end
 
+function NQCModels.potential!(model::DiatomicHarmonic, V::Real, R::AbstractMatrix)
+    V = (norm(R[:,1] .- R[:,2]) - model.r₀)^2 / 2
+end
+
 function NQCModels.derivative!(model::DiatomicHarmonic, D::AbstractMatrix, R::AbstractMatrix) 
     diff = R[:,1] .- R[:,2]
     leng = norm(diff)

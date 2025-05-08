@@ -16,7 +16,8 @@ Parameters.@with_kw struct AnanthModelOne{A,B,C,D} <: AnanthModel
     d::D = 1.0
 end
 
-function NQCModels.potential(model::AnanthModelOne, q::Real)
+function NQCModels.potential(model::AnanthModelOne, Q::AbstractMatrix)
+    q = Q[1]
     Parameters.@unpack a, b, c, d = model
     V11 = a * tanh(b*q)
     V22 = -a * tanh(b*q)
@@ -24,12 +25,31 @@ function NQCModels.potential(model::AnanthModelOne, q::Real)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NQCModels.derivative(model::AnanthModelOne, q::Real)
+function NQCModels.potential!(model::AnanthModelOne, V::Hermitian, Q::AbstractMatrix)
+    q = Q[1]
+    Parameters.@unpack a, b, c, d = model
+    V11 = a * tanh(b*q)
+    V22 = -a * tanh(b*q)
+    V12 = c * exp(-d*q^2) # sets both off-diagonals as V is Hermitian
+    V = Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+end
+
+function NQCModels.derivative(model::AnanthModelOne, Q::AbstractMatrix)
+    q = Q[1]
     Parameters.@unpack a, b, c, d = model
     D11 = a * b * (1 - tanh(b*q)^2)
     D22 = -D11
     D12 = -2 * c * d * q * exp(-d*q^2)
     return Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+end
+
+function NQCModels.derivative!(model::AnanthModelOne, D::Hermitian, Q::AbstractMatrix)
+    q = Q[1]
+    Parameters.@unpack a, b, c, d = model
+    D11 = a * b * (1 - tanh(b*q)^2)
+    D22 = -D11
+    D12 = -2 * c * d * q * exp(-d*q^2)
+    D = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
 end
 
 """
@@ -46,7 +66,8 @@ Parameters.@with_kw struct AnanthModelTwo{A,B,C,D,E,F} <: AnanthModel
     f::F = 1.6
 end
 
-function NQCModels.potential(model::AnanthModelTwo, q::Real)
+function NQCModels.potential(model::AnanthModelTwo, Q::AbstractMatrix)
+    q = Q[1]
     Parameters.@unpack a, b, c, d, e, f = model
     V11 = a * tanh(f*q)
     V22 = -b * tanh(f*q)
@@ -54,11 +75,31 @@ function NQCModels.potential(model::AnanthModelTwo, q::Real)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NQCModels.derivative(model::AnanthModelTwo, q::Real)
+function NQCModels.potential!(model::AnanthModelTwo, V::Hermitian, Q::AbstractMatrix)
+    q = Q[1]
+    Parameters.@unpack a, b, c, d, e, f = model
+    V11 = a * tanh(f*q)
+    V22 = -b * tanh(f*q)
+    V12 = c * exp(-d*(q+e)^2)
+    V = Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+end
+
+function NQCModels.derivative(model::AnanthModelTwo, Q::AbstractMatrix)
+    q = Q[1]
     Parameters.@unpack a, b, c, d, e, f = model
     D11 = a * f * (1 - tanh(f*q)^2)
     D22 = -b * f * (1 - tanh(f*q)^2)
     D12 = -2 * c * d * (q+e) * exp(-d*(q+e)^2)
 
-    Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+    return Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+end
+
+function NQCModels.derivative!(model::AnanthModelTwo, D::Hermitian, Q::AbstractMatrix)
+    q = Q[1]
+    Parameters.@unpack a, b, c, d, e, f = model
+    D11 = a * f * (1 - tanh(f*q)^2)
+    D22 = -b * f * (1 - tanh(f*q)^2)
+    D12 = -2 * c * d * (q+e) * exp(-d*(q+e)^2)
+
+    D = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
 end

@@ -22,7 +22,8 @@ end
 NQCModels.nstates(model::OuyangModelOne) = model.n_states
 NQCModels.ndofs(::OuyangModelOne) = 1
 
-function NQCModels.potential!(model::OuyangModelOne, V::Hermitian, r::Real)
+function NQCModels.potential!(model::OuyangModelOne, V::Hermitian, R::AbstractMatrix)
+    r = R[1]
     Parameters.@unpack A, B, C, D, ΔE, N = model
 
     Vsys(x) = A*tanh(B*x)
@@ -37,7 +38,8 @@ function NQCModels.potential!(model::OuyangModelOne, V::Hermitian, r::Real)
     return V
 end
 
-function NQCModels.derivative!(model::OuyangModelOne, derivative::Hermitian, r::Real)
+function NQCModels.derivative!(model::OuyangModelOne, derivative::Hermitian, R::AbstractMatrix)
+    r = R[1]
     Parameters.@unpack A, B, C, D, N = model
 
     Dsys(x) = B*A*sech(B*x)^2

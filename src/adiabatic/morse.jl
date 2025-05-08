@@ -15,14 +15,28 @@ end
 
 NQCModels.ndofs(harmonic::Morse) = 1
 
-function NQCModels.potential(model::Morse, r::Real)
+function NQCModels.potential(model::Morse, R::AbstractMatrix)
+    r = R[1]
     (;Dₑ, x₀, a) = model
     return Dₑ * (exp(-a*(r-x₀)) - 1)^2
 end
 
-function NQCModels.derivative(model::Morse, r::Real) 
+function NQCModels.potential!(model::Morse, V::Real, R::AbstractMatrix)
+    r = R[1]
+    (;Dₑ, x₀, a) = model
+    V = Dₑ * (exp(-a*(r-x₀)) - 1)^2
+end
+
+function NQCModels.derivative(model::Morse, R::AbstractMatrix)
+    r = R[1] 
     (;Dₑ, x₀, a) = model
     return 2Dₑ * (exp(-a*(r-x₀)) - 1) * -a * exp(-a*(r-x₀))
+end
+
+function NQCModels.derivative!(model::Morse, V::Real, R::AbstractMatrix)
+    r = R[1] 
+    (;Dₑ, x₀, a) = model
+    V = 2Dₑ * (exp(-a*(r-x₀)) - 1) * -a * exp(-a*(r-x₀))
 end
 
 "Eq. 44"

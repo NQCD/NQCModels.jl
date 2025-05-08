@@ -56,32 +56,60 @@ function ErpenbeckThoss(;
     return ErpenbeckThoss(austrip(Γ), morse, D₁, D₂, x₀′, a′, c, V∞, q, ã, x̃, V̄ₖ)
 end
 
-function NQCModels.potential(model::ErpenbeckThoss, r::Real)
+function NQCModels.potential(model::ErpenbeckThoss, R::AbstractMatrix)
     (;morse, c, D₁, D₂, x₀′, a′, V∞) = model
-    ϵ₀(x) = NQCModels.potential(morse, x) + c
-    ϵ₁(x) = D₁*exp(-2a′*(x-x₀′)) - D₂*exp(-a′*(x-x₀′)) + V∞
+    ϵ₀(x::AbstractMatrix) = NQCModels.potential(morse, x::AbstractMatrix) + c
+    ϵ₁(x::AbstractMatrix) = D₁*exp(-2a′*(x[1]-x₀′)) - D₂*exp(-a′*(x[1]-x₀′)) + V∞
 
     (;q, ã, x̃, V̄ₖ) = model
-    Vₖ(x) = V̄ₖ * ((1-q)/2*(1 - tanh((x-x̃)/ã)) + q)
+    Vₖ(x::AbstractMatrix) = V̄ₖ * ((1-q)/2*(1 - tanh((x[1]-x̃)/ã)) + q)
 
-    V11 = ϵ₀(r)
-    V22 = ϵ₁(r)
-    V12 = Vₖ(r)
+    V11 = ϵ₀(R)
+    V22 = ϵ₁(R)
+    V12 = Vₖ(R)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NQCModels.derivative(model::ErpenbeckThoss, r::Real)
-    (;morse, D₁, D₂, x₀′, a′) = model
-    ∂ϵ₀(x) = NQCModels.derivative(morse, x)
-    ∂ϵ₁(x) = -2a′*D₁*exp(-2a′*(x-x₀′)) + a′*D₂*exp(-a′*(x-x₀′))
+function NQCModels.potential!(model::ErpenbeckThoss, V::Hermitian, R::AbstractMatrix)
+    (;morse, c, D₁, D₂, x₀′, a′, V∞) = model
+    ϵ₀(x::AbstractMatrix) = NQCModels.potential(morse, x::AbstractMatrix) + c
+    ϵ₁(x::AbstractMatrix) = D₁*exp(-2a′*(x[1]-x₀′)) - D₂*exp(-a′*(x[1]-x₀′)) + V∞
 
     (;q, ã, x̃, V̄ₖ) = model
-    ∂Vₖ(x) = -V̄ₖ * (1-q)/2 * sech((x-x̃)/ã)^2 / ã
+    Vₖ(x::AbstractMatrix) = V̄ₖ * ((1-q)/2*(1 - tanh((x[1]-x̃)/ã)) + q)
 
-    D11 = ∂ϵ₀(r)
-    D22 = ∂ϵ₁(r)
-    D12 = ∂Vₖ(r)
+    V11 = ϵ₀(R)
+    V22 = ϵ₁(R)
+    V12 = Vₖ(R)
+    V = Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+end
+
+function NQCModels.derivative(model::ErpenbeckThoss, R::AbstractMatrix)
+    (;morse, D₁, D₂, x₀′, a′) = model
+    ∂ϵ₀(x::AbstractMatrix) = NQCModels.derivative(morse, x::AbstractMatrix)
+    ∂ϵ₁(x::AbstractMatrix) = -2a′*D₁*exp(-2a′*(x[1]-x₀′)) + a′*D₂*exp(-a′*(x[1]-x₀′))
+
+    (;q, ã, x̃, V̄ₖ) = model
+    ∂Vₖ(x::AbstractMatrix) = -V̄ₖ * (1-q)/2 * sech((x[1]-x̃)/ã)^2 / ã
+
+    D11 = ∂ϵ₀(R)
+    D22 = ∂ϵ₁(R)
+    D12 = ∂Vₖ(R)
     return Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+end
+
+function NQCModels.derivative!(model::ErpenbeckThoss, D::Hermitian, R::AbstractMatrix)
+    (;morse, D₁, D₂, x₀′, a′) = model
+    ∂ϵ₀(x::AbstractMatrix) = NQCModels.derivative(morse, x::AbstractMatrix)
+    ∂ϵ₁(x::AbstractMatrix) = -2a′*D₁*exp(-2a′*(x[1]-x₀′)) + a′*D₂*exp(-a′*(x[1]-x₀′))
+
+    (;q, ã, x̃, V̄ₖ) = model
+    ∂Vₖ(x::AbstractMatrix) = -V̄ₖ * (1-q)/2 * sech((x[1]-x̃)/ã)^2 / ã
+
+    D11 = ∂ϵ₀(R)
+    D22 = ∂ϵ₁(R)
+    D12 = ∂Vₖ(R)
+    D = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
 end
 
 NQCModels.nstates(::ErpenbeckThoss) = 2

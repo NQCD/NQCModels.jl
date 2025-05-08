@@ -17,6 +17,11 @@ function NQCModels.potential(model::AdiabaticStateSelector, r::AbstractMatrix)
     return eigenvalues[model.state]
 end
 
+function NQCModels.potential!(model::AdiabaticStateSelector, V::Real, r::AbstractMatrix)
+    Vsystem = NQCModels.potential(model.model, r)
+    V = LinearAlgebra.eigvals(Vsystem)[model.state]
+end
+
 function NQCModels.derivative!(model::AdiabaticStateSelector, output::AbstractMatrix, r::AbstractMatrix)
     V = NQCModels.potential(model.model, r)
     U = LinearAlgebra.eigvecs(V)

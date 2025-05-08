@@ -15,12 +15,13 @@ end
 NQCModels.ndofs(::DoubleWell) = 1
 NQCModels.nstates(::DoubleWell) = 2
 
-function NQCModels.potential(model::DoubleWell, R::Real)
+function NQCModels.potential(model::DoubleWell, R::AbstractMatrix)
+    r = R[1]
 
-    V0(R) = 0.5 * model.mass * model.ω^2 * R^2
+    V0(r) = 0.5 * model.mass * model.ω^2 * r^2
 
-    V₀ = V0(R)
-    v = sqrt(2)*model.γ*R
+    V₀ = V0(r)
+    v = sqrt(2)*model.γ*r
     V11 = V₀ + v
     V22 = V₀ - v
     V12 = model.Δ/2
@@ -28,13 +29,41 @@ function NQCModels.potential(model::DoubleWell, R::Real)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NQCModels.derivative(model::DoubleWell, R::Real)
+function NQCModels.potential!(model::DoubleWell, V::Hermitian, R::AbstractMatrix)
+    r = R[1]
 
-    D0(R) = model.mass * model.ω^2 * R
+    V0(r) = 0.5 * model.mass * model.ω^2 * r^2
 
-    D₀ = D0(R[1])
+    V₀ = V0(r)
+    v = sqrt(2)*model.γ*r
+    V11 = V₀ + v
+    V22 = V₀ - v
+    V12 = model.Δ/2
+
+    V = Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+end
+
+
+function NQCModels.derivative(model::DoubleWell, R::AbstractMatrix)
+    r = R[1]
+
+    D0(r) = model.mass * model.ω^2 * r
+
+    D₀ = D0(r[1])
     v = sqrt(2)*model.γ
     D11 = D₀ + v
     D22 = D₀ - v
     return Hermitian(SMatrix{2,2}(D11, 0, 0, D22))
+end
+
+function NQCModels.derivative!(model::DoubleWell, D::Hermitian, R::AbstractMatrix)
+    r = R[1]
+
+    D0(r) = model.mass * model.ω^2 * r
+
+    D₀ = D0(r[1])
+    v = sqrt(2)*model.γ
+    D11 = D₀ + v
+    D22 = D₀ - v
+    D = Hermitian(SMatrix{2,2}(D11, 0, 0, D22))
 end

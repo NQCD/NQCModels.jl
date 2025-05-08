@@ -81,7 +81,7 @@ function SpinBoson(density::SpectralDensity, N::Integer, ϵ, Δ)
     SpinBoson(ϵ, Δ, ωⱼ, cⱼ)
 end
 
-function NQCModels.potential(model::SpinBoson, r::AbstractVector)
+function NQCModels.potential(model::SpinBoson, r::AbstractMatrix)
 
     Parameters.@unpack ωⱼ, cⱼ, ϵ, Δ = model
 
@@ -102,7 +102,28 @@ function NQCModels.potential(model::SpinBoson, r::AbstractVector)
     return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-function NQCModels.derivative!(model::SpinBoson, D::AbstractVector{<:Hermitian}, r::AbstractVector)
+function NQCModels.potential!(model::SpinBoson, V::Hermitian, r::AbstractMatrix)
+
+    Parameters.@unpack ωⱼ, cⱼ, ϵ, Δ = model
+
+    v0 = 0.0
+    for i in eachindex(ωⱼ)
+        v0 += ωⱼ[i]^2 * r[i]^2 / 2
+    end
+    V11 = v0 + ϵ
+    V22 = v0 - ϵ
+
+    for i in eachindex(model.cⱼ)
+        V11 += cⱼ[i] * r[i]
+        V22 -= cⱼ[i] * r[i]
+    end
+
+    V12 = Δ
+
+    V = Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+end
+
+function NQCModels.derivative!(model::SpinBoson, D::AbstractVector{<:Hermitian}, r::AbstractMatrix)
 
     Parameters.@unpack ωⱼ, cⱼ = model
 
