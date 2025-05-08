@@ -8,10 +8,10 @@ using Unitful: @u_str, uconvert
 using UnitfulAtomic: UnitfulAtomic
 
 using ..NQCModels: potential, derivative, nstates, state_independent_potential
-using ..AdiabaticModels: AdiabaticModel
-using ..DiabaticModels: DiabaticModel
+using ..ClassicalModels: ClassicalModel
+using ..QuantumModels: QuantumModel
 
-@recipe function f(x, model::AdiabaticModel)
+@recipe function f(x, model::ClassicalModel)
     V = zeros(size(x))
     D = zeros(size(x))
     for i=1:length(x)
@@ -32,7 +32,7 @@ using ..DiabaticModels: DiabaticModel
     end
 end
 
-@recipe function f(x, model::DiabaticModel; adiabats=true, diabats=true, coupling=false, atomic=true, include_diagonal=true)
+@recipe function f(x, model::QuantumModel; adiabats=true, diabats=true, coupling=false, atomic=true, include_diagonal=true)
     eigs = zeros(length(x), nstates(model))
     diabatic = zeros(length(x), nstates(model))
     couplings = zeros(length(x), nstates(model), nstates(model))
@@ -56,7 +56,7 @@ end
         for i=1:nstates(model)
             @series begin
                 linecolor := :black
-                label := i==1 ? "Adiabatic" : ""
+                label := i==1 ? "Classical" : ""
                 if atomic
                     x .* u"bohr", eigs[:,i] .* u"hartree"
                 else
@@ -97,9 +97,9 @@ end
     end
 end
 
-@userplot PlotAdiabaticGradient
+@userplot PlotClassicalGradient
 
-@recipe function f(p::PlotAdiabaticGradient; states=1:1, atomic=true)
+@recipe function f(p::PlotClassicalGradient; states=1:1, atomic=true)
     x, model = p.args
 
     legend := false
