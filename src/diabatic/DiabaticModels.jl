@@ -160,16 +160,8 @@ include("erpenbeck_thoss.jl")
 export ErpenbeckThoss
 include("widebandbath.jl")
 export WideBandBath
-
-include("wide_band_bath_discretisation.jl")
-export TrapezoidalRule
-export ShenviGaussLegendre
-export ReferenceGaussLegendre
-export FullGaussLegendre
-
 include("anderson_holstein.jl")
 export AndersonHolstein
-
 include("adiabatic_state_selector.jl")
 export AdiabaticStateSelector
 

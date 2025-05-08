@@ -1,5 +1,3 @@
-using FastGaussQuadrature: gausslegendre
-
 abstract type WideBandBathDiscretisation end
 NQCModels.nstates(bath::WideBandBathDiscretisation) = length(bath.bathstates)
 
@@ -22,5 +20,3 @@ end
 function setcoupling!(out::AbstractVector, bathcoupling::Real, coupling::Real)
     fill!(out, bathcoupling * coupling)
 end
-
-

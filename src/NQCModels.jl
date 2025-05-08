@@ -137,6 +137,9 @@ eachstate(model::Model) = Base.OneTo(nstates(model))
 
 mobileatoms(::Model, n::Int) = Base.OneTo(n)
 
+include("discretisations/Discretisations.jl")
+@reexport using .Discretisations
+
 include("adiabatic/AdiabaticModels.jl")
 @reexport using .AdiabaticModels
 
