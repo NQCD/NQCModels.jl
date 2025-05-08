@@ -312,9 +312,9 @@ function WindowedTrapezoidalRule6(M, bandmin, bandmax, windmin, windmax; density
     # bcoupling_window = fill!(copy(bstates_window), sqrt(ΔE_window / M_window))
 
     if fermilevelstate == false
-        S_0 = ΔE_window/M_window # window spacing
+        S_0 = ΔE_window/(M_window-1) # window spacing (for a N ticks there are N-1 spacings)
     elseif fermilevelstate == true
-        S_0 = ΔE_window/(M_window+1) # window spacing
+        S_0 = ΔE_window/M_window # window spacing
         M_window = M_window + 1
         M_new = M_window + (M_sparse * 2)
         @info "Additional state added at Fermi level, number of states in discretisation =$M_new"
