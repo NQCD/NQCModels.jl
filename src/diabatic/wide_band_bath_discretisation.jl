@@ -401,7 +401,7 @@ function WindowedTrapezoidalRule7(M, bandmin, bandmax, windmin, windmax; density
     ShenviGauss = ShenviGaussLegendre(M_sparse*2, bandmin - windmin, bandmax - windmax)
     sparse_region = ShenviGauss.bathstates[M_sparse+1:end] .+ windmax
 
-    Trapezoidal = TrapezoidalRule(M_window+1, windmin, windmax)
+    Trapezoidal = TrapezoidalRule(M_window, windmin, windmax)
     window_region = collect(Trapezoidal.bathstates)
 
     bathstates = [-1*reverse(sparse_region); window_region; sparse_region]
