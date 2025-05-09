@@ -18,7 +18,7 @@ NQCModels.nstates(::DoubleWell) = 2
 function NQCModels.potential(model::DoubleWell, R::AbstractMatrix)
     r = R[1]
 
-    V0(r) = 0.5 * model.mass * model.ω^2 * r^2
+    V0(x) = 0.5 * model.mass * model.ω^2 * x^2
 
     V₀ = V0(r)
     v = sqrt(2)*model.γ*r
@@ -32,7 +32,7 @@ end
 function NQCModels.potential!(model::DoubleWell, V::Hermitian, R::AbstractMatrix)
     r = R[1]
 
-    V0(r) = 0.5 * model.mass * model.ω^2 * r^2
+    V0(x) = 0.5 * model.mass * model.ω^2 * x^2
 
     V₀ = V0(r)
     v = sqrt(2)*model.γ*r
@@ -43,13 +43,12 @@ function NQCModels.potential!(model::DoubleWell, V::Hermitian, R::AbstractMatrix
     V = Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
 end
 
-
 function NQCModels.derivative(model::DoubleWell, R::AbstractMatrix)
     r = R[1]
 
-    D0(r) = model.mass * model.ω^2 * r
+    D0(x) = model.mass * model.ω^2 * x
 
-    D₀ = D0(r[1])
+    D₀ = D0(r)
     v = sqrt(2)*model.γ
     D11 = D₀ + v
     D22 = D₀ - v
@@ -59,9 +58,9 @@ end
 function NQCModels.derivative!(model::DoubleWell, D::Hermitian, R::AbstractMatrix)
     r = R[1]
 
-    D0(r) = model.mass * model.ω^2 * r
+    D0(x) = model.mass * model.ω^2 * x
 
-    D₀ = D0(r[1])
+    D₀ = D0(r)
     v = sqrt(2)*model.γ
     D11 = D₀ + v
     D22 = D₀ - v
