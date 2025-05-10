@@ -72,7 +72,7 @@ function NQCModels.potential(model::AnanthModelTwo, Q::AbstractMatrix)
     V11 = a * tanh(f*q)
     V22 = -b * tanh(f*q)
     V12 = c * exp(-d*(q+e)^2)
-    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    return Hermitian([V11 V12; V12 V22])
 end
 
 function NQCModels.potential!(model::AnanthModelTwo, V::Hermitian, Q::AbstractMatrix)
@@ -81,7 +81,7 @@ function NQCModels.potential!(model::AnanthModelTwo, V::Hermitian, Q::AbstractMa
     V11 = a * tanh(f*q)
     V22 = -b * tanh(f*q)
     V12 = c * exp(-d*(q+e)^2)
-    V = Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    V .= [V11 V12; V12 V22]
 end
 
 function NQCModels.derivative(model::AnanthModelTwo, Q::AbstractMatrix)
@@ -90,8 +90,7 @@ function NQCModels.derivative(model::AnanthModelTwo, Q::AbstractMatrix)
     D11 = a * f * (1 - tanh(f*q)^2)
     D22 = -b * f * (1 - tanh(f*q)^2)
     D12 = -2 * c * d * (q+e) * exp(-d*(q+e)^2)
-
-    return Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+    return Hermitian([D11 D12; D12 D22])
 end
 
 function NQCModels.derivative!(model::AnanthModelTwo, D::Hermitian, Q::AbstractMatrix)
@@ -101,5 +100,5 @@ function NQCModels.derivative!(model::AnanthModelTwo, D::Hermitian, Q::AbstractM
     D22 = -b * f * (1 - tanh(f*q)^2)
     D12 = -2 * c * d * (q+e) * exp(-d*(q+e)^2)
 
-    D = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+    D .= [D11 D12; D12 D22]
 end

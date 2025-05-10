@@ -76,15 +76,12 @@ This must be implemented for all models.
 function derivative!(model::Model, D, R::AbstractMatrix)
     if ndofs(model) == 1
         if size(R, 2) == 1
-            D[1] = derivative(model, R[1])
-            return D
+            derivative!(model, D, R::AbstractMatrix)
         else
             derivative!(model, view(D, 1, :), view(R, 1, :))
-            return D
         end
     elseif size(R, 2) == 1
         derivative!(model, view(D, :, 1), view(R, :, 1))
-        return D
     else
         throw(MethodError(derivative!, (model, D, R)))
     end

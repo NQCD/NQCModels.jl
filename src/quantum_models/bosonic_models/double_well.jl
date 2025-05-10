@@ -26,7 +26,7 @@ function NQCModels.potential(model::DoubleWell, R::AbstractMatrix)
     V22 = V₀ - v
     V12 = model.Δ/2
 
-    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    return Hermitian([V11, V12, V12, V22])
 end
 
 function NQCModels.potential!(model::DoubleWell, V::Hermitian, R::AbstractMatrix)
@@ -40,7 +40,7 @@ function NQCModels.potential!(model::DoubleWell, V::Hermitian, R::AbstractMatrix
     V22 = V₀ - v
     V12 = model.Δ/2
 
-    V = Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    V .= Hermitian([V11, V12, V12, V22])
 end
 
 function NQCModels.derivative(model::DoubleWell, R::AbstractMatrix)
@@ -52,7 +52,7 @@ function NQCModels.derivative(model::DoubleWell, R::AbstractMatrix)
     v = sqrt(2)*model.γ
     D11 = D₀ + v
     D22 = D₀ - v
-    return Hermitian(SMatrix{2,2}(D11, 0, 0, D22))
+    return Hermitian([D11, 0, 0, D22])
 end
 
 function NQCModels.derivative!(model::DoubleWell, D::Hermitian, R::AbstractMatrix)
@@ -64,5 +64,5 @@ function NQCModels.derivative!(model::DoubleWell, D::Hermitian, R::AbstractMatri
     v = sqrt(2)*model.γ
     D11 = D₀ + v
     D22 = D₀ - v
-    D = Hermitian(SMatrix{2,2}(D11, 0, 0, D22))
+    D .= Hermitian([D11, 0, 0, D22])
 end
