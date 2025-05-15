@@ -415,7 +415,7 @@ end
 
 Adaptation of `WindowedTrapezoidalRule8(...)` with a smoother join between the window region and sparse region.                 
 """
-function WindowedTrapezoidalRule8(M, bandmin, bandmax, windmin, windmax; densityratio=0.50)
+function WindowedTrapezoidalRule8(M, bandmin, bandmax, windmin, windmax; densityratio=0.50, couplingcorrection=false)
     (M - (M*densityratio)) % 2 == 0 || throw(error("For the provided arguments, the number of states not in the windowed region is $(M - (M*densityratio)). This value must be even for a symmetric discretisation.")) # constraint enforced such that the a densityratio=0.5 can be utilized and return an integer number of states.
     abs(bandmin) > abs(windmin) || throw(error("Requested window minimum energy lies outside of energy range."))
     abs(bandmax) > abs(windmax) || throw(error("Requested window maximum energy lies outside of energy range."))
@@ -426,7 +426,6 @@ function WindowedTrapezoidalRule8(M, bandmin, bandmax, windmin, windmax; density
     # densely distributed trapezoidal rule discretised bath states within energy window
     ΔE_window = windmax - windmin
     bstates_window = collect(range(windmin, windmax, length=M_window))
-    bcoupling_window = fill!(copy(bstates_window), sqrt(ΔE_window / M_window))
 
     # window spacing
     δE_window = bstates_window[2] - bstates_window[1]
@@ -440,15 +439,31 @@ function WindowedTrapezoidalRule8(M, bandmin, bandmax, windmin, windmax; density
     # Sparsely distributed trapezoidal rule discretised bath states
     ΔE_sparse1 = windmin - δE_join  - bandmin # Energy range for first sparsely distributed state region
     bstates_sparse1 = collect(range(bandmin, windmin - δE_join, length=M_sparse)) 
-    bcoupling_sparse1 = fill!(copy(bstates_sparse1), sqrt(ΔE_sparse1 / M_sparse))
 
     ΔE_sparse2 = bandmax - windmax - δE_join # Energy Range for second sparsely distributed state region
     bstates_sparse2 = collect(range(windmax + δE_join, bandmax, length=M_sparse))
-    bcoupling_sparse2 = fill!(copy(bstates_sparse2), sqrt(ΔE_sparse2 / M_sparse))
-
+    
 
     bathstates = [bstates_sparse1; bstates_window; bstates_sparse2] # concatenates arrays vertically (along axis = 1)    
-    bathcoupling = [bcoupling_sparse1; bcoupling_window; bcoupling_sparse2]
+    
+    if couplingcorrection == true
+        MiddleIndex = floor(Int, M/2)
+        δE = bathstates[MiddleIndex+2:end] .- bathstates[MiddleIndex+1:end-1]
+        δE = [δE[1]; δE]
+        lb = bathstates[MiddleIndex+1:end] .- (δE .* 0.5)
+        ub = bathstates[MiddleIndex+1:end] .+ (δE .* 0.5)
+        coupling_sq = (0.5 ./ bathstates[MiddleIndex+1:end]) .* (ub.^2 .- lb.^2) 
+        coupling = sqrt.(coupling_sq)
+        bathcoupling = [reverse(copy(coupling)); coupling]
+    elseif couplingcorrection == false
+        bcoupling_window = fill!(copy(bstates_window), sqrt(ΔE_window / (M_window-1)))
+        bcoupling_sparse1 = fill!(copy(bstates_sparse1), sqrt(ΔE_sparse1 / (M_sparse-1)))
+        bcoupling_sparse2 = fill!(copy(bstates_sparse2), sqrt(ΔE_sparse2 / (M_sparse-1)))
+        bathcoupling = [bcoupling_sparse1; bcoupling_window; bcoupling_sparse2]
+
+    else
+        throw(error("Invalid value provided to `couplingcorrection`. Only Boolean values allowed."))
+    end
 
     return WindowedTrapezoidalRule(bathstates, bathcoupling)
 end
