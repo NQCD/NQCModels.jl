@@ -71,16 +71,7 @@ NQCModels.potential!(model, V, hcat(10))
 """
 abstract type QuantumModel <: NQCModels.Model end
 
-"""
-    LargeQuantumModel <: QuantumModel
-
-Same as the `QuantumModels` but uses normal Julia arrays instead of StaticArrays and must
-implement the inplace `potential!` rather than `potential`.
-This is useful when `nstates` is very large and StaticArrays are no longer efficient.
-"""
-abstract type LargeQuantumModel <: QuantumModel end
-
-function NQCModels.derivative!(model::LargeQuantumModel, D, R::AbstractMatrix)
+function NQCModels.derivative!(model::QuantumModel, D, R::AbstractMatrix)
     if NQCModels.ndofs(model) == 1
         if size(R, 2) == 1
             NQCModels.derivative!(model, D[1], R[1])
@@ -98,16 +89,16 @@ function NQCModels.derivative!(model::LargeQuantumModel, D, R::AbstractMatrix)
 end
 
 """
-    QuantumFrictionModel <: LargeQuantumModel
+    QuantumFrictionModel <: QuantumModel
 
-These models are defined identically to the `LargeQuantumModel` but
+These models are defined identically to the `QuantumModel` but
 allocate extra temporary arrays when used with `NQCDynamics.jl`.
 
 This allows for the calculation of electronic friction
 internally from the diabatic potential after diagonalisation
 and calculation of nonadiabatic couplings.
 """
-abstract type QuantumFrictionModel <: LargeQuantumModel end
+abstract type QuantumFrictionModel <: QuantumModel end
 
 function matrix_template(model::QuantumModel, eltype)
     n = NQCModels.nstates(model)
@@ -123,7 +114,7 @@ function NQCModels.zero_derivative(model::QuantumModel, R::AbstractMatrix)
     [Hermitian(matrix_template(model, eltype(R))) for _ in CartesianIndices(R)]
 end
 
-function NQCModels.potential(model::LargeQuantumModel, R::AbstractMatrix)
+function NQCModels.potential(model::QuantumModel, R::AbstractMatrix)
     V = Hermitian(matrix_template(model, eltype(R)))
     NQCModels.potential!(model, V, R)
     return V

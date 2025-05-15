@@ -1,5 +1,5 @@
 
-struct AndersonHolstein{M<:QuantumModel,B,D,T} <: LargeQuantumModel
+struct AndersonHolstein{M<:QuantumModel,B,D,T} <: QuantumModel
     model::M
     bath::B
     tmp_derivative::Base.RefValue{D}
