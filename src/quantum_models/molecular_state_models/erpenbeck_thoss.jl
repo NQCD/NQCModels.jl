@@ -67,7 +67,7 @@ function NQCModels.potential(model::ErpenbeckThoss, R::AbstractMatrix)
     V11 = ϵ₀(R)
     V22 = ϵ₁(R)
     V12 = Vₖ(R)
-    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    return Hermitian([V11 V12; V12 V22])
 end
 
 function NQCModels.potential!(model::ErpenbeckThoss, V::Hermitian, R::AbstractMatrix)
@@ -81,7 +81,7 @@ function NQCModels.potential!(model::ErpenbeckThoss, V::Hermitian, R::AbstractMa
     V11 = ϵ₀(R)
     V22 = ϵ₁(R)
     V12 = Vₖ(R)
-    V = Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    V .= Hermitian([V11 V12; V12 V22])
 end
 
 function NQCModels.derivative(model::ErpenbeckThoss, R::AbstractMatrix)
@@ -95,7 +95,7 @@ function NQCModels.derivative(model::ErpenbeckThoss, R::AbstractMatrix)
     D11 = ∂ϵ₀(R)
     D22 = ∂ϵ₁(R)
     D12 = ∂Vₖ(R)
-    return Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+    return Hermitian([D11 D12; D12 D22])
 end
 
 function NQCModels.derivative!(model::ErpenbeckThoss, D::Hermitian, R::AbstractMatrix)
@@ -109,7 +109,7 @@ function NQCModels.derivative!(model::ErpenbeckThoss, D::Hermitian, R::AbstractM
     D11 = ∂ϵ₀(R)
     D22 = ∂ϵ₁(R)
     D12 = ∂Vₖ(R)
-    D = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+    D .= Hermitian([D11 D12; D12 D22])
 end
 
 NQCModels.nstates(::ErpenbeckThoss) = 2

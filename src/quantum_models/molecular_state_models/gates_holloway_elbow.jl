@@ -36,7 +36,7 @@ function NQCModels.potential(model::GatesHollowayElbow, R::AbstractMatrix)
     V22 = morse(z, d, α) + repel(x, λ₂, x₀)
     V12 = c * repel(z, γ,-z12)
 
-    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    return Hermitian([V11 V12; V12 V22])
 end
 
 function NQCModels.potential!(model::GatesHollowayElbow, V::Hermitian, R::AbstractMatrix)
@@ -52,7 +52,7 @@ function NQCModels.potential!(model::GatesHollowayElbow, V::Hermitian, R::Abstra
     V22 = morse(z, d, α) + repel(x, λ₂, x₀)
     V12 = c * repel(z, γ,-z12)
 
-    V = Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    V .= Hermitian([V11 V12; V12 V22])
 end
 
 function NQCModels.derivative!(model::GatesHollowayElbow, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
@@ -67,13 +67,13 @@ function NQCModels.derivative!(model::GatesHollowayElbow, D::AbstractMatrix{<:He
     # x derivative
     D11 = dmorse(x, d, α)
     D22 = drepel(x, λ₂, x₀)
-    D[1] = Hermitian(SMatrix{2,2}(D11, 0, 0, D22))
+    D[1] = Hermitian([D11 0; 0 D22])
 
     # z derivative
     D11 = drepel(z, λ₁, z₀)
     D22 = dmorse(z, d, α)
     D12 = c * drepel(z, γ, -z12)
-    D[2] = Hermitian(SMatrix{2,2}(D11, D12, D12, D22))
+    D[2] = Hermitian([D11 D12; D12 D22])
 
     return D
 end

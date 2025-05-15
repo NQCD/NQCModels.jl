@@ -21,7 +21,7 @@ NQCModels.fermilevel(model::AndersonHolstein) = model.fermi_level
 
 function NQCModels.potential!(model::AndersonHolstein, V::Hermitian, r::AbstractMatrix)
     Vsystem = NQCModels.potential(model.model, r)
-    V[1,1] = Vsystem[2,2] - Vsystem[1,1]
+    V[1,1] .= Vsystem[2,2] - Vsystem[1,1]
     fillbathstates!(V, model.bath)
     fillbathcoupling!(V, Vsystem[2,1], model.bath)
     return V
@@ -31,7 +31,7 @@ function NQCModels.derivative!(model::AndersonHolstein, D::AbstractMatrix{<:Herm
     Dsystem = get_subsystem_derivative(model, r)
     
     for I in eachindex(Dsystem, D)
-        D[I][1,1] = Dsystem[I][2,2] - Dsystem[I][1,1]
+        D[I][1,1] .= Dsystem[I][2,2] - Dsystem[I][1,1]
         fillbathcoupling!(D[I], Dsystem[I][2,1], model.bath)
     end
 
@@ -46,7 +46,7 @@ end
 function NQCModels.state_independent_derivative!(model::AndersonHolstein, ∂V::AbstractMatrix, r::AbstractMatrix)
     Dsystem = get_subsystem_derivative(model, r)
     for I in eachindex(∂V, Dsystem)
-        ∂V[I] = Dsystem[I][1,1]
+        ∂V[I] .= Dsystem[I][1,1]
     end
     return ∂V
 end

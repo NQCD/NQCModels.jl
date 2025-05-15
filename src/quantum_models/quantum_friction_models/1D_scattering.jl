@@ -17,28 +17,50 @@ function Scattering1D(;N=10, a=1, D=1, α=0, β=1, B=1, σ=0.6u"eV")
     Scattering1D(N+1, N, a, D, α, β, B, austrip(σ))
 end
 
-function NQCModels.potential!(model::Scattering1D, V::Hermitian, R::AbstractMatrix)
+function NQCModels.potential(model::Scattering1D, R::AbstractMatrix)
     r = R[1]
-    V0(r) = model.D*(exp(-2model.a*r) - 2*exp(-model.a*r))
-    γ(r) = model.B*exp(-model.a*r^2)
+    V0(x) = model.D*(exp(-2model.a*x) - 2*exp(-model.a*x))
+    γ(x) = model.B*exp(-model.a*x^2)
 
     V₀ = V0(r)
     γᵣ = γ(r)
 
+    V = zeros((model.n_states, model.n_states))
+
+    V[diagind(V,0)] .= model.α + V₀ #metal state energies
+    V[diagind(V,1)] .= model.β #metal-metal couplings between neighbouring states
+    
+    V[end-1, end] = 0.0 #periodic coupling between first and last metal state
+    V[2,end] = model.β 
+
     V[1,1] = V₀ # Occupied molecule state
-    V.data[1,2] = γᵣ # molecule metal coupling
-    for i=2:model.N
-        V[i,i] = model.α + V₀
-        V.data[i,i+1] = model.β
-    end
-    V.data[2,end] = model.β
-    V[end,end] = model.α + V₀
+    V[1,2] = γᵣ # molecule metal coupling
+
+    return V
+end
+
+function NQCModels.potential!(model::Scattering1D, V::Hermitian, R::AbstractMatrix)
+    r = R[1]
+    V0(x) = model.D*(exp(-2model.a*x) - 2*exp(-model.a*x))
+    γ(x) = model.B*exp(-model.a*x^2)
+
+    V₀ = V0(r)
+    γᵣ = γ(r)
+
+    V[diagind(V,0)] .= model.α + V₀
+    V[diagind(V,1)] .= model.β
+
+    V[end-1, end] = 0.0
+    V[2,end] = model.β
+
+    V[1,1] = V₀ # Occupied molecule state
+    V[1,2] = γᵣ # molecule metal coupling
 end
 
 function NQCModels.derivative!(model::Scattering1D, D::Hermitian, R::AbstractMatrix)
     r = R[1]
-    D0(r) = 2*model.D*model.a*(exp(-model.a*r)-exp(-2*model.a*r))
-    dγ(r) = -2model.a*r*model.B*exp(-model.a*r^2)
+    D0(x) = 2*model.D*model.a*(exp(-model.a*x)-exp(-2*model.a*x))
+    dγ(x) = -2model.a*x*model.B*exp(-model.a*x^2)
 
     D₀ = D0(r)
     dγᵣ = dγ(r)

@@ -22,6 +22,24 @@ end
 NQCModels.nstates(model::OuyangModelOne) = model.n_states
 NQCModels.ndofs(::OuyangModelOne) = 1
 
+function NQCModels.potential(model::OuyangModelOne, R::AbstractMatrix)
+    r = R[1]
+    Parameters.@unpack A, B, C, D, ΔE, N = model
+
+    V = zeros((N+1, N+1))
+
+    Vsys(x) = A*tanh(B*x)
+    Vbath(x, Δ) = -Vsys(x) + Δ
+    Vsb(x) = C*exp(-D*x^2)
+
+    V[1,1] = Vsys(r)
+    Δs = range(-ΔE/2, ΔE/2, length=N)
+    V[1,2:N+1] .= Vsb(r)
+    V[diagind(N+1,N+1)[2:end]] .= Vbath.(r, Δs)
+
+    return V
+end
+
 function NQCModels.potential!(model::OuyangModelOne, V::Hermitian, R::AbstractMatrix)
     r = R[1]
     Parameters.@unpack A, B, C, D, ΔE, N = model
@@ -32,10 +50,25 @@ function NQCModels.potential!(model::OuyangModelOne, V::Hermitian, R::AbstractMa
 
     V[1,1] = Vsys(r)
     Δs = range(-ΔE/2, ΔE/2, length=N)
-    V.data[1,2:N+1] .= Vsb(r)
+    V[1,2:N+1] .= Vsb(r)
     V[diagind(N+1,N+1)[2:end]] .= Vbath.(r, Δs)
+end
 
-    return V
+function NQCModels.derivative(model::OuyangModelOne, R::AbstractMatrix)
+    r = R[1]
+    Parameters.@unpack A, B, C, D, N = model
+
+    derivative = zeros((N+1, N+1))
+
+    Dsys(x) = B*A*sech(B*x)^2
+    Dbath(x) = -Dsys(x)
+    Dsb(x) = -2D*x*C*exp(-D*x^2)
+
+    derivative[1,1] = Dsys(r)
+    derivative.data[1,2:N+1] .= Dsb(r)
+    derivative[diagind(N+1,N+1)[2:end]] .= Dbath(r)
+
+    return derivative
 end
 
 function NQCModels.derivative!(model::OuyangModelOne, derivative::Hermitian, R::AbstractMatrix)
@@ -49,6 +82,4 @@ function NQCModels.derivative!(model::OuyangModelOne, derivative::Hermitian, R::
     derivative[1,1] = Dsys(r)
     derivative.data[1,2:N+1] .= Dsb(r)
     derivative[diagind(N+1,N+1)[2:end]] .= Dbath(r)
-
-    return derivative
 end

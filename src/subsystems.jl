@@ -115,6 +115,10 @@ function potential(system::CompositeModel, R::AbstractMatrix)
 	return total_potential_energy
 end
 
+function potential!(system::CompositeModel, V::Real, R::AbstractMatrix)
+	return V = potential(system::CompositeModel, R::AbstractMatrix)
+end
+
 function derivative!(system::CompositeModel, D::AbstractMatrix, R::AbstractMatrix)
 	for subsystem in get_pes_models(system)
 		@debug "Accessing D[$(dofs(subsystem)), $(subsystem.indices)]"

@@ -111,18 +111,12 @@ abstract type QuantumFrictionModel <: LargeQuantumModel end
 
 function matrix_template(model::QuantumModel, eltype)
     n = NQCModels.nstates(model)
-    return SMatrix{n,n}(zeros(eltype, n, n))
-end
-function matrix_template(model::LargeQuantumModel, eltype)
-    zeros(eltype, NQCModels.nstates(model), NQCModels.nstates(model))
+    return Matrix{n,n}(zeros(eltype, n, n))
 end
 
 function vector_template(model::QuantumModel, eltype)
     n = NQCModels.nstates(model)
-    return SVector{n}(zeros(eltype, n))
-end
-function vector_template(model::LargeQuantumModel, eltype)
-    zeros(eltype, NQCModels.nstates(model))
+    return Vector{n}(zeros(eltype, n))
 end
 
 function NQCModels.zero_derivative(model::QuantumModel, R::AbstractMatrix)

@@ -24,7 +24,7 @@ end
 function NQCModels.potential!(model::Morse, V::Real, R::AbstractMatrix)
     r = R[1]
     (;Dₑ, x₀, a) = model
-    V = Dₑ * (exp(-a*(r-x₀)) - 1)^2
+    return V = Dₑ * (exp(-a*(r-x₀)) - 1)^2
 end
 
 function NQCModels.derivative(model::Morse, R::AbstractMatrix)

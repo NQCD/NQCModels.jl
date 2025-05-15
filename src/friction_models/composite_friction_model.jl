@@ -25,7 +25,11 @@ function NQCModels.ndofs(model::CompositeFrictionModel)
 end
 
 function NQCModels.potential(model::CompositeFrictionModel, R::AbstractMatrix)
-    NQCModels.potential(model.pes_model, R)
+    return NQCModels.potential(model.pes_model, R)
+end
+
+function NQCModels.potential!(model::CompositeFrictionModel, V, R::AbstractMatrix)
+    return V = NQCModels.potential(model.pes_model, R)
 end
 
 function NQCModels.derivative!(model::CompositeFrictionModel, D, R::AbstractMatrix)

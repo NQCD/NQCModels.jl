@@ -85,51 +85,53 @@ function NQCModels.potential(model::SpinBoson, r::AbstractMatrix)
 
     Parameters.@unpack ωⱼ, cⱼ, ϵ, Δ = model
 
-    v0 = 0.0
-    for i in eachindex(ωⱼ)
-        v0 += ωⱼ[i]^2 * r[i]^2 / 2
-    end
-    V11 = v0 + ϵ
-    V22 = v0 - ϵ
+    temp = zeros(length(ωⱼ))
+    @. temp = ωⱼ^2 * r^2 / 2
 
-    for i in eachindex(model.cⱼ)
-        V11 += cⱼ[i] * r[i]
-        V22 -= cⱼ[i] * r[i]
-    end
+    v0 = 0.0
+    v0 = sum(temp)
+
+    V11 = v0 + ϵ
+    V11 += sum(cⱼ .* r)
+
+    V22 = v0 - ϵ
+    V22 -= sum(cⱼ .* r)
 
     V12 = Δ
 
-    return Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    return Hermitian([V11 V12; V12 V22])
 end
 
 function NQCModels.potential!(model::SpinBoson, V::Hermitian, r::AbstractMatrix)
 
     Parameters.@unpack ωⱼ, cⱼ, ϵ, Δ = model
 
-    v0 = 0.0
-    for i in eachindex(ωⱼ)
-        v0 += ωⱼ[i]^2 * r[i]^2 / 2
-    end
-    V11 = v0 + ϵ
-    V22 = v0 - ϵ
+    temp = zeros(length(ωⱼ))
+    @. temp = ωⱼ^2 * r^2 / 2
 
-    for i in eachindex(model.cⱼ)
-        V11 += cⱼ[i] * r[i]
-        V22 -= cⱼ[i] * r[i]
-    end
+    v0 = 0.0
+    v0 = sum(temp)
+
+    V11 = v0 + ϵ
+    V11 += sum(cⱼ .* r)
+    
+    V22 = v0 - ϵ
+    V22 -= sum(cⱼ .* r)
 
     V12 = Δ
 
-    V = Hermitian(SMatrix{2,2}(V11, V12, V12, V22))
+    V .= [V11 V12; V12 V22]
 end
 
 function NQCModels.derivative!(model::SpinBoson, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
 
     Parameters.@unpack ωⱼ, cⱼ = model
 
+    d0 = zeros(length(r))
+    @. d0 = ωⱼ^2 * r
+
     for i in eachindex(r)
-        d0 = ωⱼ[i]^2 * r[i]
-        D[i] = Hermitian(SMatrix{2,2}(d0 + cⱼ[i], 0, 0, d0 - cⱼ[i]))
+        D[i] .= Hermitian([d0[i]+cⱼ[i] 0; 0 d0[i]-cⱼ[i]])
     end
 
     return D
@@ -162,7 +164,5 @@ function NQCModels.potential!(model::BosonBath, V, r::AbstractMatrix)
 end
 
 function NQCModels.derivative!(model::BosonBath, D::AbstractMatrix, r::AbstractMatrix)
-    for i in eachindex(r)
-        D[i] = model.ωⱼ[i]^2 * r[i]
-    end
+    @. D = model.ωⱼS^2 * r
 end

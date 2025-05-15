@@ -47,9 +47,12 @@ end
 """
     potential!(model::Model, V, R::AbstractMatrix)
 
-In-place version of `potential`, used only when mutable arrays are preferred.
+In-place version of `potential`, used to implement more efficient dynamics.
 
-Currently used only for `LargeQuantumModels`, see `quantum_models/QuantumModels.jl`.
+Currently used only for all `QuantumModels`, see `quantum_models/QuantumModels.jl`.
+As `ClassicalModels` store their potential as a Real, it cannot be updated in-place so
+potential!(model::ClassicalModel, V, R::AbstractMatrix) returns a new value. This function is 
+defined on these models to enable efficient multiple dispatching within NQCDynamics.  
 """
 function potential!(model::Model, V, R::AbstractMatrix)
     if ndofs(model) == 1

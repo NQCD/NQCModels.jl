@@ -21,7 +21,16 @@ function NQCModels.potential!(model::AveragedPotential, V::Real, r::AbstractMatr
     for m in model.models
         V += NQCModels.potential(m, r)
     end
-    V / length(model.models)
+    return V / length(model.models)
+end
+
+function NQCModels.derivative(model::AveragedPotential, r::AbstractMatrix)
+    D = zeros(size(model.tmp_derivative))
+    for m in model.models
+        NQCModels.derivative!(m, model.tmp_derivative, r)
+        D .+= model.tmp_derivative
+    end
+    return D ./= length(model.models)
 end
 
 function NQCModels.derivative!(model::AveragedPotential, D::AbstractMatrix, r::AbstractMatrix)
@@ -31,5 +40,4 @@ function NQCModels.derivative!(model::AveragedPotential, D::AbstractMatrix, r::A
         D .+= model.tmp_derivative
     end
     D ./= length(model.models)
-    return D
 end

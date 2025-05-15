@@ -19,7 +19,7 @@ end
 
 function NQCModels.potential!(model::AdiabaticStateSelector, V::Real, r::AbstractMatrix)
     Vsystem = NQCModels.potential(model.model, r)
-    V = LinearAlgebra.eigvals(Vsystem)[model.state]
+    V .= LinearAlgebra.eigvals(Vsystem)[model.state]
 end
 
 function NQCModels.derivative!(model::AdiabaticStateSelector, output::AbstractMatrix, r::AbstractMatrix)
@@ -27,7 +27,7 @@ function NQCModels.derivative!(model::AdiabaticStateSelector, output::AbstractMa
     U = LinearAlgebra.eigvecs(V)
     D = NQCModels.derivative(model.model, r)
     for I in eachindex(output, D)
-        output[I] = (U' * D[I] * U)[model.state, model.state]
+        output[I] .= (U' * D[I] * U)[model.state, model.state]
     end
     return output
 end

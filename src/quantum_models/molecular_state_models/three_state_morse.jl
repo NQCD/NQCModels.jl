@@ -53,7 +53,7 @@ function NQCModels.potential(model::ThreeStateMorse, R::AbstractMatrix)
     V13 = V_ij(r, model.a13, model.α13, model.r13)
     V23 = V_ij(r, model.a23, model.α23, model.r23)
 
-    return Hermitian(SMatrix{3,3}(V11, V12, V13, V12, V22, V23, V13, V23, V33))
+    return Hermitian([V11 V12 V13; V12 V22 V23; V13 V23 V33])
 end
 
 function NQCModels.potential!(model::ThreeStateMorse, V::Hermitian, R::AbstractMatrix)
@@ -69,7 +69,7 @@ function NQCModels.potential!(model::ThreeStateMorse, V::Hermitian, R::AbstractM
     V13 = V_ij(r, model.a13, model.α13, model.r13)
     V23 = V_ij(r, model.a23, model.α23, model.r23)
 
-    V = Hermitian(SMatrix{3,3}(V11, V12, V13, V12, V22, V23, V13, V23, V33))
+    V .= Hermitian([V11 V12 V13; V12 V22 V23; V13 V23 V33])
 end
 
 function NQCModels.derivative(model::ThreeStateMorse, R::AbstractMatrix)
@@ -89,7 +89,7 @@ function NQCModels.derivative(model::ThreeStateMorse, R::AbstractMatrix)
     D13 = D_ij(r, model.a13, model.α13, model.r13)
     D23 = D_ij(r, model.a23, model.α23, model.r23)
 
-    return Hermitian(SMatrix{3,3}(D11, D12, D13, D12, D22, D23, D13, D23, D33))
+    return Hermitian([D11 D12 D13; D12 D22 D23; D13 D23 D33])
 end
 
 function NQCModels.derivative!(model::ThreeStateMorse, D::Hermitian, R::AbstractMatrix)
@@ -109,5 +109,5 @@ function NQCModels.derivative!(model::ThreeStateMorse, D::Hermitian, R::Abstract
     D13 = D_ij(r, model.a13, model.α13, model.r13)
     D23 = D_ij(r, model.a23, model.α23, model.r23)
 
-    D = Hermitian(SMatrix{3,3}(D11, D12, D13, D12, D22, D23, D13, D23, D33))
+    D .= Hermitian([D11 D12 D13; D12 D22 D23; D13 D23 D33])
 end

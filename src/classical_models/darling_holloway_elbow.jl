@@ -65,10 +65,10 @@ function NQCModels.potential(model::DarlingHollowayElbow, R::AbstractVector)
 
     total_V(x,z) = Velbow(x,z) + Vbarrier(x,z) + Vphys(x,z)
 
-    x = R[1]
-    Z = R[2]
+    r_x = R[1]
+    r_z = R[2]
 
-    return total_V(x, Z)
+    return total_V(r_x, r_z)
 end
 
 function NQCModels.potential!(model::DarlingHollowayElbow, V::Real, R::AbstractVector)
@@ -97,10 +97,10 @@ function NQCModels.potential!(model::DarlingHollowayElbow, V::Real, R::AbstractV
 
     total_V(x,z) = Velbow(x,z) + Vbarrier(x,z) + Vphys(x,z)
 
-    x = R[1]
-    Z = R[2]
+    r_x = R[1]
+    r_z = R[2]
 
-    V = total_V(x, Z)
+    return V = total_V(r_x, r_z)
 end
 
 function NQCModels.derivative!(model::DarlingHollowayElbow, D, R::AbstractVector)
