@@ -10,7 +10,6 @@ ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 NQCBase = "78c76ebc-5665-4934-b512-82d81b5cbfb7"
 Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
-PythonCall = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
@@ -33,6 +32,9 @@ Unitful = "1"
 UnitfulAtomic = "1"
 julia = "≥1.9"
 
+[sources]
+NQCBase = {rev="remove-python"}
+NQCDInterfASE = {url="https://github.com/NQCD/NQCDInterfASE.jl"}
 
 [extras]
 FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
