@@ -8,6 +8,7 @@ potentials as Hermitian matrices and derivatives as arrays of Hermitian matrices
 module QuantumModels
 
 using ..NQCModels: NQCModels
+using NQCModels.BathDiscretisations: fillbathstates!, fillbathcoupling!, setcoupling!
 using Unitful: @u_str
 using UnitfulAtomic: austrip
 
