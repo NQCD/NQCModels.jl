@@ -1,7 +1,7 @@
 module BathDiscretisations
 using ..NQCModels: NQCModels
 using FastGaussQuadrature: gausslegendre
-using LinearAlgebra: Hermitian
+using LinearAlgebra
 
 include("wide_band_bath_discretisation.jl")
 export WideBandBathDiscretisation

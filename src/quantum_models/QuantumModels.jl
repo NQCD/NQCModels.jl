@@ -72,6 +72,7 @@ NQCModels.potential!(model, V, hcat(10))
 """
 abstract type QuantumModel <: NQCModels.Model end
 
+#= 
 function NQCModels.derivative!(model::QuantumModel, D, R::AbstractMatrix)
     if NQCModels.ndofs(model) == 1
         if size(R, 2) == 1
@@ -85,7 +86,7 @@ function NQCModels.derivative!(model::QuantumModel, D, R::AbstractMatrix)
         throw(MethodError(NQCModels.derivative!, (model, D, R)))
     end
 end
-
+=#
 
 """
     QuantumFrictionModel <: QuantumModel
@@ -105,13 +106,11 @@ friction from the potential and derivative matrices.
 abstract type QuantumFrictionModel <: QuantumModel end
 
 function matrix_template(model::QuantumModel, eltype)
-    n = NQCModels.nstates(model)
-    return zeros(eltype, n, n)
+    return zeros(eltype, NQCModels.nstates(model), NQCModels.nstates(model))
 end
 
 function vector_template(model::QuantumModel, eltype)
-    n = NQCModels.nstates(model)
-    return zeros(eltype, n)
+    return zeros(eltype, NQCModels.nstates(model))
 end
 
 function NQCModels.zero_derivative(model::QuantumModel, R::AbstractMatrix)
