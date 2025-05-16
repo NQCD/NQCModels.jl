@@ -40,7 +40,7 @@ function NQCModels.potential!(model::DoubleWell, V::Hermitian, R::AbstractMatrix
     V22 = V₀ - v
     V12 = model.Δ/2
 
-    V .= [V11 V12; V12 V22]
+    V.data .= [V11 V12; V12 V22]
 end
 
 function NQCModels.derivative(model::DoubleWell, R::AbstractMatrix)
@@ -64,5 +64,5 @@ function NQCModels.derivative!(model::DoubleWell, D::Hermitian, R::AbstractMatri
     v = sqrt(2)*model.γ
     D11 = D₀ + v
     D22 = D₀ - v
-    D .= [D11 0; 0 D22]
+    D.data .= [D11 0; 0 D22]
 end

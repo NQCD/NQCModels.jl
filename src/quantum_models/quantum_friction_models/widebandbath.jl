@@ -91,7 +91,7 @@ function NQCModels.derivative!(model::WideBandBath, D::AbstractMatrix{<:Hermitia
 
         # Coupling
         for i=1:n-1
-            D[I][i,n:end] .= Dsystem[I][i+1,1] / sqrt(model.ρ)
+            D[I].data[i,n:end] .= Dsystem[I][i+1,1] / sqrt(model.ρ)
         end
     end
 end
@@ -109,7 +109,7 @@ function NQCModels.state_independent_derivative(model::WideBandBath, r::Abstract
     Dsystem = NQCModels.derivative(model.model, r)
     ∂V = zeros(size(r))
     for I in eachindex(∂V, Dsystem)
-        ∂V[I] .= Dsystem[I][1,1]
+        ∂V[I].data .= Dsystem[I][1,1]
     end
 
     return ∂V
@@ -118,6 +118,6 @@ end
 function NQCModels.state_independent_derivative!(model::WideBandBath, ∂V::AbstractMatrix, r::AbstractMatrix)
     Dsystem = NQCModels.derivative(model.model, r)
     for I in eachindex(∂V, Dsystem)
-        ∂V[I] .= Dsystem[I][1,1]
+        ∂V[I].data .= Dsystem[I][1,1]
     end
 end

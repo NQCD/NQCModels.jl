@@ -145,7 +145,7 @@ function NQCModels.potential!(model::TullyModelThree, V::Hermitian, R::AbstractM
     else
         V12 = b * exp(c*q)
     end
-    V .= [V11 V12; V12 V22]
+    V.data .= [V11 V12; V12 V22]
 end
 
 function NQCModels.derivative(model::TullyModelThree, R::AbstractMatrix)
@@ -171,5 +171,5 @@ function NQCModels.derivative!(model::TullyModelThree, D::Hermitian, R::Abstract
     else
         D12 = b * c * exp(c*q)
     end
-    D .= Hermitian([D11 D12; D12 D22])
+    D.data .= Hermitian([D11 D12; D12 D22])
 end

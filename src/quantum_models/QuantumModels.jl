@@ -74,15 +74,12 @@ abstract type QuantumModel <: NQCModels.Model end
 function NQCModels.derivative!(model::QuantumModel, D, R::AbstractMatrix)
     if NQCModels.ndofs(model) == 1
         if size(R, 2) == 1
-            NQCModels.derivative!(model, D[1], R[1])
-            return D
+            NQCModels.derivative!(model, D, R)
         else
             NQCModels.derivative!(model, view(D, 1, :), view(R, 1, :))
-            return D
         end
     elseif size(R, 2) == 1
         NQCModels.derivative!(model, view(D, :, 1), view(R, :, 1))
-        return D
     else
         throw(MethodError(NQCModels.derivative!, (model, D, R)))
     end

@@ -50,7 +50,7 @@ function NQCModels.potential!(model::MiaoSubotnik, V::Hermitian, R::AbstractMatr
     V22 = (m*ω^2*(x-g)^2)/2 + ΔG
     V12 = coupling
 
-    V .= Hermitian([V11 V12; V12 V22])
+    V.data .= Hermitian([V11 V12; V12 V22])
 end
 
 function NQCModels.derivative(model::MiaoSubotnik, R::AbstractMatrix)
@@ -70,5 +70,5 @@ function NQCModels.derivative!(model::MiaoSubotnik, D::Hermitian, R::AbstractMat
     D11 = m*ω^2*x
     D22 = m*ω^2*(x-g)
     
-    D .= Hermitian([D11 0; 0 D22])
+    D.data .= Hermitian([D11 0; 0 D22])
 end

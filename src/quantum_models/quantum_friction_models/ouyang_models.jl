@@ -50,8 +50,8 @@ function NQCModels.potential!(model::OuyangModelOne, V::Hermitian, R::AbstractMa
 
     V[1,1] = Vsys(r)
     Δs = range(-ΔE/2, ΔE/2, length=N)
-    V[1,2:N+1] .= Vsb(r)
-    V[diagind(N+1,N+1)[2:end]] .= Vbath.(r, Δs)
+    V.data[1,2:N+1] .= Vsb(r)
+    V.data[diagind(N+1,N+1)[2:end]] .= Vbath.(r, Δs)
 end
 
 function NQCModels.derivative(model::OuyangModelOne, R::AbstractMatrix)
@@ -64,9 +64,9 @@ function NQCModels.derivative(model::OuyangModelOne, R::AbstractMatrix)
     Dbath(x) = -Dsys(x)
     Dsb(x) = -2D*x*C*exp(-D*x^2)
 
-    derivative[1,1] = Dsys(r)
+    derivative.data[1,1] = Dsys(r)
     derivative.data[1,2:N+1] .= Dsb(r)
-    derivative[diagind(N+1,N+1)[2:end]] .= Dbath(r)
+    derivative.data[diagind(N+1,N+1)[2:end]] .= Dbath(r)
 
     return derivative
 end
@@ -79,7 +79,7 @@ function NQCModels.derivative!(model::OuyangModelOne, derivative::Hermitian, R::
     Dbath(x) = -Dsys(x)
     Dsb(x) = -2D*x*C*exp(-D*x^2)
 
-    derivative[1,1] = Dsys(r)
+    derivative.data[1,1] = Dsys(r)
     derivative.data[1,2:N+1] .= Dsb(r)
-    derivative[diagind(N+1,N+1)[2:end]] .= Dbath(r)
+    derivative.data[diagind(N+1,N+1)[2:end]] .= Dbath(r)
 end

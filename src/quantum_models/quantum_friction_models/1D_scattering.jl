@@ -47,14 +47,14 @@ function NQCModels.potential!(model::Scattering1D, V::Hermitian, R::AbstractMatr
     V₀ = V0(r)
     γᵣ = γ(r)
 
-    V[diagind(V,0)] .= model.α + V₀
-    V[diagind(V,1)] .= model.β
+    V.data[diagind(V,0)] .= model.α + V₀
+    V.data[diagind(V,1)] .= model.β
 
-    V[end-1, end] = 0.0
-    V[2,end] = model.β
+    V.data[end-1, end] = 0.0
+    V.data[2,end] = model.β
 
-    V[1,1] = V₀ # Occupied molecule state
-    V[1,2] = γᵣ # molecule metal coupling
+    V.data[1,1] = V₀ # Occupied molecule state
+    V.data[1,2] = γᵣ # molecule metal coupling
 end
 
 function NQCModels.derivative!(model::Scattering1D, D::Hermitian, R::AbstractMatrix)
@@ -66,7 +66,5 @@ function NQCModels.derivative!(model::Scattering1D, D::Hermitian, R::AbstractMat
     dγᵣ = dγ(r)
 
     D.data[1,2] = dγᵣ
-    for i=1:model.N+1
-        D[i,i] = D₀
-    end
+    D.data[diagind(D,0)] .= D₀
 end
