@@ -108,16 +108,16 @@ abstract type QuantumFrictionModel <: QuantumModel end
 
 function matrix_template(model::QuantumModel, eltype)
     n = NQCModels.nstates(model)
-    return Matrix{n,n}(zeros(eltype, n, n))
+    return zeros(eltype, n, n)
 end
 
 function vector_template(model::QuantumModel, eltype)
     n = NQCModels.nstates(model)
-    return Vector{n}(zeros(eltype, n))
+    return zeros(eltype, n)
 end
 
 function NQCModels.zero_derivative(model::QuantumModel, R::AbstractMatrix)
-    [Hermitian(matrix_template(model, eltype(R))) for _ in CartesianIndices(R)]
+    return [Hermitian(matrix_template(model, eltype(R))) for _ in CartesianIndices(R)]
 end
 
 function NQCModels.potential(model::QuantumModel, R::AbstractMatrix)
