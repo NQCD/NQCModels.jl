@@ -111,8 +111,6 @@ export get_friction_matrix
 
 include("composite_friction_model.jl")
 export CompositeFrictionModel
-include("ase_friction_interface.jl")
-export ASEFrictionProvider
 
 # include("constant_friction.jl")
 export ConstantFriction
