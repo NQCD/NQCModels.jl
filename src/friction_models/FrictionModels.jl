@@ -3,6 +3,7 @@ module FrictionModels
 
 using ..NQCModels: NQCModels
 using ..ClassicalModels: ClassicalModel
+using ..QuantumModels: QuantumModel, QuantumFrictionModel
 
 export friction, friction!
 
@@ -26,16 +27,14 @@ Subtypes of this should implement `friction!` and `ndofs`.
 abstract type ElectronicFrictionProvider end
 
 """
-    friction!(model::ClassicalFrictionModel, F, R:AbstractMatrix)
+    friction!(model::Model, F, R:AbstractMatrix)
 
 Fill `F` with the electronic friction as a function of the positions `R`.
-
-This need only be implemented for `ClassicalFrictionModel`s.
 """
 function friction! end
 
 """
-    friction(model::Model, R)
+    friction(model::Model, R::AbstractMatrix)
 
 Obtain the friction for the current position `R`.
 
@@ -48,7 +47,14 @@ function friction(model::ClassicalFrictionModel, R)
     return F
 end
 
+function friction(model::QuantumFrictionModel, R)
+    F = zero_friction(model, R)
+    friction!(model, F, R)
+    return F
+end
+
 zero_friction(::ClassicalFrictionModel, R) = zeros(eltype(R), length(R), length(R))
+zero_friction(::QuantumFrictionModel, R) = zeros(eltype(R), length(R), length(R))
 
 NQCModels.dofs(model::ElectronicFrictionProvider) = 1:model.ndofs
 NQCModels.ndofs(model::ElectronicFrictionProvider) = model.ndofs

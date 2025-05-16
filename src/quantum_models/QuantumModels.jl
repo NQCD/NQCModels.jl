@@ -88,15 +88,21 @@ function NQCModels.derivative!(model::QuantumModel, D, R::AbstractMatrix)
     end
 end
 
+
 """
     QuantumFrictionModel <: QuantumModel
 
-These models are defined identically to the `QuantumModel` but
+These models are defined identically to a typical `QuantumModel` but
 allocate extra temporary arrays when used with `NQCDynamics.jl`.
 
 This allows for the calculation of electronic friction
 internally from the diabatic potential after diagonalisation
 and calculation of nonadiabatic couplings.
+
+When a molecular dynamics with electronic friction simulation is 
+set up in NQCDynamics, the `QuantumFrictionModel` is paired with a
+`FrictionEvaluationMethod` in order to calculate the electronic 
+friction from the potential and derivative matrices.
 """
 abstract type QuantumFrictionModel <: QuantumModel end
 

@@ -143,11 +143,11 @@ include("bath_discretisations/BathDiscretisations.jl")
 include("classical_models/ClassicalModels.jl")
 @reexport using .ClassicalModels
 
-include("friction_models/FrictionModels.jl")
-@reexport using .FrictionModels
-
 include("quantum_models/QuantumModels.jl")
 @reexport using .QuantumModels
+
+include("friction_models/FrictionModels.jl")
+@reexport using .FrictionModels
 
 include("plot.jl")
 
