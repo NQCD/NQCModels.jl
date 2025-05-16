@@ -128,6 +128,12 @@ ndofs(::Model) = error("This should return the number of degrees of freedom for 
 dofs(model::Model) = Base.OneTo(ndofs(model))
 
 state_independent_potential(model, r) = 0.0
+
+function state_independent_potential!(model, Vsystem, r) 
+    Vsystem .= 0.0
+end
+
+function state_independent_derivative(model, r) end
 state_independent_derivative!(model, derivative, r) = fill!(derivative, zero(eltype(r)))
 nelectrons(::Model) = error("This should return the total number of electrons.")
 fermilevel(::Model) = 0.0
