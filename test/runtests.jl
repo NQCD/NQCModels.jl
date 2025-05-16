@@ -1,6 +1,7 @@
 using Test
 using NQCBase
 using NQCModels
+using NQCDInterfASE
 using LinearAlgebra
 using SafeTestsets
 using InteractiveUtils
