@@ -52,7 +52,7 @@ function NQCModels.derivative(model::DoubleWell, R::AbstractMatrix)
     v = sqrt(2)*model.γ
     D11 = D₀ + v
     D22 = D₀ - v
-    return Hermitian([D11, 0, 0, D22])
+    return Hermitian([D11 0; 0 D22])
 end
 
 function NQCModels.derivative!(model::DoubleWell, D::Hermitian, R::AbstractMatrix)
