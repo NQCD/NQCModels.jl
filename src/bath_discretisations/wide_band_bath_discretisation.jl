@@ -2,7 +2,7 @@ abstract type WideBandBathDiscretisation end
 NQCModels.nstates(bath::WideBandBathDiscretisation) = length(bath.bathstates)
 
 function fillbathstates!(out::Hermitian, bath::WideBandBathDiscretisation)
-    diagind(out)[2:end] .= bath.bathstates
+    out[diagind(out)[2:end]] .= bath.bathstates
 end
 
 function fillbathcoupling!(out::Hermitian, coupling::Real, bath::WideBandBathDiscretisation) 
