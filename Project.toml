@@ -30,7 +30,7 @@ NQCDInterfASE = {url = "https://github.com/NQCD/NQCDInterfASE.jl"}
 DataInterpolations = "8"
 FastGaussQuadrature = "0.4, 0.5, 1"
 ForwardDiff = "0.10"
-NQCBase = "0.1, 0.2, 0.3"
+NQCBase = "0.1, 0.2, 0.3, 0.4"
 Parameters = "0.12"
 RecipesBase = "1"
 Reexport = "1"
