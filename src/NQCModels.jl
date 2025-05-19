@@ -76,10 +76,10 @@ Fill `D` with the derivative of the electronic potential as a function of the po
 
 This must be implemented for all models.
 """
-function derivative!(model::Model, D, R::AbstractMatrix)
+function derivative!(model::Model, D, R)
     if ndofs(model) == 1
         if size(R, 2) == 1
-            derivative!(model, D, R::AbstractMatrix)
+            derivative!(model::Model, D, R::AbstractMatrix)
         else
             derivative!(model, view(D, 1, :), view(R, 1, :))
         end
