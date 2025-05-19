@@ -54,8 +54,8 @@ As `ClassicalModels` store their potential as a Real, it cannot be updated in-pl
 potential!(model::ClassicalModel, V, R::AbstractMatrix) returns a new value. This function is 
 defined on these models to enable efficient multiple dispatching within NQCDynamics.  
 """
-function potential!(model::Model, V, R::AbstractMatrix)
-    if ndofs(model) == 1
+function potential!(model::Model, V, R::AbstractMatrix) end
+#=     if ndofs(model) == 1
         if size(R, 2) == 1
             return potential!(model, V, R[1])
         else
@@ -67,7 +67,7 @@ function potential!(model::Model, V, R::AbstractMatrix)
         throw(MethodError(potential!, (model, V, R)))
     end
 
-end
+end =#
 
 """
     derivative!(model::Model, D, R::AbstractMatrix)
@@ -76,8 +76,8 @@ Fill `D` with the derivative of the electronic potential as a function of the po
 
 This must be implemented for all models.
 """
-function derivative!(model::Model, D, R)
-    if ndofs(model) == 1
+function derivative!(model::Model, D, R::AbstractMatrix) end
+#=     if ndofs(model) == 1
         if size(R, 2) == 1
             derivative!(model::Model, D, R::AbstractMatrix)
         else
@@ -89,7 +89,7 @@ function derivative!(model::Model, D, R)
         throw(MethodError(derivative!, (model, D, R)))
     end
 end
-
+ =#
 """
     derivative(model::Model, R)
 
