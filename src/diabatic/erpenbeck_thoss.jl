@@ -44,14 +44,16 @@ function ErpenbeckThoss(;
     x₀′ = x₀,
     a′  = austrip(1.379u"Å^-1"),
     V∞  = austrip(-1.5u"eV"),
-
     q   = 0.05,
     ã   = austrip(0.5u"Å"),
     x̃   = austrip(3.5u"Å"),
-    V̄ₖ  = sqrt(austrip(Γ)/2π)
+    V̄ₖ  = sqrt(austrip(Γ)/2π);
+    c   = nothing
 ) 
     morse = AdiabaticModels.Morse(;Dₑ, x₀, a, m)
-    c = -NQCModels.AdiabaticModels.eigenenergy(morse, 0) # Set c to offset zero-point energy
+    if isnothing(c)
+        c = -NQCModels.AdiabaticModels.eigenenergy(morse, 0) # Set c to offset zero-point energy
+    end if
 
     return ErpenbeckThoss(austrip(Γ), morse, D₁, D₂, x₀′, a′, c, V∞, q, ã, x̃, V̄ₖ)
 end
