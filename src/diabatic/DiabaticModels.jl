@@ -166,6 +166,8 @@ export TrapezoidalRule
 export ShenviGaussLegendre
 export ReferenceGaussLegendre
 export FullGaussLegendre
+export GapGaussLegendre
+export GapTrapezoidalRule
 
 include("anderson_holstein.jl")
 export AndersonHolstein
