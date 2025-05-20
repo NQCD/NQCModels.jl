@@ -3,6 +3,7 @@ using NQCBase
 using NQCModels
 using LinearAlgebra
 using SafeTestsets
+using InteractiveUtils
 
 const GROUP = get(ENV, "GROUP", "All")
 
@@ -112,8 +113,11 @@ end
 
 if GROUP == "All" || GROUP == "Friction"
     @testset "FrictionModels" begin
-        @test test_model(CompositeFrictionModel(Free(2), ConstantFriction(2, 1)), 3)
+        @test test_model(CompositeFrictionModel(Free(2), ConstantFriction(2, fill(1, 6,6))), 3)
         @test test_model(CompositeFrictionModel(Free(3), RandomFriction(3)), 3)
+        for sub in subtypes(NQCModels.ElectronicFrictionProvider) # Every ElectronicFrictionProvider must have a friction_atoms field to select which parts of a system friction is applied to. 
+            @test :friction_atoms ∈ fieldnames(sub) 
+        end
     end
 end
 
