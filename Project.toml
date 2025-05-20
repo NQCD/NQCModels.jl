@@ -27,7 +27,7 @@ NQCBase = {rev = "remove-python"}
 NQCDInterfASE = {url = "https://github.com/NQCD/NQCDInterfASE.jl"}
 
 [compat]
-DataInterpolations = "8"
+DataInterpolations = "7, 8"
 FastGaussQuadrature = "0.4, 0.5, 1"
 ForwardDiff = "0.10"
 NQCBase = "0.1, 0.2, 0.3, 0.4"
