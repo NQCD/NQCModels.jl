@@ -12,7 +12,7 @@ struct WideBandBath{M<:QuantumModel,V<:AbstractVector,T} <: QuantumFrictionModel
 end
 
 function WideBandBath(model::QuantumModel; step, bandmin, bandmax)
-    WideBandBath(model, range(bandmin, bandmax; step=step))
+    WideBandBath(model, collect(range(bandmin, bandmax; step=step)))
 end
 
 NQCModels.nstates(model::WideBandBath) = NQCModels.nstates(model.model) + length(model.bathstates) - 1
