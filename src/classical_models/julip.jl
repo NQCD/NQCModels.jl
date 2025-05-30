@@ -20,9 +20,9 @@ function NQCModels.potential(model::JuLIPModel, R::AbstractMatrix)
     return eV_to_au(JuLIP.energy(model.atoms))
 end
 
-function NQCModels.potential!(model::JuLIPModel, V::Real, R::AbstractMatrix)
+function NQCModels.potential!(model::JuLIPModel, V::Matrix{<:Number}, R::AbstractMatrix)
     JuLIP.set_positions!(model.atoms, au_to_ang.(R))
-    return V = eV_to_au(JuLIP.energy(model.atoms))
+    V .= eV_to_au(JuLIP.energy(model.atoms))
 end
 
 function NQCModels.derivative!(model::JuLIPModel, D::AbstractMatrix, R::AbstractMatrix)
