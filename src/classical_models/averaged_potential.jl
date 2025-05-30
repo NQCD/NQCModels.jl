@@ -9,19 +9,12 @@ AveragedPotential(models, r) = AveragedPotential(models, zero(r))
 NQCModels.ndofs(model::AveragedPotential) = NQCModels.ndofs(model.models[1])
 
 function NQCModels.potential(model::AveragedPotential, r::AbstractMatrix)
-    V = zero(eltype(r))
-    for m in model.models
-        V += NQCModels.potential(m, r)
-    end
+    V = sum(NQCModels.potential.(model.models, Ref(r)))
     return V / length(model.models)
 end
 
-function NQCModels.potential!(model::AveragedPotential, V::AbstractMatrix, r::AbstractMatrix)
-    V_temp = zero(eltype(r))
-    for m in model.models
-        V_temp += NQCModels.potential(m, r)
-    end
-    return V .= hcat(V_temp / length(model.models))
+function NQCModels.potential!(model::AveragedPotential, V::Matrix{<:Number}, r::AbstractMatrix)
+    V .= sum(NQCModels.potential.(model.models, Ref(r))) / length(model.models)
 end
 
 function NQCModels.derivative(model::AveragedPotential, r::AbstractMatrix)
