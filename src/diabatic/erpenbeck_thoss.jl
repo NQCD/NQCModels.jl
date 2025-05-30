@@ -47,7 +47,7 @@ function ErpenbeckThoss(;
     q   = 0.05,
     ã   = austrip(0.5u"Å"),
     x̃   = austrip(3.5u"Å"),
-    V̄ₖ  = sqrt(austrip(Γ)/2π);
+    V̄ₖ  = sqrt(austrip(Γ)/2π),
     c   = nothing
 ) 
     morse = AdiabaticModels.Morse(;Dₑ, x₀, a, m)
