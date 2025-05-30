@@ -95,7 +95,7 @@ function NQCModels.derivative(model::ErpenbeckThoss, R::AbstractMatrix)
     D11 = ∂ϵ₀(R)
     D22 = ∂ϵ₁(R)
     D12 = ∂Vₖ(R)
-    return Hermitian([D11 D12; D12 D22])
+    return [Hermitian([D11 D12; D12 D22]);;]
 end
 
 function NQCModels.derivative!(model::ErpenbeckThoss, D::Hermitian, R::AbstractMatrix)

@@ -1,7 +1,7 @@
 using LinearAlgebra: diagind
 
 struct WideBandBath{M<:QuantumModel,V<:AbstractVector,T} <: QuantumFrictionModel
-    model::M
+    Hamiltonian::M
     bathstates::V
     ρ::T
     function WideBandBath(model, bathstates)
@@ -15,15 +15,15 @@ function WideBandBath(model::QuantumModel; step, bandmin, bandmax)
     WideBandBath(model, range(bandmin, bandmax; step=step))
 end
 
-NQCModels.nstates(model::WideBandBath) = NQCModels.nstates(model.model) + length(model.bathstates) - 1
-NQCModels.ndofs(model::WideBandBath) = NQCModels.ndofs(model.model)
+NQCModels.nstates(model::WideBandBath) = NQCModels.nstates(model.Hamiltonian) + length(model.bathstates) - 1
+NQCModels.ndofs(model::WideBandBath) = NQCModels.ndofs(model.Hamiltonian)
 NQCModels.nelectrons(model::WideBandBath) = fld(NQCModels.nstates(model), 2)
 NQCModels.fermilevel(::WideBandBath) = 0.0
 
 function NQCModels.potential(model::WideBandBath, r::AbstractMatrix)
 
-    Vsystem = NQCModels.potential(model.model, r)
-    n = NQCModels.nstates(model.model)
+    Vsystem = NQCModels.potential(model.Hamiltonian, r)
+    n = NQCModels.nstates(model.Hamiltonian)
     ϵ0 = Vsystem[1,1]
     V = zeros((NQCModels.nstates(model), NQCModels.nstates(model)))
 
@@ -43,8 +43,8 @@ end
 
 function NQCModels.potential!(model::WideBandBath, V::Hermitian, r::AbstractMatrix)
 
-    Vsystem = NQCModels.potential(model.model, r)
-    n = NQCModels.nstates(model.model)
+    Vsystem = NQCModels.potential(model.Hamiltonian, r)
+    n = NQCModels.nstates(model.Hamiltonian)
     ϵ0 = Vsystem[1,1]
 
     # System states
@@ -61,8 +61,8 @@ end
 
 function NQCModels.derivative(model::WideBandBath, r::AbstractMatrix)
 
-    Dsystem = NQCModels.derivative(model.model, r)
-    n = NQCModels.nstates(model.model)
+    Dsystem = NQCModels.derivative(model.Hamiltonian, r)
+    n = NQCModels.nstates(model.Hamiltonian)
     
     D = zeros((NQCModels.nstates(model), NQCModels.nstates(model)))
 
@@ -78,8 +78,8 @@ end
 
 function NQCModels.derivative!(model::WideBandBath, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
 
-    Dsystem = NQCModels.derivative(model.model, r)
-    n = NQCModels.nstates(model.model)
+    Dsystem = NQCModels.derivative(model.Hamiltonian, r)
+    n = NQCModels.nstates(model.Hamiltonian)
     
     for I in eachindex(Dsystem, D)
         ∂ϵ0 = Dsystem[I][1,1]
@@ -97,16 +97,16 @@ function NQCModels.derivative!(model::WideBandBath, D::AbstractMatrix{<:Hermitia
 end
 
 function NQCModels.state_independent_potential(model::WideBandBath, r::AbstractMatrix)
-    Vsystem = NQCModels.potential(model.model, r)
+    Vsystem = NQCModels.potential(model.Hamiltonian, r)
     return Vsystem[1,1]
 end
 
 function NQCModels.state_independent_potential!(model::WideBandBath, Vsystem::AbstractMatrix, r::AbstractMatrix)
-    Vsystem .= NQCModels.potential(model.model, r)
+    Vsystem .= NQCModels.potential(model.Hamiltonian, r)
 end
 
 function NQCModels.state_independent_derivative(model::WideBandBath, r::AbstractMatrix)
-    Dsystem = NQCModels.derivative(model.model, r)
+    Dsystem = NQCModels.derivative(model.Hamiltonian, r)
     ∂V = zeros(size(r))
     for I in eachindex(∂V, Dsystem)
         ∂V[I].data .= Dsystem[I][1,1]
@@ -116,7 +116,7 @@ function NQCModels.state_independent_derivative(model::WideBandBath, r::Abstract
 end
 
 function NQCModels.state_independent_derivative!(model::WideBandBath, ∂V::AbstractMatrix, r::AbstractMatrix)
-    Dsystem = NQCModels.derivative(model.model, r)
+    Dsystem = NQCModels.derivative(model.Hamiltonian, r)
     for I in eachindex(∂V, Dsystem)
         ∂V[I].data .= Dsystem[I][1,1]
     end
