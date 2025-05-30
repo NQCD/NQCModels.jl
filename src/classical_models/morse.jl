@@ -21,10 +21,10 @@ function NQCModels.potential(model::Morse, R::AbstractMatrix)
     return Dₑ * (exp(-a*(r-x₀)) - 1)^2
 end
 
-function NQCModels.potential!(model::Morse, V::Real, R::AbstractMatrix)
+function NQCModels.potential!(model::Morse, V::AbstractMatrix, R::AbstractMatrix)
     r = R[1]
     (;Dₑ, x₀, a) = model
-    return V = Dₑ * (exp(-a*(r-x₀)) - 1)^2
+    V .= hcat(Dₑ * (exp(-a*(r-x₀)) - 1)^2)
 end
 
 function NQCModels.derivative(model::Morse, R::AbstractMatrix)
@@ -33,10 +33,10 @@ function NQCModels.derivative(model::Morse, R::AbstractMatrix)
     return 2Dₑ * (exp(-a*(r-x₀)) - 1) * -a * exp(-a*(r-x₀))
 end
 
-function NQCModels.derivative!(model::Morse, V::Real, R::AbstractMatrix)
+function NQCModels.derivative!(model::Morse, V::AbstractMatrix, R::AbstractMatrix)
     r = R[1] 
     (;Dₑ, x₀, a) = model
-    V = 2Dₑ * (exp(-a*(r-x₀)) - 1) * -a * exp(-a*(r-x₀))
+    V .= hcat(2Dₑ * (exp(-a*(r-x₀)) - 1) * -a * exp(-a*(r-x₀)))
 end
 
 "Eq. 44"

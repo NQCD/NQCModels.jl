@@ -16,12 +16,12 @@ function NQCModels.potential(model::AveragedPotential, r::AbstractMatrix)
     return V / length(model.models)
 end
 
-function NQCModels.potential!(model::AveragedPotential, V::Real, r::AbstractMatrix)
-    V = zero(eltype(r))
+function NQCModels.potential!(model::AveragedPotential, V::AbstractMatrix, r::AbstractMatrix)
+    V_temp = zero(eltype(r))
     for m in model.models
-        V += NQCModels.potential(m, r)
+        V_temp += NQCModels.potential(m, r)
     end
-    return V / length(model.models)
+    return V .= hcat(V_temp / length(model.models))
 end
 
 function NQCModels.derivative(model::AveragedPotential, r::AbstractMatrix)

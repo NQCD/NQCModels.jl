@@ -71,7 +71,7 @@ function NQCModels.potential(model::DarlingHollowayElbow, R::AbstractVector)
     return total_V(r_x, r_z)
 end
 
-function NQCModels.potential!(model::DarlingHollowayElbow, V::Real, R::AbstractVector)
+function NQCModels.potential!(model::DarlingHollowayElbow, V::AbstractMatrix, R::AbstractVector)
 
     Parameters.@unpack d, α, p, zoff, V₀, βx, xb, βz, zb, V₁, βr, zr, Cvw, zvw, kc, m₁, m₂, m₃, w₁, w₂, w₃ = model
 
@@ -100,7 +100,7 @@ function NQCModels.potential!(model::DarlingHollowayElbow, V::Real, R::AbstractV
     r_x = R[1]
     r_z = R[2]
 
-    return V = total_V(r_x, r_z)
+    return V .= hcat(total_V(r_x, r_z))
 end
 
 function NQCModels.derivative!(model::DarlingHollowayElbow, D, R::AbstractVector)

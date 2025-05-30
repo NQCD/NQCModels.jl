@@ -15,8 +15,8 @@ function NQCModels.potential(model::DiatomicHarmonic, R::AbstractMatrix)
     return (norm(R[:,1] .- R[:,2]) - model.r₀)^2 / 2
 end
 
-function NQCModels.potential!(model::DiatomicHarmonic, V::Real, R::AbstractMatrix)
-    return V = (norm(R[:,1] .- R[:,2]) - model.r₀)^2 / 2
+function NQCModels.potential!(model::DiatomicHarmonic, V::AbstractMatrix, R::AbstractMatrix)
+    return V .= hcat((norm(R[:,1] .- R[:,2]) - model.r₀)^2 / 2)
 end
 
 function NQCModels.derivative!(model::DiatomicHarmonic, D::AbstractMatrix, R::AbstractMatrix) 

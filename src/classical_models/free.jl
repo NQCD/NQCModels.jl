@@ -27,8 +27,8 @@ NQCModels.ndofs(free::Free) = free.dofs
 
 NQCModels.potential(::Free, ::AbstractMatrix{T}) where {T} = zero(T)
 
-function NQCModels.potential!(::Free, V::Real, ::AbstractMatrix{T}) where {T} 
-    return V = zero(T)
+function NQCModels.potential!(::Free, V::AbstractMatrix, ::AbstractMatrix{T}) where {T} 
+    return V .= hcat(zero(T))
 end
 
 function NQCModels.derivative!(::Free, out::AbstractMatrix, ::AbstractMatrix{T}) where {T}
