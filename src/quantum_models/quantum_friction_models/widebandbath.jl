@@ -124,7 +124,7 @@ function NQCModels.state_independent_derivative!(model::WideBandBath, ∂V::Abst
     end
 end
 
-function get_subsystem_derivative(model::AndersonHolstein, r::AbstractMatrix)
+function get_subsystem_derivative(model::WideBandBath, r::AbstractMatrix)
     if size(r) != size(model.tmp_derivative[])
         model.tmp_derivative[] = NQCModels.zero_derivative(model.model, r)
     end
