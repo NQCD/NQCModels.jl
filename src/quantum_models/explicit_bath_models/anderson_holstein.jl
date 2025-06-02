@@ -10,7 +10,7 @@ end
 function AndersonHolstein(model, bath; fermi_level=0.0)
     tmp_derivative = Ref(NQCModels.zero_derivative(model, zeros(1,1)))
     fermi_level = austrip(fermi_level)
-    nelectrons = count(x -> x <= fermi_level, bath.bathstates)
+    nelectrons = count(bath.bathstates .≤ fermi_level)
     return AndersonHolstein(model, bath, tmp_derivative, fermi_level, nelectrons)
 end
 

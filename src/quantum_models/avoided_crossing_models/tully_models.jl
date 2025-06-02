@@ -39,7 +39,7 @@ function NQCModels.potential!(model::TullyModelOne, V::Hermitian, R::AbstractMat
     end
     V22 = -V11
     V12 = c * exp(-d*q^2) # sets both off-diagonals as V is Hermitian
-    V .= [V11 V12; V12 V22]
+    V.data .= [V11 V12; V12 V22]
 end
 
 function NQCModels.derivative(model::TullyModelOne, R::AbstractMatrix)
@@ -57,7 +57,7 @@ function NQCModels.derivative!(model::TullyModelOne, D::Hermitian, R::AbstractMa
     D11 = a * b * exp(-b * abs(q))
     D22 = -D11
     D12 = -2 * c * d * q * exp(-d*q^2)
-    D .= [D11 D12; D12 D22]
+    D.data .= [D11 D12; D12 D22]
 end
 
 """
@@ -88,7 +88,7 @@ function NQCModels.potential!(model::TullyModelTwo, V::Hermitian, R::AbstractMat
     V11 = 0
     V22 = -a*exp(-b*q^2) + e
     V12 = c * exp(-d*q^2)
-    V .= [V11 V12; V12 V22]
+    V.data .= [V11 V12; V12 V22]
 end
 
 function NQCModels.derivative(model::TullyModelTwo, R::AbstractMatrix)
@@ -108,7 +108,7 @@ function NQCModels.derivative!(model::TullyModelTwo, D::Hermitian, R::AbstractMa
     D22 = 2*a*b*q*exp(-b*q^2)
     D12 = -2*c*d*q*exp(-d*q^2)
 
-    D .= [D11 D12; D12 D22]
+    D.data .= [D11 D12; D12 D22]
 end
 
 """
