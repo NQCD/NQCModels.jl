@@ -54,5 +54,5 @@ function get_subsystem_derivative(model::AndersonHolstein, r::AbstractMatrix)
         model.tmp_derivative[] = NQCModels.zero_derivative(model.model, r)
     end
     NQCModels.derivative!(model.model, model.tmp_derivative, r)
-    return model.tmp_derivative
+    return getindex(model.tmp_derivative)
 end
