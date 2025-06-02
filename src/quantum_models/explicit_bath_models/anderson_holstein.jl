@@ -34,8 +34,7 @@ function NQCModels.derivative!(model::AndersonHolstein, D::AbstractMatrix{<:Herm
         D[I][1,1] = Dsystem[I][2,2] - Dsystem[I][1,1]
         fillbathcoupling!(D[I], Dsystem[I][2,1], model.bath)
     end
-
-    return D
+    return nothing
 end
 
 function NQCModels.state_independent_potential(model::AndersonHolstein, r::AbstractMatrix)
@@ -48,13 +47,12 @@ function NQCModels.state_independent_derivative!(model::AndersonHolstein, ∂V::
     for I in eachindex(∂V, Dsystem)
         ∂V[I] = Dsystem[I][1,1]
     end
-    return ∂V
 end
 
 function get_subsystem_derivative(model::AndersonHolstein, r::AbstractMatrix)
-    if size(r) != size(model.tmp_derivative[])
+    if size(r) != size(model.tmp_derivative)
         model.tmp_derivative[] = NQCModels.zero_derivative(model.model, r)
     end
-    NQCModels.derivative!(model.model, model.tmp_derivative[], r)
-    return model.tmp_derivative[]
+    NQCModels.derivative!(model.model, model.tmp_derivative, r)
+    return getindex(model.tmp_derivative)
 end

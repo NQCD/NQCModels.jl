@@ -19,11 +19,9 @@ end
 
 function NQCModels.potential(model::Scattering1D, R::AbstractMatrix)
     r = R[1]
-    V0(x) = model.D*(exp(-2model.a*x) - 2*exp(-model.a*x))
-    γ(x) = model.B*exp(-model.a*x^2)
 
-    V₀ = V0(r)
-    γᵣ = γ(r)
+    V₀ = model.D*(exp(-2model.a*r) - 2*exp(-model.a*r))
+    γᵣ = model.B*exp(-model.a*r^2)
 
     V = zeros((model.n_states, model.n_states))
 
@@ -41,11 +39,9 @@ end
 
 function NQCModels.potential!(model::Scattering1D, V::Hermitian, R::AbstractMatrix)
     r = R[1]
-    V0(x) = model.D*(exp(-2model.a*x) - 2*exp(-model.a*x))
-    γ(x) = model.B*exp(-model.a*x^2)
 
-    V₀ = V0(r)
-    γᵣ = γ(r)
+    V₀ = model.D*(exp(-2model.a*r) - 2*exp(-model.a*r))
+    γᵣ = model.B*exp(-model.a*r^2)
 
     V.data[diagind(V,0)] .= model.α + V₀
     V.data[diagind(V,1)] .= model.β
@@ -59,11 +55,9 @@ end
 
 function NQCModels.derivative!(model::Scattering1D, D::Hermitian, R::AbstractMatrix)
     r = R[1]
-    D0(x) = 2*model.D*model.a*(exp(-model.a*x)-exp(-2*model.a*x))
-    dγ(x) = -2model.a*x*model.B*exp(-model.a*x^2)
-
-    D₀ = D0(r)
-    dγᵣ = dγ(r)
+    
+    D₀ = 2*model.D*model.a*(exp(-model.a*r)-exp(-2*model.a*r))
+    dγᵣ = -2model.a*r*model.B*exp(-model.a*r^2)
 
     D.data[1,2] = dγᵣ
     D.data[diagind(D,0)] .= D₀

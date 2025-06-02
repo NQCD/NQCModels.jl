@@ -1,18 +1,19 @@
 using LinearAlgebra: diagind
 
-struct WideBandBath{M<:QuantumModel,V<:AbstractVector,T} <: QuantumFrictionModel
+struct WideBandBath{M<:QuantumModel,V<:AbstractVector,T,D} <: QuantumFrictionModel
     model::M
     bathstates::V
     ρ::T
-    function WideBandBath(model, bathstates)
-        bathstates = austrip.(bathstates)
-        ρ = length(bathstates) / (bathstates[end] - bathstates[begin])
-        new{typeof(model),typeof(bathstates),typeof(ρ)}(model, bathstates, ρ)
-    end
+    tmp_derivative::Base.RefValue{D}
 end
 
 function WideBandBath(model::QuantumModel; step, bandmin, bandmax)
-    WideBandBath(model, range(bandmin, bandmax; step=step))
+    bathstates = austrip.(collect(range(bandmin, bandmax; step=step)))
+    ρ = length(bathstates) / (bathstates[end] - bathstates[begin])
+
+    tmp_derivative = Ref(NQCModels.zero_derivative(model, zeros(1,1)))
+
+    return WideBandBath(model, bathstates, ρ, tmp_derivative)
 end
 
 NQCModels.nstates(model::WideBandBath) = NQCModels.nstates(model.model) + length(model.bathstates) - 1
@@ -61,7 +62,7 @@ end
 
 function NQCModels.derivative(model::WideBandBath, r::AbstractMatrix)
 
-    Dsystem = NQCModels.derivative(model.model, r)
+    Dsystem = NQCModels.get_subsystem_derivative(model.model, r)
     n = NQCModels.nstates(model.model)
     
     D = zeros((NQCModels.nstates(model), NQCModels.nstates(model)))
@@ -78,7 +79,7 @@ end
 
 function NQCModels.derivative!(model::WideBandBath, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
 
-    Dsystem = NQCModels.derivative(model.model, r)
+    Dsystem = NQCModels.get_subsystem_derivative(model.model, r)
     n = NQCModels.nstates(model.model)
     
     for I in eachindex(Dsystem, D)
@@ -106,7 +107,7 @@ function NQCModels.state_independent_potential!(model::WideBandBath, Vsystem::Ab
 end
 
 function NQCModels.state_independent_derivative(model::WideBandBath, r::AbstractMatrix)
-    Dsystem = NQCModels.derivative(model.model, r)
+    Dsystem = NQCModels.get_subsystem_derivative(model.model, r)
     ∂V = zeros(size(r))
     for I in eachindex(∂V, Dsystem)
         ∂V[I].data .= Dsystem[I][1,1]
@@ -116,8 +117,16 @@ function NQCModels.state_independent_derivative(model::WideBandBath, r::Abstract
 end
 
 function NQCModels.state_independent_derivative!(model::WideBandBath, ∂V::AbstractMatrix, r::AbstractMatrix)
-    Dsystem = NQCModels.derivative(model.model, r)
+    Dsystem = NQCModels.get_subsystem_derivative(model.model, r)
     for I in eachindex(∂V, Dsystem)
         ∂V[I].data .= Dsystem[I][1,1]
     end
+end
+
+function get_subsystem_derivative(model::WideBandBath, r::AbstractMatrix)
+    if size(r) != size(model.tmp_derivative[])
+        model.tmp_derivative[] = NQCModels.zero_derivative(model.model, r)
+    end
+    NQCModels.derivative!(model.model, model.tmp_derivative[], r)
+    return model.tmp_derivative[]
 end

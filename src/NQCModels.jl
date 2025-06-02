@@ -30,8 +30,8 @@ Base.broadcastable(model::Model) = Ref(model)
 
 Evaluate the potential at position `R` for the given `model`.
 """
-function potential(model::Model, R::AbstractMatrix)
-    if ndofs(model) == 1
+function potential(model::Model, R::AbstractMatrix) end
+    #= if ndofs(model) == 1
         if size(R, 2) == 1
             return potential(model, R[1])
         else
@@ -42,7 +42,7 @@ function potential(model::Model, R::AbstractMatrix)
     else
         throw(MethodError(potential, (model, R)))
     end
-end
+end =#
 
 """
     potential!(model::Model, V, R::AbstractMatrix)
@@ -90,6 +90,7 @@ function derivative!(model::Model, D, R::AbstractMatrix) end
     end
 end
  =#
+
 """
     derivative(model::Model, R)
 

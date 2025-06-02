@@ -28,8 +28,8 @@ function NQCModels.potential(model::CompositeFrictionModel, R::AbstractMatrix)
     return NQCModels.potential(model.pes_model, R)
 end
 
-function NQCModels.potential!(model::CompositeFrictionModel, V, R::AbstractMatrix)
-    return V = NQCModels.potential(model.pes_model, R)
+function NQCModels.potential!(model::CompositeFrictionModel, V::AbstractMatrix, R::AbstractMatrix)
+    V .= NQCModels.potential(model.pes_model, R)
 end
 
 function NQCModels.derivative!(model::CompositeFrictionModel, D, R::AbstractMatrix)

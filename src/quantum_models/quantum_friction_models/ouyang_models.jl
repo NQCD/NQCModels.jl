@@ -28,14 +28,10 @@ function NQCModels.potential(model::OuyangModelOne, R::AbstractMatrix)
 
     V = zeros((N+1, N+1))
 
-    Vsys(x) = A*tanh(B*x)
-    Vbath(x, Δ) = -Vsys(x) + Δ
-    Vsb(x) = C*exp(-D*x^2)
-
-    V[1,1] = Vsys(r)
+    V[1,1] = A*tanh(B*r)
     Δs = range(-ΔE/2, ΔE/2, length=N)
-    V[1,2:N+1] .= Vsb(r)
-    V[diagind(N+1,N+1)[2:end]] .= Vbath.(r, Δs)
+    V[1,2:N+1] .= C*exp(-D*r^2)
+    V[diagind(N+1,N+1)[2:end]] .= -(A*tanh(B*x)).+Δs
 
     return V
 end
@@ -44,14 +40,10 @@ function NQCModels.potential!(model::OuyangModelOne, V::Hermitian, R::AbstractMa
     r = R[1]
     Parameters.@unpack A, B, C, D, ΔE, N = model
 
-    Vsys(x) = A*tanh(B*x)
-    Vbath(x, Δ) = -Vsys(x) + Δ
-    Vsb(x) = C*exp(-D*x^2)
-
-    V[1,1] = Vsys(r)
+    V[1,1] = A*tanh(B*r)
     Δs = range(-ΔE/2, ΔE/2, length=N)
-    V.data[1,2:N+1] .= Vsb(r)
-    V.data[diagind(N+1,N+1)[2:end]] .= Vbath.(r, Δs)
+    V.data[1,2:N+1] .= C*exp(-D*r^2)
+    V.data[diagind(N+1,N+1)[2:end]] .= -(A*tanh(B*x)).+Δs
 end
 
 function NQCModels.derivative(model::OuyangModelOne, R::AbstractMatrix)
@@ -60,13 +52,9 @@ function NQCModels.derivative(model::OuyangModelOne, R::AbstractMatrix)
 
     derivative = zeros((N+1, N+1))
 
-    Dsys(x) = B*A*sech(B*x)^2
-    Dbath(x) = -Dsys(x)
-    Dsb(x) = -2D*x*C*exp(-D*x^2)
-
-    derivative.data[1,1] = Dsys(r)
-    derivative.data[1,2:N+1] .= Dsb(r)
-    derivative.data[diagind(N+1,N+1)[2:end]] .= Dbath(r)
+    derivative.data[1,1] = B*A*sech(B*r)^2
+    derivative.data[1,2:N+1] .= -2D*x*C*exp(-D*r^2)
+    derivative.data[diagind(N+1,N+1)[2:end]] .= -(B*A*sech(B*r)^2)
 
     return derivative
 end
@@ -75,11 +63,7 @@ function NQCModels.derivative!(model::OuyangModelOne, derivative::Hermitian, R::
     r = R[1]
     Parameters.@unpack A, B, C, D, N = model
 
-    Dsys(x) = B*A*sech(B*x)^2
-    Dbath(x) = -Dsys(x)
-    Dsb(x) = -2D*x*C*exp(-D*x^2)
-
-    derivative.data[1,1] = Dsys(r)
-    derivative.data[1,2:N+1] .= Dsb(r)
-    derivative.data[diagind(N+1,N+1)[2:end]] .= Dbath(r)
+    derivative.data[1,1] = B*A*sech(B*r)^2
+    derivative.data[1,2:N+1] .= -2D*x*C*exp(-D*r^2)
+    derivative.data[diagind(N+1,N+1)[2:end]] .= -(B*A*sech(B*r)^2)
 end

@@ -26,9 +26,9 @@ function NQCModels.potential(model::ClassicalASEModel, R::AbstractMatrix)
     return austrip(pyconvert(eltype(R), V) * u"eV")
 end
 
-function NQCModels.potential!(model::ClassicalASEModel, V::Real, R::AbstractMatrix)
+function NQCModels.potential!(model::ClassicalASEModel, V::Matrix{<:Number}, R::AbstractMatrix)
     set_coordinates!(model, R)
-    return V = austrip(pyconvert(eltype(R), model.atoms.get_potential_energy()) * u"eV")
+    V .= austrip(pyconvert(eltype(R), model.atoms.get_potential_energy()) * u"eV")
 end
 
 function NQCModels.derivative!(model::ClassicalASEModel, D::AbstractMatrix, R::AbstractMatrix)

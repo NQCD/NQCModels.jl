@@ -43,6 +43,9 @@ function NQCModels.potential(model::DarlingHollowayElbow, R::AbstractVector)
 
     Parameters.@unpack d, α, p, zoff, V₀, βx, xb, βz, zb, V₁, βr, zr, Cvw, zvw, kc, m₁, m₂, m₃, w₁, w₂, w₃ = model
 
+    r_x = R[1]
+    r_z = R[2]
+
     y(x,z) = (1 + 1/x^4)*(1 + 1/z^4)
     f(x,z) = (y(x,z) - 1)^(-1/4)
     s(a,b) = (1 + tanh(a*b)) / 2
@@ -55,25 +58,25 @@ function NQCModels.potential(model::DarlingHollowayElbow, R::AbstractVector)
 
     zf(x,z) = z - zoff * s(x - m₁, w₁)
 
-    Velbow(x,z) = d*(1 - exp(-α*xₑ(x,z)))^2
-    Vbarrier(x,z) = V₀*exp(-βx*(x-xb)^2 - βz*(zf(x,z)-zb)^2) * s(x-zf(x,z)-m₂,w₂)
+    Velbow = d*(1 - exp(-α*xₑ(r_x,r_z)))^2
+    Vbarrier = V₀*exp(-βx*(r_x-xb)^2 - βz*(zf(r_x,r_z)-zb)^2) * s(r_x-zf(r_x,r_z)-m₂,w₂)
 
     Vᵣ(z) = V₁*exp(-βr*(z-zr))
     fc(x) = 1 - (2x*(1+x)+1)*exp(-2x)
     Vvw(z) = - Cvw/(z - zvw)^3 * fc(kc*(z-zvw))
     Vphys(x,z) = (Vᵣ(zf(x,z)) + Vvw(zf(x,z))) * s(zf(x,z)-x-m₂, w₂) * s(zf(x,z)-m₃, w₃)
 
-    total_V(x,z) = Velbow(x,z) + Vbarrier(x,z) + Vphys(x,z)
-
-    r_x = R[1]
-    r_z = R[2]
+    total_V(x,z) = Velbow + Vbarrier + Vphys(x,z)
 
     return total_V(r_x, r_z)
 end
 
-function NQCModels.potential!(model::DarlingHollowayElbow, V::Real, R::AbstractVector)
+function NQCModels.potential!(model::DarlingHollowayElbow, V::Matrix{<:Number}, R::AbstractVector)
 
     Parameters.@unpack d, α, p, zoff, V₀, βx, xb, βz, zb, V₁, βr, zr, Cvw, zvw, kc, m₁, m₂, m₃, w₁, w₂, w₃ = model
+
+    r_x = R[1]
+    r_z = R[2]
 
     y(x,z) = (1 + 1/x^4)*(1 + 1/z^4)
     f(x,z) = (y(x,z) - 1)^(-1/4)
@@ -87,20 +90,17 @@ function NQCModels.potential!(model::DarlingHollowayElbow, V::Real, R::AbstractV
 
     zf(x,z) = z - zoff * s(x - m₁, w₁)
 
-    Velbow(x,z) = d*(1 - exp(-α*xₑ(x,z)))^2
-    Vbarrier(x,z) = V₀*exp(-βx*(x-xb)^2 - βz*(zf(x,z)-zb)^2) * s(x-zf(x,z)-m₂,w₂)
+    Velbow = d*(1 - exp(-α*xₑ(r_x,r_z)))^2
+    Vbarrier = V₀*exp(-βx*(r_x-xb)^2 - βz*(zf(r_x,r_z)-zb)^2) * s(r_x-zf(r_x,r_z)-m₂,w₂)
 
     Vᵣ(z) = V₁*exp(-βr*(z-zr))
     fc(x) = 1 - (2x*(1+x)+1)*exp(-2x)
     Vvw(z) = - Cvw/(z - zvw)^3 * fc(kc*(z-zvw))
     Vphys(x,z) = (Vᵣ(zf(x,z)) + Vvw(zf(x,z))) * s(zf(x,z)-x-m₂, w₂) * s(zf(x,z)-m₃, w₃)
 
-    total_V(x,z) = Velbow(x,z) + Vbarrier(x,z) + Vphys(x,z)
+    total_V(x,z) = Velbow + Vbarrier + Vphys(x,z)
 
-    r_x = R[1]
-    r_z = R[2]
-
-    return V = total_V(r_x, r_z)
+    V .= total_V(r_x, r_z)
 end
 
 function NQCModels.derivative!(model::DarlingHollowayElbow, D, R::AbstractVector)
