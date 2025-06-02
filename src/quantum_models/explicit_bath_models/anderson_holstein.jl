@@ -44,7 +44,9 @@ end
 
 function NQCModels.state_independent_derivative!(model::AndersonHolstein, ∂V::AbstractMatrix, r::AbstractMatrix)
     Dsystem = get_subsystem_derivative(model, r)
-    ∂V .= Dsystem[:][1,1]
+    for I in eachindex(∂V, Dsystem)
+        ∂V[I] = Dsystem[I][1,1]
+    end
 end
 
 function get_subsystem_derivative(model::AndersonHolstein, r::AbstractMatrix)
