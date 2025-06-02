@@ -5,16 +5,20 @@ struct WideBandBath{M<:QuantumModel,V<:AbstractVector,T,D} <: QuantumFrictionMod
     bathstates::V
     ρ::T
     tmp_derivative::Base.RefValue{D}
-    function WideBandBath(model, bathstates, tmp_derivative)
+#=     function WideBandBath(model, bathstates, tmp_derivative)
         bathstates = austrip.(bathstates)
         ρ = length(bathstates) / (bathstates[end] - bathstates[begin])
         new{typeof(model), typeof(bathstates), typeof(ρ)}(model, bathstates, ρ, tmp_derivative)
-    end
+    end =#
 end
 
 function WideBandBath(model::QuantumModel; step, bandmin, bandmax)
+    bathstates = austrip.(collect(range(bandmin, bandmax; step=step)))
+    ρ = length(bathstates) / (bathstates[end] - bathstates[begin])
+
     tmp_derivative = Ref(NQCModels.zero_derivative(model, zeros(1,1)))
-    WideBandBath(model, collect(range(bandmin, bandmax; step=step)), tmp_derivative)
+
+    return WideBandBath(model, bathstates, ρ, tmp_derivative)
 end
 
 NQCModels.nstates(model::WideBandBath) = NQCModels.nstates(model.model) + length(model.bathstates) - 1
