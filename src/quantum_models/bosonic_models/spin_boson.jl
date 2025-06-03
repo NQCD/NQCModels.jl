@@ -86,7 +86,7 @@ function NQCModels.potential(model::SpinBoson, r::AbstractMatrix)
     Parameters.@unpack ωⱼ, cⱼ, ϵ, Δ = model
 
     temp = zeros(length(ωⱼ))
-    @. temp = ωⱼ^2 * r^2 / 2
+    @. temp = ωⱼ^2 * r'^2 / 2
 
     v0 = 0.0
     v0 = sum(temp)
@@ -107,7 +107,7 @@ function NQCModels.potential!(model::SpinBoson, V::Hermitian, r::AbstractMatrix)
     Parameters.@unpack ωⱼ, cⱼ, ϵ, Δ = model
 
     temp = zeros(length(ωⱼ))
-    @. temp = ωⱼ^2 * r^2 / 2
+    @. temp = ωⱼ^2 * r'^2 / 2
 
     v0 = 0.0
     v0 = sum(temp)
@@ -127,11 +127,11 @@ function NQCModels.derivative!(model::SpinBoson, D::AbstractMatrix{<:Hermitian},
 
     Parameters.@unpack ωⱼ, cⱼ = model
 
-    d0 = zeros(length(r))
+    d0 = zero(r)
     @. d0 = ωⱼ^2 * r
 
-    for i in eachindex(r)
-        D[i].data .= Hermitian([d0[i]+cⱼ[i] 0; 0 d0[i]-cⱼ[i]])
+    for i in axes(r, 2)
+        D[i].data .= Hermitian([d0[1,i]+cⱼ[i] 0; 0 d0[1,i]-cⱼ[i]])
     end
 
     return D
@@ -160,7 +160,7 @@ function NQCModels.potential(model::BosonBath, r::AbstractMatrix)
 end
 
 function NQCModels.potential!(model::BosonBath, V, r::AbstractMatrix)
-    V = sum(model.ωⱼ .^2 .* r .^2 ./ 2)
+    V = sum(model.ωⱼ .^2 .* r' .^2 ./ 2)
 end
 
 function NQCModels.derivative!(model::BosonBath, D::AbstractMatrix, r::AbstractMatrix)

@@ -29,7 +29,7 @@ end
 
 function NQCModels.derivative!(model::AndersonHolstein, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
     Dsystem = get_subsystem_derivative(model, r)
-    for I in length(r)
+    for I in axes(r, 2) # All particles
         D[I][1,1] = Dsystem[I][2,2] - Dsystem[I][1,1]
         fillbathcoupling!(D[I], Dsystem[I][2,1], model.bath)
     end
