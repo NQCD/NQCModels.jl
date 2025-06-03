@@ -123,7 +123,7 @@ function NQCModels.potential(model::QuantumModel, R::AbstractMatrix)
     return V
 end
 
-function NQCModels.derivative!(model::QuantumModel, D::Matrix{<:Hermitian}, R::AsbtractMatrix)    
+function NQCModels.derivative!(model::QuantumModel, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)    
     NQCModels.derivative!.(Ref(model), D, ref(R))
 end
 

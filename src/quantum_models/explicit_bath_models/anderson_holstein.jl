@@ -27,11 +27,13 @@ function NQCModels.potential!(model::AndersonHolstein, V::Hermitian, r::Abstract
     return V
 end
 
-function NQCModels.derivative!(model::AndersonHolstein, D::Hermitian, r::AbstractMatrix)
+function NQCModels.derivative!(model::AndersonHolstein, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
     Dsystem = get_subsystem_derivative(model, r)
+    for I in length(r)
+        D[I][1,1] = Dsystem[I][2,2] - Dsystem[I][1,1]
+        fillbathcoupling!(D[I], Dsystem[I][2,1], model.bath)
+    end
     
-    D[1,1] = Dsystem[2,2] - Dsystem[1,1]
-    fillbathcoupling!(D, Dsystem[2,1], model.bath)
     return nothing
 end
 
