@@ -124,7 +124,7 @@ function NQCModels.potential(model::QuantumModel, R::AbstractMatrix)
 end
 
 function NQCModels.derivative!(model::QuantumModel, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)    
-    NQCModels.derivative!.(Ref(model), D, ref(R))
+    NQCModels.derivative!.(Ref(model), D, Ref(R))
 end
 
 include("avoided_crossing_models/ananth_models.jl")
