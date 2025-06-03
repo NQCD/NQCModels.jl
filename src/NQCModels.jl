@@ -76,7 +76,9 @@ Fill `D` with the derivative of the electronic potential as a function of the po
 
 This must be implemented for all models.
 """
-function derivative!(model::Model, D, R::AbstractMatrix) end
+function derivative!(model::Model, D, R::AbstractMatrix) 
+    @warn "You have probably made a multiple dispatch mistake. Massive L."
+end
 #=     if ndofs(model) == 1
         if size(R, 2) == 1
             derivative!(model::Model, D, R::AbstractMatrix)
