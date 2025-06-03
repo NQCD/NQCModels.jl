@@ -27,7 +27,7 @@ function NQCModels.potential!(model::AndersonHolstein, V::Hermitian, r::Abstract
     return V
 end
 
-function NQCModels.derivative!(model::AndersonHolstein, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
+function NQCModels.derivative!(model::AndersonHolstein, D::Hermitian, r::AbstractMatrix)
     Dsystem = get_subsystem_derivative(model, r)
     
     for I in eachindex(Dsystem, D)
