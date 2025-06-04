@@ -124,7 +124,10 @@ function NQCModels.potential(model::QuantumModel, R::AbstractMatrix)
 end
 
 function NQCModels.derivative!(model::QuantumModel, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)    
-    NQCModels.derivative!.(Ref(model), D, Ref(R))
+    for idx in axes(D, 2) # Iterate through Hermitean matrices corresponding to each particle. 
+      NQCModels.derivative!(model, D[1,idx], R)
+    end
+    return nothing
 end
 
 include("avoided_crossing_models/ananth_models.jl")

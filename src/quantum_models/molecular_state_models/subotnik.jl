@@ -70,5 +70,5 @@ function NQCModels.derivative!(model::MiaoSubotnik, D::Hermitian, R::AbstractMat
     D11 = m*ω^2*x
     D22 = m*ω^2*(x-g)
     
-    D.data .= Hermitian([D11 0; 0 D22])
+    D.data .= [D11 0; 0 D22]
 end

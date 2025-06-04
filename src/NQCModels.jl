@@ -77,7 +77,7 @@ Fill `D` with the derivative of the electronic potential as a function of the po
 This must be implemented for all models.
 """
 function derivative!(model::Model, D, R::AbstractMatrix) 
-    @warn "You have probably made a multiple dispatch mistake. Massive L."
+    @warn "You have probably made a multiple dispatch mistake. Massive L." maxlog = 1 model = model D = D R = R
 end
 #=     if ndofs(model) == 1
         if size(R, 2) == 1
