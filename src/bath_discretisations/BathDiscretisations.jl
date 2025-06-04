@@ -11,10 +11,14 @@ export setcoupling!
 
 include("trapezoidal_rule.jl")
 export TrapezoidalRule
+export GapTrapezoidalRule
+
 include("shenvi_gauss_legendre.jl")
 export ShenviGaussLegendre
 export ReferenceGaussLegendre
+
 include("full_gauss_legendre.jl")
 export FullGaussLegendre
+export GapGaussLegendre
 
 end

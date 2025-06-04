@@ -67,3 +67,4 @@ function ReferenceGaussLegendre(M, bandmin, bandmax)
 
     return ReferenceGaussLegendre(bathstates, bathcoupling)
 end
+

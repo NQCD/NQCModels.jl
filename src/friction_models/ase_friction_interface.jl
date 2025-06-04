@@ -1,6 +1,6 @@
+using PythonCall
 using Unitful: @u_str
 using UnitfulAtomic: austrip
-using PythonCall
 
 """
     ASEFrictionProvider{A} <: ElectronicFrictionProvider
@@ -9,7 +9,7 @@ Obtain the electronic friction from an ASE calculator that implements `get_frict
 Assumes that the units of friction are "eV/Å/Å".
 Construct by passing the ase atoms object with the calculator already attached.
 """
-struct ASEFrictionProvider{A} <: ElectronicFrictionProvider
+struct ASEFrictionProvider{A} <: TensorialFriction
     atoms::A
 end
 
