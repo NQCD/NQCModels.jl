@@ -74,8 +74,6 @@ include("diatomic_harmonic.jl")
 export DiatomicHarmonic
 include("darling_holloway_elbow.jl")
 export DarlingHollowayElbow
-include("ase_interface.jl")
-export ClassicalASEModel
 include("averaged_potential.jl")
 export AveragedPotential
 
