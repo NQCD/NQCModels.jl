@@ -164,5 +164,5 @@ function NQCModels.potential!(model::BosonBath, V, r::AbstractMatrix)
 end
 
 function NQCModels.derivative!(model::BosonBath, D::AbstractMatrix, r::AbstractMatrix)
-    @. D = model.ωⱼS^2 * r
+    @. D = model.ωⱼ^2 * r
 end

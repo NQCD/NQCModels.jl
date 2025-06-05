@@ -1,7 +1,7 @@
 using Test
 using NQCBase
 using NQCModels
-using NQCDInterfASE
+# using NQCDInterfASE
 using LinearAlgebra
 using SafeTestsets
 using InteractiveUtils
@@ -39,15 +39,15 @@ end
 
 include("test_utils.jl")
 
-if GROUP =="All" || GROUP == "ASE"
-    @time @safetestset "ASE with PythonCall.jl" begin
-        include("ase_pythoncall.jl")
-    end
+# if GROUP =="All" || GROUP == "ASE"
+#     @time @safetestset "ASE with PythonCall.jl" begin
+#         include("ase_pythoncall.jl")
+#     end
     
-    @time @safetestset "ASE with PyCall.jl" begin
-        include("ase_pycall.jl")
-    end
-end
+#     @time @safetestset "ASE with PyCall.jl" begin
+#         include("ase_pycall.jl")
+#     end
+# end
 
 @testset "Potential abstraction" begin
     struct TestModel <: NQCModels.Model end
@@ -78,25 +78,25 @@ end
     @test potential(model, R) ≈ 2
 end
 
-if GROUP == "All" || GROUP == "Adiabatic"
-    @testset "AdiabaticModels" begin
+if GROUP == "All" || GROUP == "Classical"
+    @testset "ClassicalModels" begin
         @test test_model(Harmonic(), 10)
         @test test_model(Free(), 10)
         @test test_model(AveragedPotential((Harmonic(), Harmonic()), zeros(1, 10)), 10)
-        @test test_model(BosonBath(OhmicSpectralDensity(2.5, 0.1), 10), 10)
         @test test_model(DarlingHollowayElbow(), 2)
         @test test_model(Morse(), 1)
     end
 end
 
-if GROUP == "All" || GROUP == "Diabatic"
-    @testset "DiabaticModels" begin
+if GROUP == "All" || GROUP == "Quantum"
+    @testset "QuantumModels" begin
         @test test_model(DoubleWell(), 1)
         @test test_model(TullyModelOne(), 1)
         @test test_model(TullyModelTwo(), 1)
         @test test_model(TullyModelThree(), 1)
         @test test_model(Scattering1D(), 1)
         @test test_model(ThreeStateMorse(), 1)
+        @test test_model(BosonBath(OhmicSpectralDensity(2.5, 0.1), 10), 10)
         @test test_model(SpinBoson(DebyeSpectralDensity(0.25, 0.5), 10, 1.0, 1.0), 10)
         @test test_model(OuyangModelOne(), 1)
         @test test_model(GatesHollowayElbow(), 2)

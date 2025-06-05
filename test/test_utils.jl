@@ -1,12 +1,12 @@
 using FiniteDiff
 using NQCModels
 
-function finite_difference_gradient(model::NQCModels.AdiabaticModels.AdiabaticModel, R)
+function finite_difference_gradient(model::NQCModels.ClassicalModels.ClassicalModel, R)
     f(x) = potential(model, x)
     FiniteDiff.finite_difference_gradient(f, R)
 end
 
-function finite_difference_gradient(model::NQCModels.DiabaticModels.DiabaticModel, R)
+function finite_difference_gradient(model::NQCModels.QuantumModels.QuantumModel, R)
     f(x, j, i) = potential(model, x)[j,i]
     grad = [Hermitian(zeros(nstates(model), nstates(model))) for _ in CartesianIndices(R)]
     for i=1:nstates(model)
@@ -27,7 +27,7 @@ function test_model(model::NQCModels.Model, atoms; rtol=1e-5)
     return isapprox(finite_diff, D, rtol=rtol)
 end
 
-function test_model(model::NQCModels.FrictionModels.AdiabaticFrictionModel, atoms)
+function test_model(model::NQCModels.FrictionModels.ClassicalFrictionModel, atoms)
     R = rand(ndofs(model), atoms)
     D = derivative(model, R)
     friction(model, R)
