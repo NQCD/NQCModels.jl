@@ -70,16 +70,6 @@ struct RandomFriction <: ElectronicFrictionProvider
     ndofs::Int
 end
 
-"""
-    friction_matrix_indices(model, indices)
-
-Returns the indices of the friction matrix corresponding to the given Atom indices.
-"""
-function friction_matrix_indices(indices::AbstractVector{Int}, dofs::Integer)
-    dof_range = collect(1:dofs)
-    return vcat(broadcast(x -> x .+ dof_range, dofs .* (indices .- 1))...)
-end
-
 function get_friction_matrix end
 NQCModels.ndofs(model::ElectronicFrictionProvider) = model.ndofs
 NQCModels.dofs(model::ElectronicFrictionProvider) = 1:model.ndofs
