@@ -50,11 +50,6 @@ NQCModels.ndofs(model::ElectronicFrictionProvider) = model.ndofs
 NQCModels.dofs(model::ElectronicFrictionProvider) = 1:model.ndofs
 
 
-function get_friction_matrix end
-NQCModels.ndofs(model::ElectronicFrictionProvider) = model.ndofs
-NQCModels.dofs(model::ElectronicFrictionProvider) = 1:model.ndofs
-
-
 """
     friction!(model::Model, F, R:AbstractMatrix)
 
@@ -95,6 +90,11 @@ end
 zero_friction(::ClassicalFrictionModel, R) = zeros(eltype(R), length(R), length(R))
 zero_friction(::QuantumFrictionModel, R) = zeros(eltype(R), length(R), length(R))
 
+include("constant_friction.jl")
+export ConstantFriction
+include("random_friction.jl")
+export RandomFriction
+
 include("diagonal_friction.jl")
 export LDFAFriction
 include("tensorial_friction.jl")
@@ -102,10 +102,5 @@ export get_friction_matrix
 
 include("composite_friction_model.jl")
 export CompositeFrictionModel
-
-include("constant_friction.jl")
-export ConstantFriction
-include("random_friction.jl")
-export RandomFriction
 
 end # module
