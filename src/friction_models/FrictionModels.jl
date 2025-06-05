@@ -70,31 +70,6 @@ struct RandomFriction <: ElectronicFrictionProvider
     ndofs::Int
 end
 
-function get_friction_matrix end
-NQCModels.ndofs(model::ElectronicFrictionProvider) = model.ndofs
-NQCModels.dofs(model::ElectronicFrictionProvider) = 1:model.ndofs
-
-"""
-    ConstantFriction
-
-Friction model which returns a constant value for all positions. Use with a single value, a vector of diagonal values or a full-size Matrix
-
-"""
-struct ConstantFriction{T} <: ElectronicFrictionProvider
-    ndofs::Int
-    γ::T
-end
-
-"""
-    RandomFriction <: ElectronicFrictionProvider
-
-Provide a random positive semi-definite matrix of friction values.
-Used mostly for testing and examples.
-"""
-struct RandomFriction <: ElectronicFrictionProvider
-    ndofs::Int
-end
-
 """
     friction!(model::Model, F, R:AbstractMatrix)
 
