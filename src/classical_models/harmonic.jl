@@ -33,11 +33,11 @@ end
 NQCModels.ndofs(harmonic::Harmonic) = harmonic.dofs
 
 function NQCModels.potential(model::Harmonic, R::AbstractMatrix)
-    return sum(@. 0.5 * model.m* model.ω^2 * (R - model.r₀) ^2)
+    return sum(0.5 .* model.m .* model.ω.^2 .* (R .- model.r₀) .^2)
 end
 
 function NQCModels.potential!(model::Harmonic, V::Matrix{<:Number}, R::AbstractMatrix)
-    V .= sum(@. 0.5 * model.m* model.ω^2 * (R - model.r₀) ^2)
+    V .= sum(0.5 .* model.m .* model.ω.^2 .* (R .- model.r₀) .^2)
 end
 
 function NQCModels.derivative(model::Harmonic, R::AbstractMatrix) 
