@@ -39,7 +39,7 @@ end
 
 NQCModels.ndofs(::DarlingHollowayElbow) = 1
 
-function NQCModels.potential(model::DarlingHollowayElbow, R::AbstractVector)
+function NQCModels.potential(model::DarlingHollowayElbow, R::AbstractMatrix)
 
     Parameters.@unpack d, α, p, zoff, V₀, βx, xb, βz, zb, V₁, βr, zr, Cvw, zvw, kc, m₁, m₂, m₃, w₁, w₂, w₃ = model
 
@@ -71,7 +71,7 @@ function NQCModels.potential(model::DarlingHollowayElbow, R::AbstractVector)
     return total_V(r_x, r_z)
 end
 
-function NQCModels.potential!(model::DarlingHollowayElbow, V::Matrix{<:Number}, R::AbstractVector)
+function NQCModels.potential!(model::DarlingHollowayElbow, V::Matrix{<:Number}, R::AbstractMatrix)
 
     Parameters.@unpack d, α, p, zoff, V₀, βx, xb, βz, zb, V₁, βr, zr, Cvw, zvw, kc, m₁, m₂, m₃, w₁, w₂, w₃ = model
 
@@ -103,7 +103,7 @@ function NQCModels.potential!(model::DarlingHollowayElbow, V::Matrix{<:Number}, 
     V .= total_V(r_x, r_z)
 end
 
-function NQCModels.derivative!(model::DarlingHollowayElbow, D, R::AbstractVector)
+function NQCModels.derivative!(model::DarlingHollowayElbow, D, R::AbstractMatrix)
     f(x) = NQCModels.potential(model, x)
     copyto!(D, ForwardDiff.gradient(f, R))
     return D
