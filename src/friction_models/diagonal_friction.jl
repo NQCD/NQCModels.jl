@@ -28,9 +28,14 @@ function friction(model::DiagonalFriction, R::AbstractMatrix)
 	return friction!(model, F, R)
 end
 
-function friction!(model::DiagonalFriction, F::AbstractMatrix, R::AbstractMatrix)
+function friction!(model::DiagonalFriction, F::Diagonal, R::AbstractMatrix)
 	indices=friction_matrix_indices(model.friction_atoms, ndofs(model))
 	F.diag[indices, indices] .= get_friction_matrix(model, R)
+end
+
+function friction!(model::DiagonalFriction, F::AbstractMatrix, R::AbstractMatrix)
+	indices=friction_matrix_indices(model.friction_atoms, ndofs(model))
+	F[indices, indices] .= get_friction_matrix(model, R)
 end
 
 function get_friction_matrix(model::ConstantFriction{AbstractVector}, R::AbstractMatrix)
