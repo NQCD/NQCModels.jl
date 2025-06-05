@@ -1,9 +1,10 @@
 
 module FrictionModels
 
-using ..NQCModels: NQCModels
+using ..NQCModels: NQCModels, Model
 using ..ClassicalModels: ClassicalModel
 using ..QuantumModels: QuantumModel, QuantumFrictionModel
+import Random
 
 export friction, friction!
 export density, density!
@@ -60,6 +61,10 @@ struct ConstantFriction{T} <: ElectronicFrictionProvider
     γ::T
 end
 
+function friction!(model::ConstantFriction, F::AbstractMatrix, ::AbstractMatrix)
+    F[diagind(F)] .= model.γ
+end
+
 NQCModels.ndofs(model::ConstantFriction) = model.ndofs
 
 """
@@ -70,6 +75,12 @@ Used mostly for testing and examples.
 """
 struct RandomFriction <: ElectronicFrictionProvider
     ndofs::Int
+end
+
+function friction!(::RandomFriction, F::AbstractMatrix, ::AbstractMatrix)
+    Random.randn!(F)
+    F .= F'F
+    F .= (F + F')/2
 end
 
 NQCModels.ndofs(model::RandomFriction) = model.ndofs
@@ -99,20 +110,13 @@ Units of friction are mass-weighted, and the atomic unit of friction is: [E_h / 
 This is an allocating version of `friction!`.
 
 """
-function friction(model::ClassicalFrictionModel, R)
+function friction(model::Model, R)
     F = zero_friction(model, R)
     friction!(model, F, R)
     return F
 end
 
-function friction(model::QuantumFrictionModel, R)
-    F = zero_friction(model, R)
-    friction!(model, F, R)
-    return F
-end
-
-zero_friction(::ClassicalFrictionModel, R) = zeros(eltype(R), length(R), length(R))
-zero_friction(::QuantumFrictionModel, R) = zeros(eltype(R), length(R), length(R))
+zero_friction(::Model, R) = zeros(eltype(R), length(R), length(R))
 
 export ConstantFriction
 export RandomFriction
