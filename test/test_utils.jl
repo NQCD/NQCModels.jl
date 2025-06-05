@@ -27,6 +27,13 @@ function test_model(model::NQCModels.Model, atoms; rtol=1e-5)
     return isapprox(finite_diff, D, rtol=rtol)
 end
 
+function test_model(model::NQCModels.ClassicalModels.Morse, atoms; rtol=1e-5)
+    R = rand(ndofs(model), atoms)
+    D = hcat(derivative(model, R))
+    finite_diff = finite_difference_gradient(model, R)
+    return isapprox(finite_diff, D, rtol=rtol)
+end
+
 function test_model(model::NQCModels.FrictionModels.ClassicalFrictionModel, atoms)
     R = rand(ndofs(model), atoms)
     D = derivative(model, R)
