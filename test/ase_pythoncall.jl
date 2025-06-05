@@ -1,6 +1,7 @@
 @testset "ASE" begin
     include("test_utils.jl")
     using PythonCall
+    using NQCDInterfASE
 
     ase = pyimport("ase")
 
