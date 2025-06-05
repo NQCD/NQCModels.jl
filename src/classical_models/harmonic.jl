@@ -40,7 +40,7 @@ function NQCModels.potential!(model::Harmonic, V::Matrix{<:Number}, R::AbstractM
     V .= sum(@. 0.5 * model.m* model.ω^2 * (R - model.r₀) ^2)
 end
 
-function NQCModels.derivative!(model::Harmonic, D::AbstractMatrix, R::AbstractMatrix) 
+function NQCModels.derivative(model::Harmonic, R::AbstractMatrix) 
     return D = model.m .* model.ω.^2 .* (R .- model.r₀)
 end
 
