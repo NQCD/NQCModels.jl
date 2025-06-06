@@ -39,15 +39,15 @@ end
 
 include("test_utils.jl")
 
-# if GROUP =="All" || GROUP == "ASE"
-#     @time @safetestset "ASE with PythonCall.jl" begin
-#         include("ase_pythoncall.jl")
-#     end
+if GROUP =="All" || GROUP == "ASE"
+    @time @safetestset "ASE with PythonCall.jl" begin
+        include("ase_pythoncall.jl")
+    end
     
-#     @time @safetestset "ASE with PyCall.jl" begin
-#         include("ase_pycall.jl")
-#     end
-# end
+    @time @safetestset "ASE with PyCall.jl" begin
+        include("ase_pycall.jl")
+    end
+end
 
 @testset "Potential abstraction" begin
     struct TestModel <: NQCModels.Model end
@@ -128,7 +128,7 @@ if GROUP == "All" || GROUP == "JuLIP"
         at = JuLIP.bulk(:Si, cubic=true)
         deleteat!(at, 1)
         JuLIP.set_calculator!(at, JuLIP.StillingerWeber())
-        model = AdiabaticModels.JuLIPModel(at)
+        model = ClassicalModels.JuLIPModel(at)
         @test test_model(model, length(at))
     end
 end
