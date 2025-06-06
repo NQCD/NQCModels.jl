@@ -29,7 +29,7 @@ function NQCModels.potential(model::GatesHollowayElbow, R::AbstractMatrix)
     x = R[1]
     z = R[2]
 
-    V11 = d*(1-exp(-α*x))^2 + exp(-λ*(x+d))
+    V11 = d*(1-exp(-α*x))^2 + exp(-λ₁*(x+d))
     V22 = d*(1-exp(-α*z))^2 + exp(-λ₂*(x+x₀))
     V12 = c * exp(-γ*(z-z12))
 
@@ -42,7 +42,7 @@ function NQCModels.potential!(model::GatesHollowayElbow, V::Hermitian, R::Abstra
     x = R[1]
     z = R[2]
 
-    V11 = d*(1-exp(-α*x))^2 + exp(-λ*(x+d))
+    V11 = d*(1-exp(-α*x))^2 + exp(-λ₁*(x+d))
     V22 = d*(1-exp(-α*z))^2 + exp(-λ₂*(x+x₀))
     V12 = c * exp(-γ*(z-z12))
 
@@ -60,11 +60,11 @@ function NQCModels.derivative!(model::GatesHollowayElbow, D::AbstractMatrix{<:He
 
     # x derivative
     D11 = 2α*d*(1-exp(-α*x))*exp(-α*x)
-    D22 = -λ*exp(-λ₂*(x+x₀))
+    D22 = -λ₂*exp(-λ₂*(x+x₀))
     D[1].data .= Hermitian([D11 0; 0 D22])
 
     # z derivative
-    D11 = -λ*exp(-λ₁*(z+z₀))
+    D11 = -λ₁*exp(-λ₁*(z+z₀))
     D22 = 2α*d*(1-exp(-α*z))*exp(-α*z)
     D12 = c * -γ*exp(-γ*(x+d))
     D[2].data .= Hermitian([D11 D12; D12 D22])
