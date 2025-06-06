@@ -85,17 +85,16 @@ function NQCModels.potential(model::SpinBoson, r::AbstractMatrix)
 
     Parameters.@unpack ωⱼ, cⱼ, ϵ, Δ = model
 
-    temp = zeros(length(ωⱼ))
-    @. temp = ωⱼ^2 * r'^2 / 2
+    temp = zeros(length(ωⱼ))'
+    @. temp = ωⱼ'^2 * r^2 / 2
 
-    v0 = 0.0
     v0 = sum(temp)
 
     V11 = v0 + ϵ
-    V11 += sum(cⱼ .* r)
+    V11 += sum(cⱼ' .* r)
 
     V22 = v0 - ϵ
-    V22 -= sum(cⱼ .* r)
+    V22 -= sum(cⱼ' .* r)
 
     V12 = Δ
 
@@ -106,10 +105,9 @@ function NQCModels.potential!(model::SpinBoson, V::Hermitian, r::AbstractMatrix)
 
     Parameters.@unpack ωⱼ, cⱼ, ϵ, Δ = model
 
-    temp = zeros(length(ωⱼ))
-    @. temp = ωⱼ^2 * r'^2 / 2
+    temp = zeros(length(ωⱼ))'
+    @. temp = ωⱼ'^2 * r^2 / 2
 
-    v0 = 0.0
     v0 = sum(temp)
 
     V11 = v0 + ϵ
@@ -128,7 +126,7 @@ function NQCModels.derivative!(model::SpinBoson, D::AbstractMatrix{<:Hermitian},
     Parameters.@unpack ωⱼ, cⱼ = model
 
     d0 = zero(r)
-    @. d0 = ωⱼ^2 * r
+    @. d0 = ωⱼ^2'* r
 
     for i in axes(r, 2)
         D[i].data .= Hermitian([d0[1,i]+cⱼ[i] 0; 0 d0[1,i]-cⱼ[i]])
@@ -156,13 +154,13 @@ function BosonBath(density::SpectralDensity, N::Integer)
 end
 
 function NQCModels.potential(model::BosonBath, r::AbstractMatrix)
-    return sum(model.ωⱼ .^2 .* r .^2 ./ 2)
+    return sum(model.ωⱼ'.^2 .* r.^2 ./2)
 end
 
 function NQCModels.potential!(model::BosonBath, V, r::AbstractMatrix)
-    V = sum(model.ωⱼ .^2 .* r' .^2 ./ 2)
+    V = sum(model.ωⱼ'.^2 .* r.^2 ./2)
 end
 
 function NQCModels.derivative!(model::BosonBath, D::AbstractMatrix, r::AbstractMatrix)
-    @. D = model.ωⱼ^2 * r
+    @. D = model.ωⱼ'^2 * r
 end
