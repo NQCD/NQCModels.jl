@@ -7,7 +7,9 @@ struct AndersonHolstein{M<:QuantumModel,Dᵢ,B,T} <: QuantumModel
     nelectrons::Int
 end
 
-function AndersonHolstein(impurity_model, bath; fermi_level=0.0)
+# include if statement here so that impurity_derivative always has shape Matrix{<:Hermitian} 
+# that way it can be populated in derivative!(AndersonHolstien) and the shape is certain
+function AndersonHolstein(impurity_model, bath; fermi_level=0.0) 
     impurity_derivative = NQCModels.zero_derivative(impurity_model, hcat(0.0))
     fermi_level = austrip(fermi_level)
     nelectrons = count(bath.bathstates .≤ fermi_level)
@@ -38,13 +40,13 @@ impurity model may either be of type Hermitian or Matrix{Hermitian}
 depending on the number of spatial dimensions the impurity is defined over =#
 
 """
-    function NQCModels.derivative!(model::AndersonHolstein, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+    function NQCModels.derivative!(model::AndersonHolstein{M, AbstractMatrix{<:Hermitian}, B, T}, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
         output: nothing
 
 Updates the derivative of the Anderson-Holstein Hamiltonian with respect to all spatial degrees of freedom to have the correct values
 for a given position R.
     
-This fucntion is multiple dispatched over the shape of derivative(model.impurity_model) as these impurities may be defined over different
+This function is multiple dispatched over the shape of derivative(model.impurity_model) as these impurities may be defined over different
 numbers of spatial degrees of freedom.
 """
 function NQCModels.derivative!(model::AndersonHolstein{M, AbstractMatrix{<:Hermitian}, B, T}, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix) where {M,B,T}
@@ -67,7 +69,7 @@ end
 Updates the derivative of the Anderson-Holstein Hamiltonian with respect to all spatial degrees of freedom to have the correct values
 for a given position R.
     
-This fucntion is multiple dispatched over the shape of derivative(model.impurity_model) as these impurities may be defined over different
+This function is multiple dispatched over the shape of derivative(model.impurity_model) as these impurities may be defined over different
 numbers of spatial degrees of freedom.
 """
 function NQCModels.derivative!(model::AndersonHolstein{M, Hermitian, B, T}, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix) where {M,B,T}
