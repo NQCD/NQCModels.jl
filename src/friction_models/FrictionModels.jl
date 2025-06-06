@@ -5,6 +5,7 @@ using ..NQCModels: NQCModels, Model
 using ..ClassicalModels: ClassicalModel
 using ..QuantumModels: QuantumModel, QuantumFrictionModel
 import Random
+using LinearAlgebra: Diagonal
 
 export friction, friction!
 export density, density!
@@ -62,6 +63,10 @@ struct ConstantFriction{T} <: ElectronicFrictionProvider
 end
 
 function friction!(model::ConstantFriction, F::AbstractMatrix, ::AbstractMatrix)
+    F .= model.γ
+end 
+
+function friction!(model::ConstantFriction{Diagonal}, F::AbstractMatrix, ::AbstractMatrix)
     F[diagind(F)] .= model.γ
 end
 
