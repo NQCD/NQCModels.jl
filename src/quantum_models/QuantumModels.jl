@@ -123,9 +123,17 @@ function NQCModels.potential(model::QuantumModel, R::AbstractMatrix)
     return V
 end
 
-function NQCModels.derivative!(model::QuantumModel, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)    
-    for idx in axes(D, 2) # Iterate through Hermitian matrices corresponding to each particle. 
-      NQCModels.derivative!(model, D[1,idx], R)
+function NQCModels.derivative(model::QuantumModel, R::AbstractMatrix)
+    D = Hermitian(matrix_template(model, eltype(R)))
+    NQCModels.derivative!(model, D, R)
+    return D
+end
+
+function NQCModels.derivative!(model::QuantumModel, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+    for i in axes(D, 1)  # Iterate through Hermitian matrices corresponding to each spatial degree of freedom.    
+        for j in axes(D, 2) # Iterate through Hermitian matrices corresponding to each particle. 
+        NQCModels.derivative!(model, D[i,j], R)
+        end
     end
     return nothing
 end

@@ -1,4 +1,4 @@
-using LinearAlgebra: diagind
+using LinearAlgebra
 
 struct WideBandBath{M<:QuantumModel,V<:AbstractVector,T,D} <: QuantumFrictionModel
     model::M
@@ -74,7 +74,7 @@ function NQCModels.derivative(model::WideBandBath, r::AbstractMatrix)
         end
     end
 
-    return D
+    return Hermitian(D)
 end
 
 function NQCModels.derivative!(model::WideBandBath, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
