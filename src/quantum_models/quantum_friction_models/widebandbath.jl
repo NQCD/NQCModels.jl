@@ -62,7 +62,7 @@ end
 
 function NQCModels.derivative(model::WideBandBath, r::AbstractMatrix)
 
-    Dsystem = NQCModels.get_subsystem_derivative(model.model, r)
+    Dsystem = get_subsystem_derivative(model.model, r)
     n = NQCModels.nstates(model.model)
     
     D = zeros((NQCModels.nstates(model), NQCModels.nstates(model)))
@@ -79,7 +79,7 @@ end
 
 function NQCModels.derivative!(model::WideBandBath, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
 
-    Dsystem = NQCModels.get_subsystem_derivative(model.model, r)
+    Dsystem = get_subsystem_derivative(model.model, r)
     n = NQCModels.nstates(model.model)
     
     for I in eachindex(Dsystem, D)

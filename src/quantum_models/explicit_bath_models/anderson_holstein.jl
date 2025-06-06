@@ -1,15 +1,17 @@
 
-struct AndersonHolstein{M<:QuantumModel,B,T} <: QuantumModel
+struct AndersonHolstein{M<:QuantumModel,Dᵢ,B,T} <: QuantumModel
     impurity_model::M
+    impurity_derivative::Dᵢ
     bath_model::B
     fermi_level::T
     nelectrons::Int
 end
 
 function AndersonHolstein(impurity_model, bath; fermi_level=0.0)
+    impurity_derivative = NQCModels.zero_derivative(impurity_model, hcat(0.0))
     fermi_level = austrip(fermi_level)
     nelectrons = count(bath.bathstates .≤ fermi_level)
-    return AndersonHolstein(impurity_model, bath, fermi_level, nelectrons)
+    return AndersonHolstein(impurity_model, impurity_derivative, bath, fermi_level, nelectrons)
 end
 
 NQCModels.nstates(model::AndersonHolstein) = NQCModels.nstates(model.bath_model) + 1
@@ -31,9 +33,47 @@ function NQCModels.derivative(model::AndersonHolstein, R::AbstractMatrix)
     return D
 end
 
-function NQCModels.derivative!(model::AndersonHolstein, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
-    # Get system model derivative
-    D_impurity_model = NQCModels.derivative(model.impurity_model, r)
+#= These multiple dispatch versions exits because the derivative of the 
+impurity model may either be of type Hermitian or Matrix{Hermitian} 
+depending on the number of spatial dimensions the impurity is defined over =#
+
+"""
+    function NQCModels.derivative!(model::AndersonHolstein, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+        output: nothing
+
+Updates the derivative of the Anderson-Holstein Hamiltonian with respect to all spatial degrees of freedom to have the correct values
+for a given position R.
+    
+This fucntion is multiple dispatched over the shape of derivative(model.impurity_model) as these impurities may be defined over different
+numbers of spatial degrees of freedom.
+"""
+function NQCModels.derivative!(model::AndersonHolstein{M, AbstractMatrix{<:Hermitian}, B, T}, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix) where {M,B,T}
+    # Get impurity model derivative
+    D_impurity_model = derivative(model.impurity_model, r)
+
+    # Write and apply bath coupling
+    for I in axes(r, 2) # All particles
+        D[I][1,1] = D_impurity_model[I][2,2] - D_impurity_model[I][1,1]
+        fillbathcoupling!(D[I], D_impurity_model[I][2,1], model.bath_model)
+    end
+    
+    return nothing
+end
+
+"""
+    function NQCModels.derivative!(model::AndersonHolstein, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+        output: nothing
+
+Updates the derivative of the Anderson-Holstein Hamiltonian with respect to all spatial degrees of freedom to have the correct values
+for a given position R.
+    
+This fucntion is multiple dispatched over the shape of derivative(model.impurity_model) as these impurities may be defined over different
+numbers of spatial degrees of freedom.
+"""
+function NQCModels.derivative!(model::AndersonHolstein{M, Hermitian, B, T}, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix) where {M,B,T}
+    # Get impurity model derivative
+    D_impurity_model = derivative(model.impurity_model, r)
+
     # Write and apply bath coupling
     for I in axes(r, 2) # All particles
         D[I][1,1] = D_impurity_model[2,2] - D_impurity_model[1,1]
@@ -57,3 +97,12 @@ function NQCModels.state_independent_derivative!(model::AndersonHolstein, ∂V::
         ∂V[I] = D_impurity_model[I][1,1]
     end
 end
+
+#= function get_subsystem_derivative(model::AndersonHolstein, r::AbstractMatrix)
+    if size(r) != size(model.tmp_derivative[])
+        model.tmp_derivative[] = NQCModels.zero_derivative(model.model, r)
+    end
+    NQCModels.derivative!(model.model, model.tmp_derivative[], r)
+    return model.tmp_derivative[]
+end
+ =#
