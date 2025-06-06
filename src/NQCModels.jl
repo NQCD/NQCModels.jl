@@ -131,6 +131,8 @@ ndofs(::Model) = error("This should return the number of degrees of freedom for 
 
 dofs(model::Model) = Base.OneTo(ndofs(model))
 
+function get_subsystem_derivative() end
+
 state_independent_potential(model, r) = 0.0
 
 function state_independent_potential!(model, Vsystem, r) 

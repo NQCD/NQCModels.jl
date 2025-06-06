@@ -31,7 +31,7 @@ function NQCModels.potential(model::OuyangModelOne, R::AbstractMatrix)
     V[1,1] = A*tanh(B*r)
     Δs = range(-ΔE/2, ΔE/2, length=N)
     V[1,2:N+1] .= C*exp(-D*r^2)
-    V[diagind(N+1,N+1)[2:end]] .= -(A*tanh(B*x)).+Δs
+    V[diagind(N+1,N+1)[2:end]] .= -(A*tanh(B*r)).+Δs
 
     return V
 end
@@ -43,7 +43,7 @@ function NQCModels.potential!(model::OuyangModelOne, V::Hermitian, R::AbstractMa
     V[1,1] = A*tanh(B*r)
     Δs = range(-ΔE/2, ΔE/2, length=N)
     V.data[1,2:N+1] .= C*exp(-D*r^2)
-    V.data[diagind(N+1,N+1)[2:end]] .= -(A*tanh(B*x)).+Δs
+    V.data[diagind(N+1,N+1)[2:end]] .= -(A*tanh(B*r)).+Δs
 end
 
 function NQCModels.derivative(model::OuyangModelOne, R::AbstractMatrix)
@@ -53,7 +53,7 @@ function NQCModels.derivative(model::OuyangModelOne, R::AbstractMatrix)
     derivative = Hermitian(zeros((N+1, N+1)))
 
     derivative.data[1,1] = B*A*sech(B*r)^2
-    derivative.data[1,2:N+1] .= -2D*x*C*exp(-D*r^2)
+    derivative.data[1,2:N+1] .= -2D*r*C*exp(-D*r^2)
     derivative.data[diagind(N+1,N+1)[2:end]] .= -(B*A*sech(B*r)^2)
 
     return derivative
@@ -64,6 +64,6 @@ function NQCModels.derivative!(model::OuyangModelOne, derivative::Hermitian, R::
     Parameters.@unpack A, B, C, D, N = model
 
     derivative.data[1,1] = B*A*sech(B*r)^2
-    derivative.data[1,2:N+1] .= -2D*x*C*exp(-D*r^2)
+    derivative.data[1,2:N+1] .= -2D*r*C*exp(-D*r^2)
     derivative.data[diagind(N+1,N+1)[2:end]] .= -(B*A*sech(B*r)^2)
 end

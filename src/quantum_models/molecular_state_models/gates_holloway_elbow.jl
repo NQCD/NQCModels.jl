@@ -49,6 +49,12 @@ function NQCModels.potential!(model::GatesHollowayElbow, V::Hermitian, R::Abstra
     V.data .= Hermitian([V11 V12; V12 V22])
 end
 
+function NQCModels.derivative(model::GatesHollowayElbow, R::AbstractMatrix)
+    D = [Hermitian(zero(matrix_template(model, eltype(R)))) for _=1:size(R, 1), _=1:size(R, 2)]
+    NQCModels.derivative!(model, D, R)
+    return D
+end
+
 function NQCModels.derivative!(model::GatesHollowayElbow, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
     Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
 

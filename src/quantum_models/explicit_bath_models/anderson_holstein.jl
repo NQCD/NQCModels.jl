@@ -25,6 +25,12 @@ function NQCModels.potential!(model::AndersonHolstein, V::Hermitian, r::Abstract
     return V
 end
 
+function NQCModels.derivative(model::AndersonHolstein, R::AbstractMatrix)
+    D = [Hermitian(zero(matrix_template(model, eltype(R)))) for _=1:size(R, 1), _=1:size(R, 2)]
+    NQCModels.derivative!(model, D, R)
+    return D
+end
+
 function NQCModels.derivative!(model::AndersonHolstein, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
     # Get system model derivative
     D_impurity_model = NQCModels.derivative(model.impurity_model, r)
@@ -51,4 +57,3 @@ function NQCModels.state_independent_derivative!(model::AndersonHolstein, ∂V::
         ∂V[I] = D_impurity_model[I][1,1]
     end
 end
-
