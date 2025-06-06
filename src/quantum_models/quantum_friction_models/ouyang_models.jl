@@ -50,7 +50,7 @@ function NQCModels.derivative(model::OuyangModelOne, R::AbstractMatrix)
     r = R[1]
     Parameters.@unpack A, B, C, D, N = model
 
-    derivative = zeros((N+1, N+1))
+    derivative = Hermitian(zeros((N+1, N+1)))
 
     derivative.data[1,1] = B*A*sech(B*r)^2
     derivative.data[1,2:N+1] .= -2D*x*C*exp(-D*r^2)
