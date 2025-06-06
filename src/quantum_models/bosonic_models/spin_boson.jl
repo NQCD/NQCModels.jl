@@ -121,18 +121,23 @@ function NQCModels.potential!(model::SpinBoson, V::Hermitian, r::AbstractMatrix)
     V.data .= [V11 V12; V12 V22]
 end
 
+function NQCModels.derivative(model::SpinBoson, R::AbstractMatrix)
+    D = [Hermitian(zero(matrix_template(model, eltype(R)))) for _=1:size(R, 1), _=1:size(R, 2)]
+    NQCModels.derivative!(model, D, R)
+    return D
+end
+
 function NQCModels.derivative!(model::SpinBoson, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
 
     Parameters.@unpack ωⱼ, cⱼ = model
 
     d0 = zero(r)
-    @. d0 = ωⱼ^2'* r
+    @. d0 = ωⱼ'^2 * r
 
     for i in axes(r, 2)
         D[i].data .= Hermitian([d0[1,i]+cⱼ[i] 0; 0 d0[1,i]-cⱼ[i]])
     end
-
-    return D
+    #D[i].data .= Hermitian([d0[1,i]+cⱼ[i] 0; 0 d0[1,i]-cⱼ[i]])
 end
 
 """
