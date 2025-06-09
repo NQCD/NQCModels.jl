@@ -24,17 +24,23 @@ function test_model(model::NQCModels.Model, atoms; rtol=1e-5) # need a way to en
     R = rand(ndofs(model), atoms)
     D = derivative(model, R)
     finite_diff = finite_difference_gradient(model, R)
-    if atoms == 1 # this doesn't work
-        finite_diff = finite_diff[1]
+    if atoms == 1
+        return isapprox(finite_diff[1], D, rtol=rtol)
     end
     return isapprox(finite_diff, D, rtol=rtol)
 end
 
-function test_model(model::NQCModels.QuantumModels.AndersonHolstein, atoms; rtol=1e-5) # need a way to ensure that finite_diff and D are always of the same dimension, when by construction this is not always true. Especially if there is only 1 atom
+function test_model(model::NQCModels.QuantumModels.GatesHollowayElbow, atoms; rtol=1e-5)
     R = rand(ndofs(model), atoms)
     D = derivative(model, R)
     finite_diff = finite_difference_gradient(model, R)
+    return isapprox(finite_diff, D, rtol=rtol)
+end
 
+function test_model(model::NQCModels.QuantumModels.AndersonHolstein, atoms; rtol=1e-5)
+    R = rand(ndofs(model), atoms)
+    D = derivative(model, R)
+    finite_diff = finite_difference_gradient(model, R)
     return isapprox(finite_diff, D, rtol=rtol)
 end
 

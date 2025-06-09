@@ -99,7 +99,7 @@ if GROUP == "All" || GROUP == "Quantum"
         @test test_model(BosonBath(OhmicSpectralDensity(2.5, 0.1), 10), 10)
         @test test_model(SpinBoson(DebyeSpectralDensity(0.25, 0.5), 10, 1.0, 1.0), 10)
         @test test_model(OuyangModelOne(), 1)
-        @test test_model(GatesHollowayElbow(), 2)
+        @test test_model(GatesHollowayElbow(), 1)
         @test test_model(MiaoSubotnik(Γ=0.1), 1)
         @test test_model(AnanthModelOne(), 1)
         @test test_model(AnanthModelTwo(), 1)
@@ -108,7 +108,7 @@ if GROUP == "All" || GROUP == "Quantum"
         @test test_model(WideBandBath(GatesHollowayElbow(); step=0.1, bandmin=-1.0, bandmax=1.0), 2)
         @test test_model(AndersonHolstein(ErpenbeckThoss(Γ=2.0), TrapezoidalRule(10, -1, 1)), 1)
         @test test_model(AndersonHolstein(ErpenbeckThoss(Γ=2.0), ShenviGaussLegendre(10, -1, 1)), 1)
-        @test test_model(AndersonHolstein(GatesHollowayElbow(), ShenviGaussLegendre(10, -1, 1)), 2)
+        @test test_model(AndersonHolstein(GatesHollowayElbow(), ShenviGaussLegendre(10, -1, 1)), 1)
     end
 end
 

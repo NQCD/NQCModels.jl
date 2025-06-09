@@ -23,26 +23,38 @@ end
 NQCModels.nstates(::GatesHollowayElbow) = 2
 NQCModels.ndofs(::GatesHollowayElbow) = 2
 
+"""
+   potential(model::GatesHollowayElbow, R::AbstractMatrix)
+   
+finds the 2x2 potential matrix for a particle with an internal degree of freedom, x, and a distance from the surface, z, modelled as the sum of a repulsive and Morse potential.
+As it's currently implemented, the model is only defined for a single particle as the potential is only caclulated based on a single pair of x and z values. 
+"""
 function NQCModels.potential(model::GatesHollowayElbow, R::AbstractMatrix)
     Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
 
     x = R[1]
     z = R[2]
 
-    V11 = d*(1-exp(-α*x))^2 + exp(-λ₁*(x+d))
+    V11 = d*(1-exp(-α*x))^2 + exp(-λ₁*(z+z₀))
     V22 = d*(1-exp(-α*z))^2 + exp(-λ₂*(x+x₀))
     V12 = c * exp(-γ*(z-z12))
 
     return Hermitian([V11 V12; V12 V22])
 end
 
+"""
+   potential!(model::GatesHollowayElbow, V::Hermitian, R::AbstractMatrix)
+   
+finds the 2x2 potential matrix for a particle with an internal degree of freedom, x, and a distance from the surface, z, modelled as the sum of a repulsive and Morse potential.
+As it's currently implemented, the model is only defined for a single particle as the potential is only caclulated based on a single pair of x and z values. 
+"""
 function NQCModels.potential!(model::GatesHollowayElbow, V::Hermitian, R::AbstractMatrix)
     Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
 
     x = R[1]
     z = R[2]
 
-    V11 = d*(1-exp(-α*x))^2 + exp(-λ₁*(x+d))
+    V11 = d*(1-exp(-α*x))^2 + exp(-λ₁*(z+z₀))
     V22 = d*(1-exp(-α*z))^2 + exp(-λ₂*(x+x₀))
     V12 = c * exp(-γ*(z-z12))
 
@@ -72,7 +84,7 @@ function NQCModels.derivative!(model::GatesHollowayElbow, D::AbstractMatrix{<:He
     # z derivative
     D11 = -λ₁*exp(-λ₁*(z+z₀))
     D22 = 2α*d*(1-exp(-α*z))*exp(-α*z)
-    D12 = c * -γ*exp(-γ*(x+d))
+    D12 = c * -γ*exp(-γ*(z-z12))
     D[2].data .= Hermitian([D11 D12; D12 D22])
 
     return D

@@ -58,9 +58,11 @@ function NQCModels.derivative!(model::AndersonHolstein, D::AbstractMatrix{<:Herm
     NQCModels.derivative!(model.impurity_model, D_impurity_model, r)
 
     # Write and apply bath coupling
-    for I in axes(r, 2) # All particles
-        D[I][1,1] = D_impurity_model[I][2,2] - D_impurity_model[I][1,1]
-        fillbathcoupling!(D[I], D_impurity_model[I][2,1], model.bath_model)
+    for i in axes(r, 1) #All model degrees of freedom
+        for j in axes(r, 2) # All particles
+            D[i,j][1,1] = D_impurity_model[i,j][2,2] - D_impurity_model[i,j][1,1]
+            fillbathcoupling!(D[i,j], D_impurity_model[i,j][2,1], model.bath_model)
+        end
     end
     
     return nothing
