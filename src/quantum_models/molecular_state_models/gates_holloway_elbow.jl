@@ -21,7 +21,7 @@ Parameters.@with_kw struct GatesHollowayElbow <: QuantumModel
 end
 
 NQCModels.nstates(::GatesHollowayElbow) = 2
-NQCModels.ndofs(::GatesHollowayElbow) = 1
+NQCModels.ndofs(::GatesHollowayElbow) = 2
 
 function NQCModels.potential(model::GatesHollowayElbow, R::AbstractMatrix)
     Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model

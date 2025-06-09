@@ -7,7 +7,7 @@ potentials as Hermitian matrices and derivatives as arrays of Hermitian matrices
 """
 module QuantumModels
 
-using ..NQCModels: NQCModels
+using ..NQCModels
 using NQCModels.BathDiscretisations: fillbathstates!, fillbathcoupling!, setcoupling!
 using Unitful: @u_str
 using UnitfulAtomic: austrip
@@ -132,7 +132,7 @@ end
 function NQCModels.derivative!(model::QuantumModel, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
     for i in axes(D, 1)  # Iterate through Hermitian matrices corresponding to each spatial degree of freedom.    
         for j in axes(D, 2) # Iterate through Hermitian matrices corresponding to each particle. 
-        NQCModels.derivative!(model, D[i,j], R)
+        NQCModels.derivative!(model, D[i,j], hcat(R[i,j]))
         end
     end
     return nothing

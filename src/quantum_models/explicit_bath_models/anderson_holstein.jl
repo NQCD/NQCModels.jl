@@ -11,6 +11,9 @@ end
 # that way it can be populated in derivative!(AndersonHolstien) and the shape is certain
 function AndersonHolstein(impurity_model, bath; fermi_level=0.0) 
     impurity_derivative = NQCModels.zero_derivative(impurity_model, hcat(0.0))
+#=     if shape(impurity_derivative) <: AbstractMatrix{<:Hermitian}
+    elseif shape(impurity_derivative)
+    end =#
     fermi_level = austrip(fermi_level)
     nelectrons = count(bath.bathstates .≤ fermi_level)
     return AndersonHolstein(impurity_model, impurity_derivative, bath, fermi_level, nelectrons)
@@ -49,9 +52,10 @@ for a given position R.
 This function is multiple dispatched over the shape of derivative(model.impurity_model) as these impurities may be defined over different
 numbers of spatial degrees of freedom.
 """
-function NQCModels.derivative!(model::AndersonHolstein{M, AbstractMatrix{<:Hermitian}, B, T}, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix) where {M,B,T}
+function NQCModels.derivative!(model::AndersonHolstein, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
     # Get impurity model derivative
-    D_impurity_model = derivative(model.impurity_model, r)
+    D_impurity_model = NQCModels.zero_derivative(model.impurity_model, r)
+    NQCModels.derivative!(model.impurity_model, D_impurity_model, r)
 
     # Write and apply bath coupling
     for I in axes(r, 2) # All particles
@@ -62,7 +66,7 @@ function NQCModels.derivative!(model::AndersonHolstein{M, AbstractMatrix{<:Hermi
     return nothing
 end
 
-"""
+#= """
     function NQCModels.derivative!(model::AndersonHolstein, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
         output: nothing
 
@@ -83,7 +87,7 @@ function NQCModels.derivative!(model::AndersonHolstein{M, Hermitian, B, T}, D::A
     end
     
     return nothing
-end
+end =#
 
 function NQCModels.state_independent_potential(model::AndersonHolstein, r::AbstractMatrix)
     Vsystem = NQCModels.potential(model.impurity_model, r)
@@ -106,5 +110,4 @@ end
     end
     NQCModels.derivative!(model.model, model.tmp_derivative[], r)
     return model.tmp_derivative[]
-end
- =#
+end =#

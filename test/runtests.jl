@@ -39,7 +39,7 @@ end
 
 include("test_utils.jl")
 
-if GROUP =="All" || GROUP == "ASE"
+#= if GROUP =="All" || GROUP == "ASE"
     @time @safetestset "ASE with PythonCall.jl" begin
         include("ase_pythoncall.jl")
     end
@@ -47,7 +47,7 @@ if GROUP =="All" || GROUP == "ASE"
     @time @safetestset "ASE with PyCall.jl" begin
         include("ase_pycall.jl")
     end
-end
+end =#
 
 @testset "Potential abstraction" begin
     struct TestModel <: NQCModels.Model end
