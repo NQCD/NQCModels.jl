@@ -26,7 +26,7 @@ function NQCModels.potential(model::WideBandBath, r::AbstractMatrix)
     Vsystem = NQCModels.potential(model.model, r)
     n = NQCModels.nstates(model.model)
     ϵ0 = Vsystem[1,1]
-    V = zeros((NQCModels.nstates(model), NQCModels.nstates(model)))
+    V = Hermitian(zeros((NQCModels.nstates(model), NQCModels.nstates(model))))
 
     # System states
     @views V[diagind(V)[begin:n-1]] .= Vsystem[diagind(Vsystem)[begin+1:end]] .- ϵ0
@@ -60,28 +60,32 @@ function NQCModels.potential!(model::WideBandBath, V::Hermitian, r::AbstractMatr
     end
 end
 
-function NQCModels.derivative(model::WideBandBath, r::AbstractMatrix)
 
-    Dsystem = get_subsystem_derivative(model.model, r)
-    n = NQCModels.nstates(model.model)
-    
-    D = zeros((NQCModels.nstates(model), NQCModels.nstates(model)))
-
-    for I in eachindex(Dsystem, D)
-        # Coupling
-        for i=1:n-1
-            D[I][i,n:end] .= Dsystem[I][i+1,1] / sqrt(model.ρ)
-        end
-    end
-
-    return Hermitian(D)
+function NQCModels.derivative(model::WideBandBath, R::AbstractMatrix)
+    D = [Hermitian(zero(matrix_template(model, eltype(R)))) for _=1:size(R, 1), _=1:size(R, 2)]
+    NQCModels.derivative!(model, D, R)
+    return D
 end
 
+
+"""
+    function NQCModels.derivative!(model::WideBandBath, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+        output: nothing
+
+Updates the derivative of the Anderson-Holstein Hamiltonian with respect to all spatial degrees of freedom to have the correct values
+for a given position R.
+    
+This fucntion is multiple dispatched over the shape of derivative(model.model) as these sub-models may be defined over different
+numbers of spatial degrees of freedom.
+"""
 function NQCModels.derivative!(model::WideBandBath, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
 
-    Dsystem = get_subsystem_derivative(model.model, r)
+    # Get inner model derivative
+    Dsystem = NQCModels.zero_derivative(model.model, r)
+    NQCModels.derivative!(model.model, Dsystem, r)
     n = NQCModels.nstates(model.model)
     
+
     for I in eachindex(Dsystem, D)
         ∂ϵ0 = Dsystem[I][1,1]
 
@@ -107,7 +111,8 @@ function NQCModels.state_independent_potential!(model::WideBandBath, Vsystem::Ab
 end
 
 function NQCModels.state_independent_derivative(model::WideBandBath, r::AbstractMatrix)
-    Dsystem = NQCModels.get_subsystem_derivative(model.model, r)
+    Dsystem = NQCModels.zero_derivative(model.model, r)
+    NQCModels.derivative!(model.model, system, r)
     ∂V = zeros(size(r))
     for I in eachindex(∂V, Dsystem)
         ∂V[I].data .= Dsystem[I][1,1]
@@ -117,7 +122,8 @@ function NQCModels.state_independent_derivative(model::WideBandBath, r::Abstract
 end
 
 function NQCModels.state_independent_derivative!(model::WideBandBath, ∂V::AbstractMatrix, r::AbstractMatrix)
-    Dsystem = NQCModels.get_subsystem_derivative(model.model, r)
+    Dsystem = NQCModels.zero_derivative(model.model, r)
+    NQCModels.derivative!(model.model, system, r)
     for I in eachindex(∂V, Dsystem)
         ∂V[I].data .= Dsystem[I][1,1]
     end

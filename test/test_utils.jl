@@ -37,6 +37,13 @@ function test_model(model::NQCModels.QuantumModels.GatesHollowayElbow, atoms; rt
     return isapprox(finite_diff, D, rtol=rtol)
 end
 
+function test_model(model::NQCModels.WideBandBath, atoms; rtol=1e-5) # need a way to ensure that finite_diff and D are always of the same dimension, when by construction this is not always true. Especially if there is only 1 atom
+    R = rand(ndofs(model), atoms)
+    D = derivative(model, R)
+    finite_diff = finite_difference_gradient(model, R)
+    return isapprox(finite_diff, D, rtol=rtol)
+end
+
 function test_model(model::NQCModels.QuantumModels.AndersonHolstein, atoms; rtol=1e-5)
     R = rand(ndofs(model), atoms)
     D = derivative(model, R)
