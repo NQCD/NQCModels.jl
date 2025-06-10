@@ -64,6 +64,12 @@ NQCModels.nstates(::ClassicalModel) = 1
 
 NQCModels.zero_derivative(::ClassicalModel, R) = zero(R)
 
+function NQCModels.derivative(model::ClassicalModel, R::AbstractMatrix)
+    D = NQCModels.zero_derivative(model, R)
+    NQCModels.derivative!(model, D, R)
+    return D
+end
+
 include("free.jl")
 export Free
 include("morse.jl")

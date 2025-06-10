@@ -7,8 +7,8 @@ module NQCModels
 
 using Reexport: @reexport
 
-export potential
-export derivative
+export potential, potential!
+export derivative, derivative!
 export nstates
 export ndofs
 
@@ -47,27 +47,10 @@ end
 """
     potential!(model::Model, V, R::AbstractMatrix)
 
-In-place version of `potential`, used to implement more efficient dynamics.
-
-Currently used only for all `QuantumModels`, see `quantum_models/QuantumModels.jl`.
-As `ClassicalModels` store their potential as a Real, it cannot be updated in-place so
-potential!(model::ClassicalModel, V, R::AbstractMatrix) returns a new value. This function is 
-defined on these models to enable efficient multiple dispatching within NQCDynamics.  
+In-place version of `potential`, used to implement more efficient dynamics. 
 """
 function potential!(model::Model, V, R::AbstractMatrix) end
-#=     if ndofs(model) == 1
-        if size(R, 2) == 1
-            return potential!(model, V, R[1])
-        else
-            return potential!(model, V, view(R, 1, :))
-        end
-    elseif size(R, 2) == 1
-        return potential!(model, V, view(R, :, 1))
-    else
-        throw(MethodError(potential!, (model, V, R)))
-    end
 
-end =#
 
 """
     derivative!(model::Model, D, R::AbstractMatrix)
@@ -80,24 +63,11 @@ function derivative!(model::Model, D, R::AbstractMatrix)
     @warn "You have probably made a multiple dispatch mistake. Massive L." maxlog = 1 model = model D = D R = R
 end
 
-#=     if ndofs(model) == 1
-        if size(R, 2) == 1
-            derivative!(model::Model, D, R::AbstractMatrix)
-        else
-            derivative!(model, view(D, 1, :), view(R, 1, :))
-        end
-    elseif size(R, 2) == 1
-        derivative!(model, view(D, :, 1), view(R, :, 1))
-    else
-        throw(MethodError(derivative!, (model, D, R)))
-    end
-end
- =#
 
 """
     derivative(model::Model, R)
 
-Allocating version of `derivative!`, this definition should be suitable for all models.
+Allocating version of `derivative!`, this definition should be suitable for almost all models.
 
 Implement `zero_derivative` to allocate an appropriate array then implement `derivative!`
 to fill the array.
