@@ -45,24 +45,29 @@ function potential(model::Model, R::AbstractMatrix)
 end
 
 """
+    potential(model::Model, R::Real)
+
+Wraps R in a 1x1 matrix and redirects to potential(model::Model, R::AbstractMatrix).
+"""
+function potential(model::Model, R::Real)
+    potential(model::Model, hcat(R))
+end
+
+"""
     potential!(model::Model, V, R::AbstractMatrix)
 
 In-place version of `potential`, used to implement more efficient dynamics. 
 """
 function potential!(model::Model, V, R::AbstractMatrix) end
 
-
 """
-    derivative!(model::Model, D, R::AbstractMatrix)
+    potential!(model::Model, V, R::Real)
 
-Fill `D` with the derivative of the electronic potential as a function of the positions `R`.
-
-This must be implemented for all models.
+Wraps R in a 1x1 matrix and redirects to potential!(model::Model, V, R::AbstractMatrix). 
 """
-function derivative!(model::Model, D, R::AbstractMatrix) 
-    @warn "You have probably made a multiple dispatch mistake. Massive L." maxlog = 1 model = model D = D R = R
+function potential!(model::Model, V, R::Real) 
+    potential!(model::Model, V, hcat(R))
 end
-
 
 """
     derivative(model::Model, R)
@@ -76,6 +81,35 @@ function derivative(model::Model, R)
     D = zero_derivative(model, R)
     derivative!(model, D, R)
     return D
+end
+
+"""
+    derivative(model::Model, R::Real)
+
+Wraps R in a 1x1 matrix and redirects to derivative(model::Model, R::AbstractMatrix). 
+"""
+function derivative(model::Model, R::Real)
+    derivative(model::Model, hcat(R))
+end
+
+"""
+    derivative!(model::Model, D, R::AbstractMatrix)
+
+Fill `D` with the derivative of the electronic potential as a function of the positions `R`.
+
+This must be implemented for all models.
+"""
+function derivative!(model::Model, D, R::AbstractMatrix) 
+    @warn "You have likely made a multiple dispatch mistake." maxlog = 1 model = model D = D R = R
+end
+
+"""
+    derivative!(model::Model, D, R::Real)
+
+Wraps R in a 1x1 matrix and redirects to derivative!(model::Model, D, R::AbstractMatrix). 
+"""
+function derivative!(model::Model, D, R::Real) 
+    derivative!(model::Model, D, hcat(R))
 end
 
 """

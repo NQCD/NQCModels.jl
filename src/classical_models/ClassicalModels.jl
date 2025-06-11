@@ -64,6 +64,10 @@ NQCModels.nstates(::ClassicalModel) = 1
 
 NQCModels.zero_derivative(::ClassicalModel, R) = zero(R)
 
+function NQCModels.potential!(model::ClassicalModel, V::Real, R::AbstractMatrix)
+    @warn "In Julia, real numbers cannot be updated in place. Please define your potential as a matrix if you wish to pass it into potential!()"
+end
+
 function NQCModels.derivative(model::ClassicalModel, R::AbstractMatrix)
     D = NQCModels.zero_derivative(model, R)
     NQCModels.derivative!(model, D, R)
