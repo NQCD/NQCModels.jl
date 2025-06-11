@@ -39,7 +39,8 @@ end
 
 include("test_utils.jl")
 
-#= if GROUP =="All" || GROUP == "ASE"
+# Alex pls fix this
+#= if GROUP =="All" || GROUP == "ASE" 
     @time @safetestset "ASE with PythonCall.jl" begin
         include("ase_pythoncall.jl")
     end
