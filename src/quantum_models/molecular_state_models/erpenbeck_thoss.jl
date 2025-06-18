@@ -9,8 +9,8 @@ In the two references, all of the parameters are identical except for the partic
 and the vertical shift `c` applied to the ϵ₀ state.
 Both references modify the shift to ensure the quantum ground-state has an energy of 0 eV.
 Note that the mass `m` is specified in atomic mass units (amu) **not** atomic units.
-We calculate the offset automatically in the constructor from the Morse potential
-zero-point energy.
+If a value for the vertical offset `c` is not explicitly provided whne constructing the model,
+it is automatically determined in the constructor from the Morse potential zero-point energy.
 
 # References
 
@@ -48,10 +48,13 @@ function ErpenbeckThoss(;
     q   = 0.05,
     ã   = austrip(0.5u"Å"),
     x̃   = austrip(3.5u"Å"),
-    V̄ₖ  = sqrt(austrip(Γ)/2π)
+    V̄ₖ  = sqrt(austrip(Γ)/2π),
+    c   = nothing
 ) 
-    morse = ClassicalModels.Morse(;Dₑ, x₀, a, m)
-    c = -NQCModels.ClassicalModels.eigenenergy(morse, 0) # Set c to offset zero-point energy
+    morse = AdiabaticModels.Morse(;Dₑ, x₀, a, m)
+    if isnothing(c)
+        c = -NQCModels.AdiabaticModels.eigenenergy(morse, 0) # Set c to offset zero-point energy
+    end
 
     return ErpenbeckThoss(austrip(Γ), morse, D₁, D₂, x₀′, a′, c, V∞, q, ã, x̃, V̄ₖ)
 end
