@@ -112,7 +112,7 @@ end
 
 function NQCModels.state_independent_derivative(model::WideBandBath, r::AbstractMatrix)
     Dsystem = NQCModels.zero_derivative(model.model, r)
-    NQCModels.derivative!(model.model, system, r)
+    NQCModels.derivative!(model.model, Dsystem, r)
     ∂V = zeros(size(r))
     for I in eachindex(∂V, Dsystem)
         ∂V[I].data .= Dsystem[I][1,1]
@@ -123,7 +123,7 @@ end
 
 function NQCModels.state_independent_derivative!(model::WideBandBath, ∂V::AbstractMatrix, r::AbstractMatrix)
     Dsystem = NQCModels.zero_derivative(model.model, r)
-    NQCModels.derivative!(model.model, system, r)
+    NQCModels.derivative!(model.model, Dsystem, r)
     for I in eachindex(∂V, Dsystem)
         ∂V[I].data .= Dsystem[I][1,1]
     end
