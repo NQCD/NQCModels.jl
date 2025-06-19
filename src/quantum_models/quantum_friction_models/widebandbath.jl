@@ -115,9 +115,10 @@ function NQCModels.state_independent_derivative(model::WideBandBath, r::Abstract
     NQCModels.derivative!(model.model, Dsystem, r)
 
     ∂V = zeros(size(r))
-    
-    for I in eachindex(∂V, Dsystem)
-        ∂V[I].data .= Dsystem[I][1,1]
+    @assert ∂V |> length == Dsystem |> length
+
+    for I in eachindex(∂V)
+        ∂V[I] = Dsystem[I][1,1]
     end
 
     return ∂V
