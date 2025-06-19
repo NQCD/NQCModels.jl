@@ -87,7 +87,9 @@ end
 function NQCModels.state_independent_derivative!(model::AndersonHolstein, ∂V::AbstractMatrix, r::AbstractMatrix)
     D_impurity_model = NQCModels.zero_derivative(model.impurity_model, r)
     NQCModels.derivative!(model.impurity_model, D_impurity_model, r)
+
     @assert ∂V |> length == D_impurity_model |> length
+    
     for I in eachindex(∂V)
         ∂V[I] = D_impurity_model[I][1,1]
     end
