@@ -18,13 +18,13 @@ NQCModels.ndofs(model::AdiabaticStateSelector) = NQCModels.ndofs(model.quantum_m
 
 function NQCModels.potential(model::AdiabaticStateSelector, r::AbstractMatrix)
     V = NQCModels.potential(model.quantum_model, r)
-    eigenvalues = LinearAlgebra.eigvals(V)
+    eigenvalues = eigen(V).values
     return eigenvalues[model.state]
 end
 
 function NQCModels.potential!(model::AdiabaticStateSelector, V::Real, r::AbstractMatrix)
     Vsystem = NQCModels.potential(model.quantum_model, r)
-    V .= LinearAlgebra.eigvals(Vsystem)[model.state]
+    V .= eigen(Vsystem).values[model.state]
 end
 
 function NQCModels.derivative!(
@@ -33,7 +33,7 @@ function NQCModels.derivative!(
     r::AbstractMatrix,
 )
     V = NQCModels.potential(model.quantum_model, r)
-    U = LinearAlgebra.eigvecs(V)
+    U = eigen(V).vectors
     D = NQCModels.derivative(model.quantum_model, r)
     for I in eachindex(output, D)
         output[I] = (U'*D[I]*U)[model.state, model.state]
