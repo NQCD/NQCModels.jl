@@ -7,8 +7,8 @@ module NQCModels
 
 using Reexport: @reexport
 
-export potential
-export derivative
+export potential, potential!
+export derivative, derivative!
 export nstates
 export ndofs
 
@@ -45,55 +45,34 @@ function potential(model::Model, R::AbstractMatrix)
 end
 
 """
-    potential!(model::Model, V, R::AbstractMatrix)
+    potential(model::Model, R::Real)
 
-In-place version of `potential`, used only when mutable arrays are preferred.
-
-Currently used only for `LargeDiabaticModels`, see `diabatic/DiabaticModels.jl`.
+Wraps R in a 1x1 matrix and redirects to potential(model::Model, R::AbstractMatrix).
 """
-function potential!(model::Model, V, R::AbstractMatrix)
-    if ndofs(model) == 1
-        if size(R, 2) == 1
-            return potential!(model, V, R[1])
-        else
-            return potential!(model, V, view(R, 1, :))
-        end
-    elseif size(R, 2) == 1
-        return potential!(model, V, view(R, :, 1))
-    else
-        throw(MethodError(potential!, (model, V, R)))
-    end
-
+function potential(model::Model, R::Real)
+    potential(model::Model, hcat(R))
 end
 
 """
-    derivative!(model::Model, D, R::AbstractMatrix)
+    potential!(model::Model, V, R::AbstractMatrix)
 
-Fill `D` with the derivative of the electronic potential as a function of the positions `R`.
-
-This must be implemented for all models.
+In-place version of `potential`, used to implement more efficient dynamics. 
 """
-function derivative!(model::Model, D, R::AbstractMatrix)
-    if ndofs(model) == 1
-        if size(R, 2) == 1
-            D[1] = derivative(model, R[1])
-            return D
-        else
-            derivative!(model, view(D, 1, :), view(R, 1, :))
-            return D
-        end
-    elseif size(R, 2) == 1
-        derivative!(model, view(D, :, 1), view(R, :, 1))
-        return D
-    else
-        throw(MethodError(derivative!, (model, D, R)))
-    end
+function potential!(model::Model, V, R::AbstractMatrix) end
+
+"""
+    potential!(model::Model, V, R::Real)
+
+Wraps R in a 1x1 matrix and redirects to potential!(model::Model, V, R::AbstractMatrix). 
+"""
+function potential!(model::Model, V, R::Real) 
+    potential!(model::Model, V, hcat(R))
 end
 
 """
     derivative(model::Model, R)
 
-Allocating version of `derivative!`, this definition should be suitable for all models.
+Allocating version of `derivative!`, this definition should be suitable for almost all models.
 
 Implement `zero_derivative` to allocate an appropriate array then implement `derivative!`
 to fill the array.
@@ -105,11 +84,40 @@ function derivative(model::Model, R)
 end
 
 """
+    derivative(model::Model, R::Real)
+
+Wraps R in a 1x1 matrix and redirects to derivative(model::Model, R::AbstractMatrix). 
+"""
+function derivative(model::Model, R::Real)
+    derivative(model::Model, hcat(R))
+end
+
+"""
+    derivative!(model::Model, D, R::AbstractMatrix)
+
+Fill `D` with the derivative of the electronic potential as a function of the positions `R`.
+
+This must be implemented for all models.
+"""
+function derivative!(model::Model, D, R::AbstractMatrix) 
+    @warn "You have likely made a multiple dispatch mistake." maxlog = 1 model = model D = D R = R
+end
+
+"""
+    derivative!(model::Model, D, R::Real)
+
+Wraps R in a 1x1 matrix and redirects to derivative!(model::Model, D, R::AbstractMatrix). 
+"""
+function derivative!(model::Model, D, R::Real) 
+    derivative!(model::Model, D, hcat(R))
+end
+
+"""
     zero_derivative(model::Model, R)
 
 Create an zeroed array of the right size to match the derivative.
 """
-function zero_derivative end
+function zero_derivative(model::Model, R) end
 
 """
     nstates(::Model)
@@ -127,7 +135,15 @@ ndofs(::Model) = error("This should return the number of degrees of freedom for 
 
 dofs(model::Model) = Base.OneTo(ndofs(model))
 
+function get_subsystem_derivative() end
+
 state_independent_potential(model, r) = 0.0
+
+function state_independent_potential!(model, Vsystem, r) 
+    Vsystem .= 0.0
+end
+
+function state_independent_derivative(model, r) end
 state_independent_derivative!(model, derivative, r) = fill!(derivative, zero(eltype(r)))
 nelectrons(::Model) = error("This should return the total number of electrons.")
 fermilevel(::Model) = 0.0
@@ -137,14 +153,17 @@ eachstate(model::Model) = Base.OneTo(nstates(model))
 
 mobileatoms(::Model, n::Int) = Base.OneTo(n)
 
-include("adiabatic/AdiabaticModels.jl")
-@reexport using .AdiabaticModels
+include("bath_discretisations/BathDiscretisations.jl")
+@reexport using .BathDiscretisations
 
-include("friction/FrictionModels.jl")
+include("classical_models/ClassicalModels.jl")
+@reexport using .ClassicalModels
+
+include("quantum_models/QuantumModels.jl")
+@reexport using .QuantumModels
+
+include("friction_models/FrictionModels.jl")
 @reexport using .FrictionModels
-
-include("diabatic/DiabaticModels.jl")
-@reexport using .DiabaticModels
 
 include("plot.jl")
 
