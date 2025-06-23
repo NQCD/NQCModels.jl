@@ -39,15 +39,7 @@ function NQCModels.potential!(model::DoubleWell, V::Hermitian, R::AbstractMatrix
     V.data .= [V11 V12; V12 V22]
 end
 
-function NQCModels.derivative(model::DoubleWell, R::AbstractMatrix)
-    r = R[1]
-
-    D₀ = model.mass * model.ω^2 * r
-    v = sqrt(2)*model.γ
-    D11 = D₀ + v
-    D22 = D₀ - v
-    return Hermitian([D11 0; 0 D22])
-end
+# In-place derivative already defined in QuantumModels.jl
 
 function NQCModels.derivative!(model::DoubleWell, D::Hermitian, R::AbstractMatrix)
     r = R[1]
