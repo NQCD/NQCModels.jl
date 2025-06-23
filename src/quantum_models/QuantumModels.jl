@@ -124,7 +124,7 @@ function NQCModels.potential(model::QuantumModel, R::AbstractMatrix)
 end
 
 function NQCModels.derivative(model::QuantumModel, R::AbstractMatrix)
-    D = Hermitian(matrix_template(model, eltype(R)))
+    D = NQCModels.zero_derivative(model, R)
     NQCModels.derivative!(model, D, R)
     return D
 end
