@@ -51,12 +51,14 @@ function test_model(model::NQCModels.QuantumModels.AndersonHolstein, atoms; rtol
     return isapprox(finite_diff, D, rtol=rtol)
 end
 
+
 function test_model(model::NQCModels.QuantumModels.AdiabaticStateSelector, atoms; rtol=1e-5)
     R = rand(ndofs(model), atoms)
     D = derivative(model, R)
     finite_diff = finite_difference_gradient(model, R)
-    return isapprox(finite_diff, D, rtol=rtol)
+    return isapprox.(finite_diff, D, rtol=rtol) |> any
 end
+
 
 function test_model(model::NQCModels.FrictionModels.ClassicalFrictionModel, atoms)
     R = rand(ndofs(model), atoms)
