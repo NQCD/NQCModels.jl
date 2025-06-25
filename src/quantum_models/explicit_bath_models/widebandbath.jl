@@ -1,5 +1,15 @@
 using LinearAlgebra
 
+"""
+    struct: WideBandBath <: QuantumFrictionModel
+
+An explicit impurity-bath model which couples a quantum model to a discritised bath. The bath density of states
+is explicitly given by the wide-band approximation and the bath is discretised using the trapezoidal rule.
+
+It is recommended that this is the explicit bath model used in conjuction with MDEF and the friction evaluators defined in
+NQCCalculators.jl. For the modelling of explicit bathstate dynamics (i.e. using dynamics methods such as IESH) it is 
+recommended that the user use the Anderson-Holstein model alongside the Shenvi-Gauss Legendre discretisation scheme.
+"""
 struct WideBandBath{M<:QuantumModel,V<:AbstractVector,T,D} <: QuantumFrictionModel
     model::M
     bathstates::V

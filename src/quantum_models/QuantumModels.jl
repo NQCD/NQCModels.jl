@@ -156,6 +156,8 @@ export BosonBath
 
 include("explicit_bath_models/anderson_holstein.jl")
 export AndersonHolstein
+include("explicit_bath_models/widebandbath.jl")
+export WideBandBath
 
 include("molecular_state_models/erpenbeck_thoss.jl")
 export ErpenbeckThoss
@@ -170,8 +172,6 @@ include("quantum_friction_models/1D_scattering.jl")
 export Scattering1D
 include("quantum_friction_models/ouyang_models.jl")
 export OuyangModelOne
-include("quantum_friction_models/widebandbath.jl")
-export WideBandBath
 
 include("adiabatic_state_selector.jl")
 export AdiabaticStateSelector
