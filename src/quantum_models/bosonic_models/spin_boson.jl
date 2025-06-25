@@ -135,7 +135,7 @@ function NQCModels.derivative!(model::SpinBoson, D::AbstractMatrix{<:Hermitian},
     @. d0 = ωⱼ'^2 * r
 
     for i in axes(r, 2)
-        D[i].data .= Hermitian([d0[1,i]+cⱼ[i] 0; 0 d0[1,i]-cⱼ[i]])
+        D[i].data .= [d0[1,i]+cⱼ[i] 0; 0 d0[1,i]-cⱼ[i]]
     end
 end
 

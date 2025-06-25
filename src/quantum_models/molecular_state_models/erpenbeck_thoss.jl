@@ -100,7 +100,7 @@ function NQCModels.derivative!(model::ErpenbeckThoss, D::Hermitian, R::AbstractM
     D11 = NQCModels.derivative(morse, R)
     D22 = -2a′*D₁*exp(-2a′*(R[1]-x₀′)) + a′*D₂*exp(-a′*(R[1]-x₀′))
     D12 = -V̄ₖ * (1-q)/2 * sech((R[1]-x̃)/ã)^2 / ã
-    D.data .= Hermitian([D11 D12; D12 D22])
+    D.data .= [D11 D12; D12 D22]
 end
 
 NQCModels.nstates(::ErpenbeckThoss) = 2
