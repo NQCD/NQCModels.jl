@@ -83,10 +83,10 @@ end
     n = NQCModels.nstates(bath)
     out = Hermitian(zeros(n+1, n+1))
 
-    NQCModels.DiabaticModels.fillbathstates!(out, bath)
+    NQCModels.BathDiscretisations.fillbathstates!(out, bath)
     @test all(out[diagind(out)[2:end]] .== bath.bathstates)
     
-    NQCModels.DiabaticModels.fillbathcoupling!(out, 1.0, bath)
+    NQCModels.BathDiscretisations.fillbathcoupling!(out, 1.0, bath)
     N_window = Int(60 * DR)
     ΔE_window = 1 - -1
     N_sparse = Int(0.5 * N_window)
