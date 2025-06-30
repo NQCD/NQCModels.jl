@@ -20,7 +20,7 @@ function setcoupling!(out::AbstractVector, bathcoupling::AbstractVector, couplin
 end
 
 function setcoupling!(out::AbstractVector, bathcoupling::Real, coupling::Real, couplings_rescale::Real=1.0)
-    fill!(out, bathcoupling * coupling .* couplings_rescale)
+    fill!(out, bathcoupling * coupling * couplings_rescale)
 end
 
 """
