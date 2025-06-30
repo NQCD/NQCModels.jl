@@ -8,6 +8,7 @@ using LinearAlgebra: Hermitian, diagind
     bath = NQCModels.TrapezoidalRule(50, -10, 10)
     n = NQCModels.nstates(bath)
     out = Hermitian(zeros(n+1, n+1))
+    couplings_rescale = 1.0
 
     couplings_rescale = 1.0
 
@@ -23,6 +24,7 @@ end
 
     n = NQCModels.nstates(bath)
     out = Hermitian(zeros(n+1, n+1))
+    couplings_rescale = 1.0
 
     couplings_rescale = 1.0
 
@@ -35,6 +37,7 @@ end
 
     n = NQCModels.nstates(bath)
     out = Hermitian(zeros(n+1, n+1))
+    couplings_rescale = 1.0
 
     couplings_rescale = 1.0
 
@@ -47,6 +50,7 @@ end
 
     n = NQCModels.nstates(bath)
     out = Hermitian(zeros(n+1, n+1))
+    couplings_rescale = 1.0
 
     couplings_rescale = 1.0
 
