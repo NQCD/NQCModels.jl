@@ -5,7 +5,7 @@ struct AndersonHolstein{M<:DiabaticModel,B,D,T} <: LargeDiabaticModel
     tmp_derivative::Base.RefValue{D}
     fermi_level::T
     nelectrons::Int
-    coupling_rescale::Real
+    couplings_rescale::Real
 end
 
 function AndersonHolstein(model, bath; fermi_level=0.0, couplings_rescale=1.0)
@@ -24,7 +24,7 @@ function NQCModels.potential!(model::AndersonHolstein, V::Hermitian, r::Abstract
     Vsystem = NQCModels.potential(model.model, r)
     V[1,1] = Vsystem[2,2] - Vsystem[1,1]
     fillbathstates!(V, model.bath)
-    fillbathcoupling!(V, Vsystem[2,1], model.bath, model.coupling_rescale)
+    fillbathcoupling!(V, Vsystem[2,1], model.bath, model.couplings_rescale)
     return V
 end
 
@@ -33,7 +33,7 @@ function NQCModels.derivative!(model::AndersonHolstein, D::AbstractMatrix{<:Herm
     
     for I in eachindex(Dsystem, D)
         D[I][1,1] = Dsystem[I][2,2] - Dsystem[I][1,1]
-        fillbathcoupling!(D[I], Dsystem[I][2,1], model.bath, model.coupling_rescale)
+        fillbathcoupling!(D[I], Dsystem[I][2,1], model.bath, model.couplings_rescale)
     end
 
     return D
