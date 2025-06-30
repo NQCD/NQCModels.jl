@@ -8,11 +8,11 @@ struct AndersonHolstein{M<:DiabaticModel,B,D,T} <: LargeDiabaticModel
     coupling_rescale::Real
 end
 
-function AndersonHolstein(model, bath; fermi_level=0.0, coupling_rescale=1.0)
+function AndersonHolstein(model, bath; fermi_level=0.0, couplings_rescale=1.0)
     tmp_derivative = Ref(NQCModels.zero_derivative(model, zeros(1,1)))
     fermi_level = austrip(fermi_level)
     nelectrons = count(x -> x <= fermi_level, bath.bathstates)
-    return AndersonHolstein(model, bath, tmp_derivative, fermi_level, nelectrons, coupling_rescale)
+    return AndersonHolstein(model, bath, tmp_derivative, fermi_level, nelectrons, couplings_rescale)
 end
 
 NQCModels.nstates(model::AndersonHolstein) = NQCModels.nstates(model.bath) + 1
