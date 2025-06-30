@@ -16,7 +16,7 @@ function fillbathcoupling!(out::Hermitian, coupling::Real, bath::WideBandBathDis
 end
 
 function setcoupling!(out::AbstractVector, bathcoupling::AbstractVector, coupling::Real, couplings_rescale::Real=1.0)
-    out .= bathcoupling .* coupling .* couplings_rescale
+    out .= bathcoupling .* coupling .* couplings_rescale  # bath's states coupling (constant) * Hybridization coupling component V_k(r)
 end
 
 function setcoupling!(out::AbstractVector, bathcoupling::Real, coupling::Real, couplings_rescale::Real=1.0)
