@@ -21,4 +21,7 @@ include("full_gauss_legendre.jl")
 export FullGaussLegendre
 export GapGaussLegendre
 
+include("windowed_trapezoidal_rule.jl")
+export WindowedTrapezoidalRule
+
 end
