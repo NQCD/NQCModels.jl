@@ -141,36 +141,43 @@ end
 include("avoided_crossing_models/ananth_models.jl")
 export AnanthModelOne
 export AnanthModelTwo
+
 include("avoided_crossing_models/tully_models.jl")
 export TullyModelOne
 export TullyModelTwo
 export TullyModelThree
 
-include("bosonic_models/double_well.jl")
+include("explicit_bath_models/anderson_holstein.jl")
+export AndersonHolstein
+
+include("explicit_bath_models/widebandbath.jl")
+export WideBandBath
+
+include("double_well.jl")
 export DoubleWell
-include("bosonic_models/spin_boson.jl")
+
+include("spin_boson.jl")
 export OhmicSpectralDensity
 export DebyeSpectralDensity
 export SpinBoson
 export BosonBath
 
-include("explicit_bath_models/anderson_holstein.jl")
-export AndersonHolstein
-include("explicit_bath_models/widebandbath.jl")
-export WideBandBath
-
-include("molecular_state_models/erpenbeck_thoss.jl")
+include("erpenbeck_thoss.jl")
 export ErpenbeckThoss
-include("molecular_state_models/gates_holloway_elbow.jl")
+
+include("gates_holloway_elbow.jl")
 export GatesHollowayElbow
-include("molecular_state_models/subotnik.jl")
+
+include("subotnik.jl")
 export MiaoSubotnik
-include("molecular_state_models/three_state_morse.jl")
+
+include("three_state_morse.jl")
 export ThreeStateMorse
 
-include("quantum_friction_models/1D_scattering.jl")
+include("1D_scattering.jl")
 export Scattering1D
-include("quantum_friction_models/ouyang_models.jl")
+
+include("ouyang_models.jl")
 export OuyangModelOne
 
 include("adiabatic_state_selector.jl")
