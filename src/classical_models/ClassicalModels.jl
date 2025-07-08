@@ -86,6 +86,8 @@ include("darling_holloway_elbow.jl")
 export DarlingHollowayElbow
 include("averaged_potential.jl")
 export AveragedPotential
+include("csv_models.jl")
+export CSVModel_1D
 
 function __init__()
     Requires.@require JuLIP="945c410c-986d-556a-acb1-167a618e0462" @eval include("julip.jl")

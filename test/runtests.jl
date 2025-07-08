@@ -79,6 +79,16 @@ end
     @test potential(model, R) ≈ 2
 end
 
+@testset "CSVModels" begin
+    source_model = Morse()
+    R = collect(0:0.1:10)
+    V = potential.(source_model, R)
+    p_mat = [R V] # "potential_matrix" to pass into model
+    CSVmodel = CSVModel_1D(p_mat)
+    @test CSVmodel.potential_function.(R) ≈ V # similarity of spline fit to original potential
+    @test test_model(CSVmodel, 1)
+end
+
 if GROUP == "All" || GROUP == "Classical"
     @testset "ClassicalModels" begin
         @test test_model(Harmonic(), 10)
