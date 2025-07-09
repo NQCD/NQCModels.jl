@@ -24,7 +24,7 @@ function NQCModels.potential!(model::AndersonHolstein, V::Hermitian, r::Abstract
     Vsystem = NQCModels.potential(model.impurity_model, r)
     V[1,1] = Vsystem[2,2] - Vsystem[1,1]
     fillbathstates!(V, model.bath_model)
-    fillbathcoupling!(V, Vsystem[2,1], model.bath_model, model.couplings_rescale, model.couplings_rescale)
+    fillbathcoupling!(V, Vsystem[2,1], model.bath_model, model.couplings_rescale)
     return V
 end
 
