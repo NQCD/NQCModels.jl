@@ -1,7 +1,7 @@
 
 export Subsystem, CompositeModel
 using .FrictionModels
-using .AdiabaticModels
+using .ClassicalModels
 
 """
 Subsystem(M, indices)
@@ -48,7 +48,7 @@ CompositeModel(Subsystems...)
 
 A CompositeModel is composed of multiple Subsystems, creating an effective model which evaluates each Subsystem for its respective indices. 
 """
-struct CompositeModel{S<:Vector{<:Subsystem}, D<:Int} <: AdiabaticModels.AdiabaticModel
+struct CompositeModel{S<:Vector{<:Subsystem}, D<:Int} <: ClassicalModels.ClassicalModel
 	subsystems::S
 	ndofs::D
 end
@@ -69,7 +69,7 @@ CompositeModel(subsystems::Subsystem...) = CompositeModel(check_models(subsystem
 
 get_friction_models(system::Vector{<:Subsystem}) = @view system[findall(x->isa(x.model, FrictionModels.ElectronicFrictionProvider), system)]
 get_friction_models(system::CompositeModel) = get_friction_models(system.subsystems)
-get_pes_models(system::Vector{<:Subsystem}) = @view system[findall(x->isa(x.model, AdiabaticModels.AdiabaticModel) || isa(x.model, DiabaticModels.DiabaticModel), system)]
+get_pes_models(system::Vector{<:Subsystem}) = @view system[findall(x->isa(x.model, ClassicalModels.ClassicalModel) || isa(x.model, QuantumModels.QuantumModel), system)]
 get_pes_models(system::CompositeModel) = get_pes_models(system.subsystems)
 
 dofs(system::CompositeModel) = 1:system.ndofs
@@ -113,6 +113,10 @@ function potential(system::CompositeModel, R::AbstractMatrix)
 		total_potential_energy+=potential(subsystem, R)
 	end
 	return total_potential_energy
+end
+
+function potential!(system::CompositeModel, V::Real, R::AbstractMatrix)
+	return V = potential(system::CompositeModel, R::AbstractMatrix)
 end
 
 function derivative!(system::CompositeModel, D::AbstractMatrix, R::AbstractMatrix)
