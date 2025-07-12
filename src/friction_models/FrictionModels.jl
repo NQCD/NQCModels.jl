@@ -1,4 +1,9 @@
+"""
+    FrictionModels
 
+All models defined within this module are designed for use with electronic friction methods. 
+
+"""
 module FrictionModels
 
 using ..NQCModels: NQCModels, Model
