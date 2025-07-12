@@ -46,8 +46,6 @@ If `gapwidth` is zero, `bathstates` are uniformly distributed across the entire 
 The `bathcoupling` is calculated from the effective bandwidth (`bandmax - bandmin - gapwidth`) and `M`.
 
 """
-
-
 struct GapTrapezoidalRule{T} <: WideBandBathDiscretisation
     bathstates::Vector{T}   # ϵ
     bathcoupling::T # V(ϵ,x̃) 
