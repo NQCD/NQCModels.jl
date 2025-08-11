@@ -162,6 +162,7 @@ include("widebandbath.jl")
 export WideBandBath
 
 include("wide_band_bath_discretisation.jl")
+export WideBandBathDiscretisation
 export TrapezoidalRule
 export WindowedTrapezoidalRule
 export WindowedTrapezoidalRule2

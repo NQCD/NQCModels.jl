@@ -370,6 +370,10 @@ function WindowedTrapezoidalRule6(M, bandmin, bandmax, windmin, windmax; density
     ΔE_sparse2 = bandmax - windmax # Energy Range for second sparsely distributed state region
 
 
+    # NOTE!!
+    # M_sparse should not be used here, instead should be using a new paramteter m_sparse = M_sparse - 1, 
+    # which denotes the number of energy spacings in the coarse region, not the number of states.
+
     S_max = (M_sparse*ΔE_sparse2 - M_sparse*(M_sparse-1)*S_0 + sum([i*S_0 for i in 1:(M_sparse-1)]))/(M_sparse + sum([i for i in 1:(M_sparse-1)]))
     
     S_max > 0 || throw(error("Too few states in window region, changing space in sparse region has extrapolated to a negative spacing"))
