@@ -8,7 +8,9 @@ struct AndersonHolstein{M<:QuantumModel,B,T} <: QuantumModel
     bath_model::B
     fermi_level::T
     nelectrons::Int
-    couplings_rescale::Real
+    couplings_rescale::Float64
+    impurity_potential::Hermitian{Float64, Matrix{Float64}}
+    impurity_derivative::Matrix{Hermitian{Float64, Matrix{Float64}}}
 end
 
 # include if statement here so that impurity_derivative always has shape Matrix{<:Hermitian} 
@@ -16,7 +18,9 @@ end
 function AndersonHolstein(impurity_model, bath; fermi_level=0.0, couplings_rescale=1.0) 
     fermi_level = austrip(fermi_level)
     nelectrons = count(bath.bathstates .≤ fermi_level)
-    return AndersonHolstein(impurity_model, bath, fermi_level, nelectrons, couplings_rescale)
+    imp_potential = Hermitian(zeros(nstates(impurity_model),nstates(impurity_model)))
+    imp_derivative = NQCModels.zero_derivative(impurity_model, hcat(0.0))
+    return AndersonHolstein(impurity_model, bath, fermi_level, nelectrons, couplings_rescale, imp_potential, imp_derivative)
 end
 
 NQCModels.nstates(model::AndersonHolstein) = NQCModels.nstates(model.bath_model) + 1
@@ -25,11 +29,12 @@ NQCModels.nelectrons(model::AndersonHolstein) = model.nelectrons
 NQCModels.fermilevel(model::AndersonHolstein) = model.fermi_level
 
 function NQCModels.potential!(model::AndersonHolstein, V::Hermitian, r::AbstractMatrix)
-    Vsystem = NQCModels.potential(model.impurity_model, r)
-    V[1,1] = Vsystem[2,2] - Vsystem[1,1]
+    NQCModels.potential!(model.impurity_model, model.impurity_potential, r)
+    V[1,1] = model.impurity_potential[2,2] - model.impurity_potential[1,1]
     fillbathstates!(V, model.bath_model)
-    fillbathcoupling!(V, Vsystem[2,1], model.bath_model, model.couplings_rescale)
-    return V
+    fillbathcoupling!(V, model.impurity_potential[2,1], model.bath_model, model.couplings_rescale)
+
+    return nothing
 end
 
 function NQCModels.derivative(model::AndersonHolstein, R::AbstractMatrix)
@@ -54,20 +59,18 @@ numbers of spatial degrees of freedom.
 """
 function NQCModels.derivative!(model::AndersonHolstein, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
     # Get impurity model derivative
-    D_impurity_model = NQCModels.zero_derivative(model.impurity_model, r)
-    NQCModels.derivative!(model.impurity_model, D_impurity_model, r)
+    NQCModels.derivative!(model.impurity_model, model.impurity_derivative, r)
 
     # Write and apply bath coupling
-    for i in axes(r, 1) #All model degrees of freedom
-        for j in axes(r, 2) # All particles
-            D[i,j][1,1] = D_impurity_model[i,j][2,2] - D_impurity_model[i,j][1,1]
-            fillbathcoupling!(D[i,j], D_impurity_model[i,j][2,1], model.bath_model, model.couplings_rescale)
+    @inbounds for i in axes(r, 1) #All model degrees of freedom
+        @inbounds for j in axes(r, 2) # All particles
+            D[i,j][1,1] = model.impurity_derivative[i,j][2,2] - model.impurity_derivative[i,j][1,1]
+            fillbathcoupling!(D[i,j], model.impurity_derivative[i,j][2,1], model.bath_model, model.couplings_rescale)
         end
     end
     
     return nothing
 end
-
 
 function NQCModels.state_independent_potential(model::AndersonHolstein, r::AbstractMatrix)
     Vsystem = NQCModels.potential(model.impurity_model, r)
@@ -75,7 +78,9 @@ function NQCModels.state_independent_potential(model::AndersonHolstein, r::Abstr
 end
 
 function NQCModels.state_independent_potential!(model::AndersonHolstein, Vsystem::AbstractMatrix, r::AbstractMatrix)
-    Vsystem .= NQCModels.potential(model.impurity_model, r)
+    NQCModels.potential!(model.impurity_model, model.impurity_potential, r)
+    @. Vsystem = model.impurity_potential
+    return nothing
 end
 
 function NQCModels.state_independent_derivative(model::AndersonHolstein, r::AbstractMatrix)
@@ -93,12 +98,9 @@ function NQCModels.state_independent_derivative(model::AndersonHolstein, r::Abst
 end
 
 function NQCModels.state_independent_derivative!(model::AndersonHolstein, ∂V::AbstractMatrix, r::AbstractMatrix)
-    D_impurity_model = NQCModels.zero_derivative(model.impurity_model, r)
-    NQCModels.derivative!(model.impurity_model, D_impurity_model, r)
-
-    @assert ∂V |> length == D_impurity_model |> length
+    NQCModels.derivative!(model.impurity_model, model.impurity_derivative, r)
     
     for I in eachindex(∂V)
-        ∂V[I] = D_impurity_model[I][1,1]
+        ∂V[I] = model.impurity_derivative[I][1,1]
     end
 end

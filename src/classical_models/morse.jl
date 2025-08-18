@@ -36,7 +36,7 @@ end
 function NQCModels.derivative!(model::Morse, D::AbstractMatrix, R::AbstractMatrix)
     r = R[1] 
     (;Dₑ, x₀, a) = model
-    D .= 2Dₑ * (exp(-a*(r-x₀)) - 1) * -a * exp(-a*(r-x₀))
+    @. D = 2Dₑ * (exp(-a*(r-x₀)) - 1) * -a * exp(-a*(r-x₀))
 end
 
 "Eq. 44"
