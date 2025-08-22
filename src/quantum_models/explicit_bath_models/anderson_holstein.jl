@@ -19,7 +19,7 @@ function AndersonHolstein(impurity_model, bath; fermi_level=0.0, couplings_resca
     fermi_level = austrip(fermi_level)
     nelectrons = count(bath.bathstates .≤ fermi_level)
     imp_potential = Hermitian(zeros(nstates(impurity_model),nstates(impurity_model)))
-    imp_derivative = NQCModels.zero_derivative(impurity_model, hcat(0.0))
+    imp_derivative = NQCModels.zero_derivative(impurity_model, hcat([0.0 for _ in NQCModels.dofs(impurity_model)]))
     return AndersonHolstein(impurity_model, bath, fermi_level, nelectrons, couplings_rescale, imp_potential, imp_derivative)
 end
 
@@ -39,6 +39,7 @@ end
 
 function NQCModels.derivative(model::AndersonHolstein, R::AbstractMatrix)
     D = [Hermitian(zero(matrix_template(model, eltype(R)))) for _=1:size(R, 1), _=1:size(R, 2)]
+    @info "AndersonHolstein generated derivative size:" size = size(D)
     NQCModels.derivative!(model, D, R)
     return D
 end
