@@ -96,6 +96,7 @@ if GROUP == "All" || GROUP == "Classical"
         @test test_model(AveragedPotential((Harmonic(), Harmonic()), zeros(1, 10)), 10)
         @test test_model(DarlingHollowayElbow(), 2)
         @test test_model(Morse(), 1)
+        @test test_model(Logistic(), 1)
     end
 end
 
@@ -120,6 +121,7 @@ if GROUP == "All" || GROUP == "Quantum"
         @test test_model(AndersonHolstein(ErpenbeckThoss(Γ=2.0), TrapezoidalRule(10, -1, 1)), 1)
         @test test_model(AndersonHolstein(ErpenbeckThoss(Γ=2.0), ShenviGaussLegendre(10, -1, 1)), 1)
         @test test_model(AndersonHolstein(GatesHollowayElbow(), ShenviGaussLegendre(10, -1, 1)), 1)
+        @test test_model(AndersonHolstein(LuHertlMaurer(), GapGaussLegendre(10, -1, 1, 0.1)), 1)
     end
 end
 
