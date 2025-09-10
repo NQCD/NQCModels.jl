@@ -22,12 +22,26 @@ end
 
 NQCModels.ndofs(harmonic::Logistic) = 1
 
-function NQCModels.potential(model::Logistic, r::Real)
+function NQCModels.potential(model::Logistic, R::AbstractMatrix)
+    r = R[1]
     (;L, k, x₀, c, a) = model
     return L / (1 + exp(-k * (a * r - x₀))) + c
 end
 
-function NQCModels.derivative(model::Logistic, r::Real) 
+function NQCModels.potential!(model::Logistic, V::Matrix{<:Number}, R::AbstractMatrix)
+    r = R[1]
+    (;L, k, x₀, c, a) = model
+    V .= L / (1 + exp(-k * (a * r - x₀))) + c
+end
+
+function NQCModels.derivative(model::Logistic, R::AbstractMatrix)
+    r = R[1]  
     (;L, k, x₀, a) = model
     return L * a * k * exp(k * (a * r - x₀)) / ((1 + exp(k * ( a * r - x₀)))^2) # analytical derivative of the logistic function
+end
+
+function NQCModels.derivative!(model::Logistic, D::AbstractMatrix, R::AbstractMatrix)
+    r = R[1]  
+    (;L, k, x₀, a) = model
+    D .= L * a * k * exp(k * (a * r - x₀)) / ((1 + exp(k * ( a * r - x₀)))^2) # analytical derivative of the logistic function
 end
