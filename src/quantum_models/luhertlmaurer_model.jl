@@ -20,9 +20,9 @@ struct LuHertlMaurer{T<:AbstractFloat} <: QuantumModel
 
     # Coupling tanh Function
     q::T
-    ã::T
-    x̃::T
-    Ā::T
+    L::T
+    x̃₀::T
+    Ã::T
     scaledown::T
 end
 
@@ -35,42 +35,41 @@ function LuHertlMaurer(;
     x₀  = austrip(2.07276u"Å"),
     a   = austrip(2.39727u"Å^-1"),
     c  = austrip(2.67532u"eV"),
-    # LuHertlMaurer Logistic for h(x) 12eV
-    #L = austrip(13.291u"eV"),
-    L = austrip(4.351u"eV"),
-    k = austrip(3.9796u"Å^-1"),
+
+    # Logistic for h(x)
+    D₁ = austrip(4.351u"eV"),
+    a′ = austrip(3.9796u"Å^-1"),
     x₀′ = austrip(2.2798u"Å"),
     c′ = austrip(-0.33513u"eV"),
-    a′ = 1.02971,
+    b = 1.02971,
 
     # Coupling Function
+    Ã  = austrip(2.28499u"eV"),
+    L   = austrip(1.10122u"Å"),
+    x̃₀   = austrip(2.0589u"Å"),
     q   = 2.26384e-16,
-    ã   = austrip(1.10122u"Å"),
-    #x̃   = austrip(2.64589u"Å"), old 12 eV value
-    x̃   = austrip(2.0589u"Å"),
-    Ā  = austrip(2.28499u"eV"),
     
     scaledown = 1.0,
 
 ) 
     morse = ClassicalModels.Morse(;Dₑ, x₀, a, m)
-    logistic = ClassicalModels.Logistic(L, k, x₀′, c′, a′)
+    logistic = ClassicalModels.Logistic(D₁, a′, x₀′, c′, b)
     #c = -NQCModels.AdiabaticModels.eigenenergy(morse, 0) # Set c to offset zero-point energy
 
-    return LuHertlMaurer(morse, c, logistic, q, ã, x̃, Ā, scaledown)
+    return LuHertlMaurer(morse, c, logistic, q, L, x̃₀, Ã, scaledown)
 end
 
 function NQCModels.potential(model::LuHertlMaurer, r::AbstractMatrix)
 
     r = r[1] # r is a 1x1 matrix, we only need the first element
     # position-dependent of the coupling function
-    (;morse, c, logistic, q, ã, x̃, Ā, scaledown) = model
+    (;morse, logistic, scaledown, c) = model
     ϵ₀(x) = (NQCModels.potential(morse, x) + c) * scaledown## U_0 Morse ##
     h(x) = NQCModels.potential(logistic, x)                    ## U_0 Logistic ##
     ϵ₁(x) = ϵ₀(x) + h(x)                                       ## U_1 ##
 
-    (;q, ã, x̃, Ā) = model
-    Vₖ(x) = Ā * ((1-q)/2*(1 - tanh((x-x̃)/ã)) + q) # coupling energy eq(20) https://journals.aps.org/prb/pdf/10.1103/PhysRevB.97.235452
+    (;q, L, x̃₀, Ã) = model
+    Vₖ(x) = Ã * ((1-q)/2*(1 - tanh((x-x̃₀)/L)) + q) # coupling energy eq(20) https://journals.aps.org/prb/pdf/10.1103/PhysRevB.97.235452
 
     V11 = ϵ₀(r)
     V22 = ϵ₁(r)
@@ -81,13 +80,13 @@ end
 function NQCModels.potential!(model::LuHertlMaurer, V::Hermitian, r::AbstractMatrix)
     r = r[1] # r is a 1x1 matrix, we only need the first element
     # position-dependent of the coupling function
-    (;morse, c, logistic, q, ã, x̃, Ā, scaledown) = model
+    (;morse, logistic, scaledown, c) = model
     ϵ₀(x) = (NQCModels.potential(morse, x) + c) * scaledown## U_0 Morse ##
     h(x) = NQCModels.potential(logistic, x)                    ## U_0 Logistic ##
     ϵ₁(x) = ϵ₀(x) + h(x)                                       ## U_1 ##
 
-    (;q, ã, x̃, Ā) = model
-    Vₖ(x) = Ā * ((1-q)/2*(1 - tanh((x-x̃)/ã)) + q) # coupling energy eq(20) https://journals.aps.org/prb/pdf/10.1103/PhysRevB.97.235452
+    (;q, L, x̃₀, Ã) = model
+    Vₖ(x) = Ã * ((1-q)/2*(1 - tanh((x-x̃₀)/L)) + q) # coupling energy eq(20) https://journals.aps.org/prb/pdf/10.1103/PhysRevB.97.235452
 
     V11 = ϵ₀(r)
     V22 = ϵ₁(r)
@@ -103,8 +102,8 @@ function NQCModels.derivative(model::LuHertlMaurer, r::AbstractMatrix)
     ∂ϵ₀(x) = NQCModels.derivative(morse, x)
     ∂ϵ₁(x) = NQCModels.derivative(morse, x) + NQCModels.derivative(logistic, x)
 
-    (;q, ã, x̃, Ā) = model
-    ∂Vₖ(x) = -Ā * (1-q)/2 * sech((x-x̃)/ã)^2 / ã
+    (;q, L, x̃₀, Ã) = model
+    ∂Vₖ(x) = -Ã * (1-q)/2 * sech((x-x̃₀)/L)^2 / L
 
     D11 = ∂ϵ₀(r)
     D22 = ∂ϵ₁(r)
@@ -119,8 +118,8 @@ function NQCModels.derivative!(model::LuHertlMaurer, D::Hermitian, r::AbstractMa
     ∂ϵ₀(x) = NQCModels.derivative(morse, x)
     ∂ϵ₁(x) = NQCModels.derivative(morse, x) + NQCModels.derivative(logistic, x)
 
-    (;q, ã, x̃, Ā) = model
-    ∂Vₖ(x) = -Ā * (1-q)/2 * sech((x-x̃)/ã)^2 / ã
+    (;q, L, x̃₀, Ã) = model
+    ∂Vₖ(x) = -Ã * (1-q)/2 * sech((x-x̃₀)/L)^2 / L
 
     D11 = ∂ϵ₀(r)
     D22 = ∂ϵ₁(r)
