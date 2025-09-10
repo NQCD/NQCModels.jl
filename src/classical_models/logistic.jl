@@ -1,5 +1,5 @@
 """
-    Parameters.@with_kw struct Logistic{T} <: AdiabaticModel
+    Parameters.@with_kw struct Logistic{T} <: ClassicalModel
 
     The sigmoid function is given by:
             L / (1 + exp(-k * (a * x - x0))) + c
