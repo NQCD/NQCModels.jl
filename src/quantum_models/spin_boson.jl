@@ -111,6 +111,7 @@ function NQCModels.potential!(model::SpinBoson, V::Hermitian, r::AbstractMatrix)
     v0 = sum(temp)
 
     V11 = v0 + ϵ
+
     V11 += sum(cⱼ' .* r)
     
     V22 = v0 - ϵ

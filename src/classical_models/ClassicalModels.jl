@@ -78,6 +78,8 @@ include("free.jl")
 export Free
 include("morse.jl")
 export Morse
+include("logistic.jl")
+export Logistic
 include("harmonic.jl")
 export Harmonic
 include("diatomic_harmonic.jl")
