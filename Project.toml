@@ -1,7 +1,7 @@
 name = "NQCModels"
 uuid = "c814dc9f-a51f-4eaf-877f-82eda4edad48"
 authors = ["James Gardner <james.gardner1421@gmail.com>"]
-version = "1.0.1"
+version = "1.0.2"
 
 [deps]
 AtomsBase = "a963bdd2-2df7-4f54-a1ee-49d51e6be12a"
