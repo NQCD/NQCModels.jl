@@ -67,25 +67,24 @@ function NQCModels.derivative(model::GatesHollowayElbow, R::AbstractMatrix)
     return D
 end
 
-function NQCModels.derivative!(model::GatesHollowayElbow, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix)
+# Overloading base definition in QuantumModels.jl since this model works differently in different dimensions. 
+function NQCModels.derivative!(model::GatesHollowayElbow, D::AbstractMatrix{<:Hermitian}, R::AbstractMatrix) 
     Parameters.@unpack λ₁, λ₂, z₀, x₀, α, d, z12, c, γ = model
 
     drepel(x, λ, d) = -λ*exp(-λ*(x+d))
     dmorse(x, d, α) = 2α*d*(1-exp(-α*x))*exp(-α*x)
 
-    x = R[1]
-    z = R[2]
+    x = R[1,1]
+    z = R[2,1]
 
     # x derivative
-    D11 = 2α*d*(1-exp(-α*x))*exp(-α*x)
-    D22 = -λ₂*exp(-λ₂*(x+x₀))
-    D[1].data .= Hermitian([D11 0; 0 D22])
+    D[1,1].data[1,1] = 2α*d*(1-exp(-α*x))*exp(-α*x)
+    D[1,1].data[2,2] = -λ₂*exp(-λ₂*(x+x₀))
 
     # z derivative
-    D11 = -λ₁*exp(-λ₁*(z+z₀))
-    D22 = 2α*d*(1-exp(-α*z))*exp(-α*z)
-    D12 = c * -γ*exp(-γ*(z-z12))
-    D[2].data .= Hermitian([D11 D12; D12 D22])
+    D[2,1].data[1,1] = -λ₁*exp(-λ₁*(z+z₀))
+    D[2,1].data[2,2] = 2α*d*(1-exp(-α*z))*exp(-α*z)
+    D[2,1].data[1,2] = D[2,1].data[2,1] = c * -γ*exp(-γ*(z-z12))
 
-    return D
+    return nothing
 end

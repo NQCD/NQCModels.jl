@@ -8,14 +8,16 @@ function fillbathstates!(out::Hermitian, bath::WideBandBathDiscretisation)
 end
 
 function fillbathcoupling!(out::Hermitian, coupling::Real, bath::WideBandBathDiscretisation, couplings_rescale::Real=1.0)
-    first_column = @view out.data[2:end, 1]
-    setcoupling!(first_column, bath.bathcoupling, coupling, couplings_rescale)
-    first_row = @view out.data[1, 2:end]
-    copy!(first_row, first_column)
+    first_row = @view out.data[1, 2:end] 
+    setcoupling!(first_row, bath.bathcoupling, coupling, couplings_rescale)
+
+    return nothing
 end
 
 function setcoupling!(out::AbstractVector, bathcoupling::AbstractVector, coupling::Real, couplings_rescale::Real=1.0)
-    out .= bathcoupling .* coupling .* couplings_rescale  # bath's states coupling (constant) * Hybridization coupling component V_k(r)
+    @inbounds for i in eachindex(out)
+        out[i] = bathcoupling[i] * coupling * couplings_rescale
+    end
 end
 
 function setcoupling!(out::AbstractVector, bathcoupling::Real, coupling::Real, couplings_rescale::Real=1.0)
