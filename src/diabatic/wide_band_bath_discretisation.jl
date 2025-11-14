@@ -443,11 +443,11 @@ function WindowedTrapezoidalRule7(M, bandmin, bandmax, windmin, windmax; density
 end
 
 """
-    WindowedTrapezoidalRule8(M, bandmin, bandmax, windmin, windmax; densityratio=0.50)
+    WindowedTrapezoidalRule8(M, bandmin, bandmax, windmin, windmax; densityratio::Float64=0.50, fermilevelstate::Bool=false, couplingcorrection::Bool=false)
 
 Adaptation of `WindowedTrapezoidalRule8(...)` with a smoother join between the window region and sparse region.                 
 """
-function WindowedTrapezoidalRule8(M, bandmin, bandmax, windmin, windmax; densityratio=0.50, fermilevelstate=false, couplingcorrection=false)
+function WindowedTrapezoidalRule8(M, bandmin, bandmax, windmin, windmax; densityratio::Float64=0.50, fermilevelstate::Bool=false, couplingcorrection::Bool=false)
     (M - (M*densityratio)) % 2 == 0 || throw(error("For the provided arguments, the number of states not in the windowed region is $(M - (M*densityratio)). This value must be even for a symmetric discretisation.")) # constraint enforced such that the a densityratio=0.5 can be utilized and return an integer number of states.
     abs(bandmin) > abs(windmin) || throw(error("Requested window minimum energy lies outside of energy range."))
     abs(bandmax) > abs(windmax) || throw(error("Requested window maximum energy lies outside of energy range."))
