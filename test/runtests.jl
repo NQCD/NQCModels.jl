@@ -121,7 +121,7 @@ if GROUP == "All" || GROUP == "Quantum"
         @test test_model(AndersonHolstein(ErpenbeckThoss(Γ=2.0), TrapezoidalRule(10, -1, 1)), 1)
         @test test_model(AndersonHolstein(ErpenbeckThoss(Γ=2.0), ShenviGaussLegendre(10, -1, 1)), 1)
         @test test_model(AndersonHolstein(GatesHollowayElbow(), ShenviGaussLegendre(10, -1, 1)), 1)
-        @test test_model(AndersonHolstein(LuHertlMaurer(), GapGaussLegendre(10, -1, 1, 0.1)), 1)
+        @test test_model(AndersonHolstein(AndersonHaldane(), GapGaussLegendre(10, -1, 1, 0.1)), 1)
     end
 end
 

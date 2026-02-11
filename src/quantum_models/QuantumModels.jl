@@ -165,8 +165,8 @@ export BosonBath
 include("erpenbeck_thoss.jl")
 export ErpenbeckThoss
 
-include("luhertlmaurer_model.jl")
-export LuHertlMaurer
+include("anderson_haldane.jl")
+export AndersonHaldane
 
 include("gates_holloway_elbow.jl")
 export GatesHollowayElbow

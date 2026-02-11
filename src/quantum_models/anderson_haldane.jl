@@ -1,6 +1,6 @@
 
 """
-    struct LuHertlMaurer{T<:AbstractFloat} <: QuantumModel
+    struct AndersonHaldane{T<:AbstractFloat} <: QuantumModel
 
 1D two-state diabatic system capable of modelling a Hydrogen atom scattering on a Ge(111) surface.
 
@@ -9,7 +9,7 @@ This model is inspired by ErpenbeckThoss model at J. Chem. Phys. 151, 191101 (20
 ## References
 - J. Chem. Phys. 151, 191101 (2019)
 """
-struct LuHertlMaurer{T<:AbstractFloat} <: QuantumModel
+struct AndersonHaldane{T<:AbstractFloat} <: QuantumModel
     #Γ::T
     # Morse Potential
     morse::ClassicalModels.Morse{T}
@@ -26,7 +26,7 @@ struct LuHertlMaurer{T<:AbstractFloat} <: QuantumModel
     scaledown::T
 end
 
-function LuHertlMaurer(;
+function AndersonHaldane(;
     #Γ = 2.18305,
 
     # Morse Potential
@@ -56,10 +56,10 @@ function LuHertlMaurer(;
     logistic = ClassicalModels.Logistic(D₁, a′, x₀′, c′, b)
     #c = -NQCModels.AdiabaticModels.eigenenergy(morse, 0) # Set c to offset zero-point energy
 
-    return LuHertlMaurer(morse, c, logistic, q, L, x̃₀, Ã, scaledown)
+    return AndersonHaldane(morse, c, logistic, q, L, x̃₀, Ã, scaledown)
 end
 
-function NQCModels.potential(model::LuHertlMaurer, r::AbstractMatrix)
+function NQCModels.potential(model::AndersonHaldane, r::AbstractMatrix)
 
     r = r[1] # r is a 1x1 matrix, we only need the first element
     # position-dependent of the coupling function
@@ -77,7 +77,7 @@ function NQCModels.potential(model::LuHertlMaurer, r::AbstractMatrix)
     return Hermitian([V11 V12; V12 V22]) # Diabatic Hamiltonian
 end
 
-function NQCModels.potential!(model::LuHertlMaurer, V::Hermitian, r::AbstractMatrix)
+function NQCModels.potential!(model::AndersonHaldane, V::Hermitian, r::AbstractMatrix)
     r = r[1] # r is a 1x1 matrix, we only need the first element
     # position-dependent of the coupling function
     (;morse, logistic, scaledown, c) = model
@@ -94,7 +94,7 @@ function NQCModels.potential!(model::LuHertlMaurer, V::Hermitian, r::AbstractMat
     V.data .= [V11 V12; V12 V22]
 end
 
-function NQCModels.derivative(model::LuHertlMaurer, r::AbstractMatrix)
+function NQCModels.derivative(model::AndersonHaldane, r::AbstractMatrix)
 
     r = r[1] # r is a 1x1 matrix, we only need the first element
     # explicit derivative from the .potential above
@@ -111,7 +111,7 @@ function NQCModels.derivative(model::LuHertlMaurer, r::AbstractMatrix)
     return Hermitian([D11 D12; D12 D22])
 end
 
-function NQCModels.derivative!(model::LuHertlMaurer, D::Hermitian, r::AbstractMatrix)
+function NQCModels.derivative!(model::AndersonHaldane, D::Hermitian, r::AbstractMatrix)
     r = r[1] # r is a 1x1 matrix, we only need the first element
     # explicit derivative from the .potential above
     (;morse,logistic) = model
@@ -127,5 +127,5 @@ function NQCModels.derivative!(model::LuHertlMaurer, D::Hermitian, r::AbstractMa
     D.data .= [D11 D12; D12 D22]
 end
 
-NQCModels.nstates(::LuHertlMaurer) = 2
-NQCModels.ndofs(::LuHertlMaurer) = 1
+NQCModels.nstates(::AndersonHaldane) = 2
+NQCModels.ndofs(::AndersonHaldane) = 1
