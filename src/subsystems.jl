@@ -66,6 +66,20 @@ Any calls made to `potential`, `derivative` and `friction` will apply each subsy
 Some checks are made to ensure each atom is affected by a model and that each model is applied over the same degrees of freedom, but no other sanity checks are made. 
 """
 CompositeModel(subsystems::Subsystem...) = CompositeModel(check_models(subsystems...)...) # Check subsystems are a valid combination
+# Convenience version which uses Models and automatically applies across all indices. 
+CompositeModel(models::Model...) = CompositeModel(Subsystem.(models, Colon())...)
+# Mixed use version with Models and Subsystems. 
+function CompositeModel(model_or_subsystems::Union{Model, FrictionModels.ElectronicFrictionProvider, Subsystem}...)
+	subsystems = Subsystem[]
+	for model_or_subsystem in model_or_subsystems
+		if !isa(model_or_subsystem, Subsystem)
+			push!(subsystems, Subsystem(model_or_subsystem, Colon()))
+		else
+			push!(subsystems, model_or_subsystem)
+		end
+	end
+	return CompositeModel(subsystems...)
+end
 
 get_friction_models(system::Vector{<:Subsystem}) = @view system[findall(x->isa(x.model, FrictionModels.ElectronicFrictionProvider), system)]
 get_friction_models(system::CompositeModel) = get_friction_models(system.subsystems)
