@@ -2,6 +2,11 @@ using AtomsCalculators
 import AtomsBase
 using NQCBase
 using Unitful, UnitfulAtomic
+using StaticArrays
+
+# NQCD uses these units
+const energy_unit = u"hartree"
+const length_unit = u"a0_au"
 
 struct AtomsCalculatorsModel{C} <: ClassicalModel
 	calc_object::C
@@ -47,9 +52,9 @@ NQCModels.ndofs(::AtomsCalculatorsModel) = 3
 
 function NQCModels.potential(model::AtomsCalculatorsModel, R::AbstractMatrix)
 	# Convert into system format expected by AtomsBase
-	sy = AtomsBase.System(model.atoms, auconvert.(model.length_unit, R), model.cell)
+	sy = NQCBase.System(model.atoms, R, model.cell)
 	# Convert AtomsBase calculator energy unit back out. 
-	return austrip(potential_energy(sy, model.calc_object) * model.energy_unit)
+	return austrip(AtomsCalculators.potential_energy(sy, model.calc_object) * model.energy_unit)
 end
 
 function NQCModels.potential!(model::AtomsCalculatorsModel, V::Matrix{<:Number}, R::AbstractMatrix)
