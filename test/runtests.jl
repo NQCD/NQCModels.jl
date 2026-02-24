@@ -56,7 +56,7 @@ end
 @testset "Plot" begin
     using Plots
     plot(-10:0.1:10, Harmonic())
-    # plot(-10:0.1:10, DoubleWell())
+    plot(-10:0.1:10, DoubleWell())
 end
 
 @testset "DiatomicHarmonic" begin
