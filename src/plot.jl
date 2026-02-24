@@ -37,7 +37,7 @@ end
     diabatic = zeros(length(x), nstates(model))
     couplings = zeros(length(x), nstates(model), nstates(model))
     for i=1:length(x)
-        V = potential(model, hcat(x[i]))
+        V = Matrix(potential(model, hcat(x[i])))
         state_independent = state_independent_potential(model, hcat(x[i]))
         if include_diagonal
             eigs[i,:] .= eigvals(V) .+ state_independent
