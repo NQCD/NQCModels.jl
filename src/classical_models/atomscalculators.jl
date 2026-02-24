@@ -18,9 +18,29 @@ struct AtomsCalculatorsModel{C} <: ClassicalModel
 end
 
 """
-    AtomsCalculatorsModel(calc_object)
+    AtomsCalculatorsModel(calc_object, structure)
 
-Model interface to AtomsCalculators. Supply this function with the calculator object you would use with AtomsCalculators and the correct unit conversions will be automatically applied. 
+Wrap an [AtomsCalculators.jl](https://github.com/JuliaMolSim/AtomsCalculators.jl)-compatible
+calculator as an NQCModels `ClassicalModel`.
+
+`calc_object` is any object implementing the AtomsCalculators interface
+(`potential_energy`, `forces`, `energy_unit`, `length_unit`).
+`structure` can be either an `AtomsBase.AbstractSystem` or an `NQCBase.Structure`,
+and is used to extract atomic species and cell information.
+
+Unit conversions between the calculator's units and NQCModels' internal atomic units
+(hartree for energy, bohr for length) are applied automatically.
+
+# Example
+
+```julia
+using NQCModels, NQCBase
+
+atoms = Atoms([:H, :H])
+structure = NQCBase.Structure(atoms, rand(3, 2), InfiniteCell())
+model = AtomsCalculatorsModel(Harmonic(), structure)
+potential(model, rand(3, 2))
+```
 """
 function AtomsCalculatorsModel(calc_object, structure::AtomsBase.AbstractSystem)
 	atoms = NQCBase.Atoms(structure)
