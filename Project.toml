@@ -1,10 +1,11 @@
 name = "NQCModels"
 uuid = "c814dc9f-a51f-4eaf-877f-82eda4edad48"
+version = "1.0.3"
 authors = ["James Gardner <james.gardner1421@gmail.com>"]
-version = "1.0.2"
 
 [deps]
 AtomsBase = "a963bdd2-2df7-4f54-a1ee-49d51e6be12a"
+AtomsCalculators = "a3e0e189-c65a-42c1-833c-339540406eb1"
 BSplineKit = "093aae92-e908-43d7-9660-e50ee39d5a0a"
 DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
@@ -27,6 +28,7 @@ JuLIP = {url = "https://github.com/JuliaMolSim/JuLIP.jl.git"}
 
 [compat]
 AtomsBase = "0.5"
+AtomsCalculators = "0.2"
 BSplineKit = "0.19.0"
 DataInterpolations = "8.0"
 DelimitedFiles = "1.9.1"
