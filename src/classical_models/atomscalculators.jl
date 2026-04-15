@@ -29,7 +29,7 @@ function AtomsCalculatorsModel(calc_object, structure::AtomsBase.AbstractSystem)
 		calc_object,
 		AtomsCalculators.energy_unit(calc_object),
 		AtomsCalculators.length_unit(calc_object),
-		isa(cell, NQCBase.PeriodicCell) ? cell : 3,
+		3, # AtomsBase is always 3D
 		atoms,
 		cell,
 	)
@@ -42,7 +42,7 @@ function AtomsCalculatorsModel(calc_object, structure::NQCBase.Structure)
 		calc_object,
 		AtomsCalculators.energy_unit(calc_object),
 		AtomsCalculators.length_unit(calc_object),
-		isa(cell, NQCBase.PeriodicCell) ? cell : 3,
+		3, # AtomsBase is always 3D
 		atoms,
 		cell,
 	)
