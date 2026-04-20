@@ -54,7 +54,7 @@ function NQCModels.potential(model::AtomsCalculatorsModel, R::AbstractMatrix)
 	# Convert into system format expected by AtomsBase
 	sy = NQCBase.System(model.atoms, R, model.cell)
 	# Convert AtomsBase calculator energy unit back out. 
-	return austrip(AtomsCalculators.potential_energy(sy, model.calc_object) * model.energy_unit)
+	return austrip(AtomsCalculators.potential_energy(sy, model.calc_object))
 end
 
 function NQCModels.potential!(model::AtomsCalculatorsModel, V::Matrix{<:Number}, R::AbstractMatrix)
@@ -65,14 +65,12 @@ function NQCModels.derivative!(model::AtomsCalculatorsModel, D::AbstractMatrix, 
 	# Convert into system format expected by AtomsBase
 	sy = NQCBase.System(model.atoms, R, model.cell)
 	forces = .- reduce(hcat, AtomsCalculators.forces(sy, model.calc_object)) # Convert to matrix representation rather than Vector{Vector}.
-	D .=  austrip.(forces .* model.energy_unit / model.length_unit) # Convert back into atomic units. 
+	D .=  austrip.(forces) # Convert back into atomic units. 
 	return D
 end
 
 
 # Minimal AtomsBase Calculator implementation for Classical Models (so we don't have to worry about which state to select. )
-AtomsCalculators.energy_unit(ClassicalModel) = energy_unit
-AtomsCalculators.length_unit(ClassicalModel) = length_unit
 function AtomsCalculators.potential_energy(
 	sys::AtomsBase.AbstractSystem,
 	model::ClassicalModel,
