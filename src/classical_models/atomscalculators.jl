@@ -5,8 +5,8 @@ using Unitful, UnitfulAtomic
 using StaticArrays
 
 # NQCD uses these units
-const energy_unit = u"hartree"
-const length_unit = u"a0_au"
+AtomsCalculators.energy_unit(M::ClassicalModel,) = u"hartree"
+AtomsCalculators.length_unit(M::ClassicalModel,) = u"a0_au"
 
 struct AtomsCalculatorsModel{C} <: ClassicalModel
 	calc_object::C
