@@ -18,7 +18,7 @@ struct AtomsCalculatorsModel{C} <: ClassicalModel
 end
 
 """
-    AtomsCalculatorsModel(calc_object)
+    AtomsCalculatorsModel(calc_object, structure::AtomsBase.AbstractSystem)
 
 Model interface to AtomsCalculators. Supply this function with the calculator object you would use with AtomsCalculators and the correct unit conversions will be automatically applied.
 """
