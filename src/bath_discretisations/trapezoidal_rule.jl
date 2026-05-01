@@ -1,11 +1,11 @@
 
 """
-    TrapezoidalRule{B,T} <: WideBandBathDiscretisation
+    TrapezoidalRule{B,T} <: BathDiscretisationScheme
 
-Discretise wide band continuum using trapezoidal rule.
+Discretise bath within the given energy bandwidth using trapezoidal rule.
 Leads to evenly spaced states and constant coupling.
 """
-struct TrapezoidalRule{B,T} <: WideBandBathDiscretisation
+struct TrapezoidalRule{B,T} <: BathDiscretisationScheme
     bathstates::B   # ϵ
     bathcoupling::T # V(ϵ,x̃) 
 end

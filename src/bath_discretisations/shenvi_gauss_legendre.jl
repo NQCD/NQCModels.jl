@@ -2,9 +2,10 @@
     ShenviGaussLegendre{T}
 
 Defined as described by Shenvi et al. in J. Chem. Phys. 130, 174107 (2009).
+Use Gauss-Legendre quadrature to discretise the bath continuum in two halves across the given bandwidth, split at the Fermi level.
 The position of the negative sign for the state energy level has been moved to ensure the states are sorted from lowest to highest.
 """
-struct ShenviGaussLegendre{T} <: WideBandBathDiscretisation
+struct ShenviGaussLegendre{T} <: BathDiscretisationScheme
     bathstates::Vector{T}
     bathcoupling::Vector{T}
 end
@@ -41,7 +42,7 @@ Two differences from ShenviGaussLegendre:
 - Position of minus sign in energy levels has been corrected.
 - Division by sqrt(ΔE) in the coupling. 
 """
-struct ReferenceGaussLegendre{T} <: WideBandBathDiscretisation
+struct ReferenceGaussLegendre{T} <: BathDiscretisationScheme
     bathstates::Vector{T}
     bathcoupling::Vector{T}
 end

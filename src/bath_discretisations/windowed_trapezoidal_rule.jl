@@ -1,7 +1,7 @@
 """
     WindowedTrapezoidalRule{B,T}
 
-Discretise wide band continuum using the trapezoidal rule with a region of higher state density
+Discretise bath within the given energy bandwidth using the trapezoidal rule with a region of higher state density
 surrounding the Fermi Energy. The position of the energy window containing more densely packed states
 is defined by energy values and the increase in density by a proportion. 
 """

@@ -3,11 +3,16 @@ using ..NQCModels: NQCModels
 using FastGaussQuadrature: gausslegendre
 using LinearAlgebra
 
+abstract type BathDiscretisationScheme end
+NQCModels.nstates(bath::BathDiscretisationScheme) = length(bath.bathstates) # unsure about this yet
+
 include("wide_band_bath_discretisation.jl")
 export WideBandBathDiscretisation
 export fillbathstates!
 export fillbathcoupling!
 export setcoupling!
+
+include("lorentzian_bath.jl")
 
 include("trapezoidal_rule.jl")
 export TrapezoidalRule
