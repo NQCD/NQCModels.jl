@@ -23,3 +23,7 @@ end
 function setcoupling!(out::AbstractVector, bathcoupling::Real, coupling::Real, couplings_rescale::Real=1.0)
     fill!(out, bathcoupling * coupling * couplings_rescale)
 end
+
+function widebandbath(discretisation::BathDiscretisationScheme) <: BathFunction
+    return ones(NQCModels.nstates(discretisation))
+end

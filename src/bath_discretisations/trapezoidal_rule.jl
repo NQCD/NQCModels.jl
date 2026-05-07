@@ -5,15 +5,15 @@
 Discretise bath within the given energy bandwidth using trapezoidal rule.
 Leads to evenly spaced states and constant coupling.
 """
-struct TrapezoidalRule{B,T} <: BathDiscretisationScheme
-    bathstates::B   # ϵ
-    bathcoupling::T # V(ϵ,x̃) 
+struct TrapezoidalRule{T} <: BathDiscretisationScheme
+    bathstates::Vector{T}   # ϵ
+    bathcoupling::Vector{T} # V(ϵ,x̃) 
 end
 
 function TrapezoidalRule(M, bandmin, bandmax)
     ΔE = bandmax - bandmin
-    bathstates = range(bandmin, bandmax, length=M)
-    bathcoupling = sqrt(ΔE / M)
+    bathstates = collect(range(bandmin, bandmax, length=M))
+    bathcoupling = repeat([sqrt(ΔE / M)], M)
     return TrapezoidalRule(bathstates, bathcoupling)
 end
 
