@@ -1,0 +1,10 @@
+using Unitful, UnitfulAtomic
+
+function lorentzian(energy::Float64, width::Float64)
+    return width^2 / (width^2 + energy^2)
+end
+
+function lorentzianbath(discretisation::BathDiscretisationScheme; W=4.5) <: BathFunction
+    W_au = austrip(W*u"eV")
+    return lorentzian.(discretisation.bathstates, W_au)
+end
