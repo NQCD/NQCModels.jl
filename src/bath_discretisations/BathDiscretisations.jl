@@ -13,8 +13,10 @@ export WideBandBathDiscretisation
 export fillbathstates!
 export fillbathcoupling!
 export setcoupling!
+export widebandbath
 
 include("lorentzian_bath.jl")
+export lorentzianbath
 
 include("trapezoidal_rule.jl")
 export TrapezoidalRule
