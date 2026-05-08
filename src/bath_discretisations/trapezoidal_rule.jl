@@ -8,13 +8,15 @@ Leads to evenly spaced states and constant coupling.
 struct TrapezoidalRule{T} <: BathDiscretisationScheme
     bathstates::Vector{T}   # ϵ
     bathcoupling::Vector{T} # V(ϵ,x̃) 
+    discretisationtype::Symbol
 end
 
 function TrapezoidalRule(M, bandmin, bandmax)
     ΔE = bandmax - bandmin
     bathstates = collect(range(bandmin, bandmax, length=M))
     bathcoupling = repeat([sqrt(ΔE / M)], M)
-    return TrapezoidalRule(bathstates, bathcoupling)
+    discretisationtype = :TrapezoidalRule
+    return TrapezoidalRule(bathstates, bathcoupling, discretisationtype)
 end
 
 """
