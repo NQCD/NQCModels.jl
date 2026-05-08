@@ -1,7 +1,7 @@
 using Unitful, UnitfulAtomic
 
 function lorentzian(energy::Float64, width::Float64)
-    return width^2 / (width^2 + energy^2)
+    return width / (width^2 + energy^2)
 end
 
 struct lorentzianbath{T} <: BathFunction
