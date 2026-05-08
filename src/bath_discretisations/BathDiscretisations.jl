@@ -37,9 +37,9 @@ export WindowedTrapezoidalRule
 abstract type DiscreteBath end
 
 struct discrete_bath{B,T,S} <: DiscreteBath
-    bathstates::Union{B, Vector{T}} # StepLen or Vector of Floats
-    bathcoupling::Union{T, Vector{T}} # Float or Vector of Floats
-    bathfunction::Union{T, Vector{T}} # Float or Vector of Floats
+    bathstates::Vector{T} # StepLen or Vector of Floats
+    bathcoupling::Vector{T} # Float or Vector of Floats
+    bathfunction::Vector{T} # Float or Vector of Floats
     # discretisation_scheme::S # Symbol - only way I can think of for this to work is to have the bathdiscretisationscheme contain its own name as a field
 end
 
@@ -48,5 +48,20 @@ function discrete_bath(discretisation::BathDiscretisationScheme, bathfn::BathFun
     bathfunction = bathfn(discretisation)
     return discrete_bath(bathstates, bathcoupling, bathfunction)
 end
+
+function fillbathcoupling!(out::Hermitian, coupling::Real, bath::BathDiscretisationScheme, couplings_rescale::Real=1.0)
+    first_row = @view out.data[1, 2:end] 
+    setcoupling!(first_row, bath.bathcoupling, coupling, bath.bathfunction, couplings_rescale)
+
+    return nothing
+end
+
+function setcoupling!(out::AbstractVector, bathcoupling::AbstractVector, coupling::Real, bathfunction::AbstractVector, couplings_rescale::Real=1.0)
+    @inbounds for i in eachindex(out)
+        out[i] = bathcoupling[i] * coupling * bathfunction * couplings_rescale
+    end
+end
+
+
 
 end
