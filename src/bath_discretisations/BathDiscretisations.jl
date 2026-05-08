@@ -43,7 +43,7 @@ struct discrete_bath{B,T,S} <: DiscreteBath
     # discretisation_scheme::S # Symbol - only way I can think of for this to work is to have the bathdiscretisationscheme contain its own name as a field
 end
 
-function discrete_bath(discretisation::BathDiscretisationScheme, bathfn::BathFunction)
+function discrete_bath(discretisation::BathDiscretisationScheme, bathfn::BathFunction=widebandbath)
     (; bathstates, bathcoupling) = discretisation
     bathfunction = bathfn(discretisation)
     return discrete_bath(bathstates, bathcoupling, bathfunction)

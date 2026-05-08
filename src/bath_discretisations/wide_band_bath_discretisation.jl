@@ -24,6 +24,11 @@ function setcoupling!(out::AbstractVector, bathcoupling::Real, coupling::Real, c
     fill!(out, bathcoupling * coupling * couplings_rescale)
 end
 
+struct widebandbath{T,S} <: BathFunction
+    bathfunction :: Vector{T}
+    bathtype :: Symbol
+end
+
 function widebandbath(discretisation::BathDiscretisationScheme) <: BathFunction
-    return ones(NQCModels.nstates(discretisation))
+    return widebandbath(ones(NQCModels.nstates(discretisation)), :wideband)
 end
