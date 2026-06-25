@@ -36,15 +36,34 @@ export WindowedTrapezoidalRule
 
 abstract type DiscreteBath end
 
+"""
+    discrete_bath{T} <: DiscreteBath
+
+Stuct containing information for the choice of discretisation for the quantum bath, as well as the density of state representation - given by the `bathfucntion`.
+
+
+At present, the types of `bathfunction` available include:
+
+
+- `widebandbath(discretisation::BathDiscretisationScheme)`
+- `lorentzianbath(discretisation::BathDiscretisationScheme)`
+
+"""
 struct discrete_bath{T} <: DiscreteBath
-    bathstates::Vector{T} # StepLen or Vector of Floats
-    bathcoupling::Vector{T} # Float or Vector of Floats
-    bathfunction::Vector{T} # Float or Vector of Floats
+    bathstates::Vector{T} # Vector of Floats
+    bathcoupling::Vector{T} # Vector of Floats
+    bathfunction::Vector{T} # Vector of Floats
     bathtype::Symbol
     discretisationtype::Symbol 
 end
 
+"""
+    discrete_bath(discretisation::BathDiscretisationScheme, bathfn::BathFunction=widebandbath(discretisation))
 
+Returns the struct with details of the discrete quantum bath. 
+    
+Primary input is the choice of `BathDiscretisationScheme`, with optional keyword argument `bathfn` which dictates if the quantum bath is considered to be in the wideband limit (constant density of states) or given by an analytical function such as a lorentzian.
+"""
 function discrete_bath(discretisation::BathDiscretisationScheme, bathfn::BathFunction=widebandbath(discretisation))
     (; bathstates, bathcoupling, discretisationtype) = discretisation
     (; bathfunction, bathtype) = bathfn

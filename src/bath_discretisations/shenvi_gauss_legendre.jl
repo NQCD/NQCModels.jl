@@ -8,9 +8,18 @@ The position of the negative sign for the state energy level has been moved to e
 struct ShenviGaussLegendre{T} <: BathDiscretisationScheme
     bathstates::Vector{T}
     bathcoupling::Vector{T}
+    discretisationtype::Symbol
 end
 
-function ShenviGaussLegendre(M, bandmin, bandmax)
+"""
+    ShenviGaussLegendre(M::Int64, bandmin, bandmax)
+
+Args:
+- `M`: number of states in discretisation  
+- `bandmin`: minimum of discretised energy range
+- `bandmax`: maximum of discretised energy range
+"""
+function ShenviGaussLegendre(M::Int64, bandmin, bandmax)
     M % 2 == 0 || throw(error("The number of states `M` must be even."))
     knots, weights = gausslegendre(div(M, 2))
     centre = (bandmax + bandmin) / 2
@@ -31,7 +40,9 @@ function ShenviGaussLegendre(M, bandmin, bandmax)
         bathcoupling[i+length(weights)] = sqrt((bandmax - centre)/2  * w)
     end
 
-    return ShenviGaussLegendre(bathstates, bathcoupling)
+    discretisationtype = :TrapezoidalRule
+
+    return ShenviGaussLegendre(bathstates, bathcoupling, discretisationtype)
 end
 
 """

@@ -11,7 +11,15 @@ struct TrapezoidalRule{T} <: BathDiscretisationScheme
     discretisationtype::Symbol
 end
 
-function TrapezoidalRule(M, bandmin, bandmax)
+"""
+    TrapezoidalRule(M::Int64, bandmin, bandmax)
+
+Args:
+- `M`: number of states in discretisation  
+- `bandmin`: minimum of discretised energy range
+- `bandmax`: maximum of discretised energy range
+"""
+function TrapezoidalRule(M::Int64, bandmin, bandmax)
     ΔE = bandmax - bandmin
     bathstates = collect(range(bandmin, bandmax, length=M))
     bathcoupling = repeat([sqrt(ΔE / M)], M)
