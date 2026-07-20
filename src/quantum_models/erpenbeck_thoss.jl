@@ -50,7 +50,7 @@ function ErpenbeckThoss(;
     x̃   = austrip(3.5u"Å"),
     V̄ₖ  = sqrt(austrip(Γ)/2π),
     c   = nothing
-) 
+)
     morse = ClassicalModels.Morse(;Dₑ, x₀, a, m)
     if isnothing(c)
         c = -NQCModels.ClassicalModels.eigenenergy(morse, 0) # Set c to offset zero-point energy
@@ -86,18 +86,17 @@ function NQCModels.potential!(model::ErpenbeckThoss, V::Hermitian, R::AbstractMa
 end
 
 function NQCModels.derivative(model::ErpenbeckThoss, R::AbstractMatrix)
-    (;morse, D₁, D₂, x₀′, a′) = model
-
-    (;q, ã, x̃, V̄ₖ) = model
-
-    D11 = NQCModels.derivative(morse, R)
-    D22 = -2a′*D₁*exp(-2a′*(R[1]-x₀′)) + a′*D₂*exp(-a′*(R[1]-x₀′))
-    D12 = -V̄ₖ * (1-q)/2 * sech((R[1]-x̃)/ã)^2 / ã
-    return Hermitian([D11 D12; D12 D22])
+    D = NQCModels.zero_derivative(model, R)
+    NQCModels.derivative!(model, D, R)
+    return D
 end
 
 function NQCModels.derivative!(model::ErpenbeckThoss, D::Matrix{<:Hermitian}, R::AbstractMatrix)
-    NQCModels.derivative!(model, D[1,1], R)
+    # Particles are independent, no interactions specified, so only diagonal derivative components are filled.
+    for i in axes(R, 2)
+        NQCModels.derivative!(model, D[i,i], R[:,i])
+    end
+    return D
 end
 
 function NQCModels.derivative!(model::ErpenbeckThoss, D::Hermitian, R::AbstractMatrix)
@@ -108,7 +107,7 @@ function NQCModels.derivative!(model::ErpenbeckThoss, D::Hermitian, R::AbstractM
     D11 = NQCModels.derivative(morse, R)
     D22 = -2a′*D₁*exp(-2a′*(R[1]-x₀′)) + a′*D₂*exp(-a′*(R[1]-x₀′))
     D12 = -V̄ₖ * (1-q)/2 * sech((R[1]-x̃)/ã)^2 / ã
-    
+
     D.data[1,1] = D11
     D.data[2,2] = D22
     D.data[1,2] = D12
