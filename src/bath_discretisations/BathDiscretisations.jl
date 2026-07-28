@@ -4,7 +4,12 @@ using FastGaussQuadrature: gausslegendre
 using LinearAlgebra
 
 abstract type BathDiscretisationScheme end
-NQCModels.nstates(bath::BathDiscretisationScheme) = length(bath.bathstates) # unsure about this yet
+NQCModels.nstates(discretisation::BathDiscretisationScheme) = length(discretisation.bathstates) # unsure about this yet
+
+function discretisation_energy_intervals(discretisation::BathDiscretisationScheme)
+    v = discretisation.bathcoupling.^2 
+    return [(E - 0.5*v[i], E + 0.5*v[i]) for (i,E) in enumerate(discretisation.bathstates)]
+end
 
 abstract type BathFunction end
 
@@ -16,6 +21,7 @@ export setcoupling!
 export widebandbath
 
 include("lorentzian_bath.jl")
+export lorentzian
 export lorentzianbath
 
 include("trapezoidal_rule.jl")
@@ -53,9 +59,12 @@ struct discrete_bath{T} <: DiscreteBath
     bathstates::Vector{T} # Vector of Floats
     bathcoupling::Vector{T} # Vector of Floats
     bathfunction::Vector{T} # Vector of Floats
+    bathdegeneracy::Vector{T} # Vector of Floats
     bathtype::Symbol
     discretisationtype::Symbol 
 end
+
+NQCModels.nstates(bath::DiscreteBath) = length(bath.bathstates)
 
 """
     discrete_bath(discretisation::BathDiscretisationScheme, bathfn::BathFunction=widebandbath(discretisation))
@@ -66,8 +75,8 @@ Primary input is the choice of `BathDiscretisationScheme`, with optional keyword
 """
 function discrete_bath(discretisation::BathDiscretisationScheme, bathfn::BathFunction=widebandbath(discretisation))
     (; bathstates, bathcoupling, discretisationtype) = discretisation
-    (; bathfunction, bathtype) = bathfn
-    return discrete_bath(bathstates, bathcoupling, bathfunction, bathtype, discretisationtype)
+    (; bathfunction, bathdegeneracy, bathtype) = bathfn
+    return discrete_bath(bathstates, bathcoupling, bathfunction, bathdegeneracy, bathtype, discretisationtype)
 end
 
 function fillbathstates!(out::Hermitian, bath::DiscreteBath)
@@ -77,16 +86,17 @@ end
 
 function fillbathcoupling!(out::Hermitian, coupling::Real, bath::DiscreteBath, couplings_rescale::Real=1.0)
     first_row = @view out.data[1, 2:end] 
-    setcoupling!(first_row, bath.bathcoupling, coupling, bath.bathfunction, couplings_rescale)
+    setcoupling!(first_row, bath.bathcoupling, coupling, bath.bathdegeneracy, couplings_rescale)
 
     return nothing
 end
 
-function setcoupling!(out::AbstractVector, bathcoupling::AbstractVector, coupling::Real, bathfunction::AbstractVector, couplings_rescale::Real=1.0)
+function setcoupling!(out::AbstractVector, bathcoupling::AbstractVector, coupling::Real, bathdegeneracy::AbstractVector, couplings_rescale::Real=1.0)
     @inbounds for i in eachindex(out)
-        out[i] = bathcoupling[i] * coupling * bathfunction[i] * couplings_rescale
+        out[i] = bathcoupling[i] * coupling * bathdegeneracy[i] * couplings_rescale
     end
 end
+
 
 export discrete_bath
 export fillbathstates!
