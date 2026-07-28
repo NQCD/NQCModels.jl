@@ -29,11 +29,12 @@ struct widebandbath{T} <: BathFunction
     bathfunction :: Vector{T}
     bathdegeneracy :: Vector{T}
     bathtype :: Symbol
+    N :: Int64
 end
 
-function widebandbath(discretisation::BathDiscretisationScheme)
+function widebandbath(discretisation::BathDiscretisationScheme, N::Int64)
     bathfunction = ones(NQCModels.nstates(discretisation))
-    bathdegeneracy = ones(NQCModels.nstates(discretisation)) #? setting to 1 as a placeholder
+    bathdegeneracy = ones(NQCModels.nstates(discretisation)) .* N/NQCModels.nstates(discretisation) #? setting to 1 as a placeholder
     bathtype = :wideband
-    return widebandbath(bathfunction, bathdegeneracy, bathtype)
+    return widebandbath(bathfunction, bathdegeneracy, bathtype, N)
 end
