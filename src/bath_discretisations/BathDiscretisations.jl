@@ -62,6 +62,8 @@ struct discrete_bath{T} <: DiscreteBath
     bathdegeneracy::Vector{T} # Vector of Floats
     bathtype::Symbol
     discretisationtype::Symbol 
+    N::Int64 # Number of electronic energy states represented in bath
+    M::Int64 # Number of discrete energy states in discretisation scheme
 end
 
 NQCModels.nstates(bath::DiscreteBath) = length(bath.bathstates)
@@ -75,8 +77,8 @@ Primary input is the choice of `BathDiscretisationScheme`, with optional keyword
 """
 function discrete_bath(discretisation::BathDiscretisationScheme, bathfn::BathFunction=widebandbath(discretisation))
     (; bathstates, bathcoupling, discretisationtype) = discretisation
-    (; bathfunction, bathdegeneracy, bathtype) = bathfn
-    return discrete_bath(bathstates, bathcoupling, bathfunction, bathdegeneracy, bathtype, discretisationtype)
+    (; bathfunction, bathdegeneracy, bathtype, N) = bathfn
+    return discrete_bath(bathstates, bathcoupling, bathfunction, bathdegeneracy, bathtype, discretisationtype, N, length(bathstates))
 end
 
 function fillbathstates!(out::Hermitian, bath::DiscreteBath)
