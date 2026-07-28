@@ -1,4 +1,4 @@
-
+# ----------------------------------------- Will be made redundant ----------------------------------------- #
 abstract type WideBandBathDiscretisation end
 NQCModels.nstates(bath::WideBandBathDiscretisation) = length(bath.bathstates)
 
@@ -23,14 +23,17 @@ end
 function setcoupling!(out::AbstractVector, bathcoupling::Real, coupling::Real, couplings_rescale::Real=1.0)
     fill!(out, bathcoupling * coupling * couplings_rescale)
 end
+# ---------------------------------------------------------------------------------------------------------- #
 
 struct widebandbath{T} <: BathFunction
     bathfunction :: Vector{T}
+    bathdegeneracy :: Vector{T}
     bathtype :: Symbol
 end
 
 function widebandbath(discretisation::BathDiscretisationScheme)
     bathfunction = ones(NQCModels.nstates(discretisation))
+    bathdegeneracy = ones(NQCModels.nstates(discretisation)) #? setting to 1 as a placeholder
     bathtype = :wideband
-    return widebandbath(bathfunction, bathtype)
+    return widebandbath(bathfunction, bathdegeneracy, bathtype)
 end
