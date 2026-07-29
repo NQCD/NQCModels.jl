@@ -32,9 +32,27 @@ struct widebandbath{T} <: BathFunction
     N :: Int64
 end
 
+"""
+    widebandbath(discretisation::BathDiscretisationScheme)
+
+Wide band bath function, bathdegeneracy set to unity - Density of States ignored.
+Same as old baths.
+"""
+function widebandbath(discretisation::BathDiscretisationScheme)
+    bathfunction = ones(NQCModels.nstates(discretisation))
+    bathdegeneracy = bathfunction
+    bathtype = :wideband
+    return widebandbath(bathfunction, bathdegeneracy, bathtype, NQCModels.nstates(discretisation))
+end
+
+"""
+    widebandbath(discretisation::BathDiscretisationScheme, N::Int64)
+
+Wide band bath function, bath degeneracy is a constant scaled by `N/nstates(disretisation)`
+"""
 function widebandbath(discretisation::BathDiscretisationScheme, N::Int64)
     bathfunction = ones(NQCModels.nstates(discretisation))
-    bathdegeneracy = ones(NQCModels.nstates(discretisation)) .* N/NQCModels.nstates(discretisation) #? setting to 1 as a placeholder
+    bathdegeneracy = bathfunction .* N/NQCModels.nstates(discretisation)
     bathtype = :wideband
     return widebandbath(bathfunction, bathdegeneracy, bathtype, N)
 end
