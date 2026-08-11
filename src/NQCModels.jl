@@ -11,6 +11,39 @@ export potential, potential!
 export derivative, derivative!
 export nstates
 export ndofs
+export hamiltonian_type
+export Diabatic, Adiabatic
+
+"""
+    Diabatic
+
+Trait singleton indicating that a model's Hamiltonian is in the diabatic representation.
+
+See also [`Adiabatic`](@ref), [`hamiltonian_type`](@ref).
+"""
+struct Diabatic end
+
+"""
+    Adiabatic
+
+Trait singleton indicating that a model's Hamiltonian is in the adiabatic representation.
+
+See also [`Diabatic`](@ref), [`hamiltonian_type`](@ref).
+"""
+struct Adiabatic end
+
+"""
+    hamiltonian_type(model::Model)
+
+Return the representation of the Hamiltonian provided by `model`.
+
+Returns either [`Diabatic()`](@ref) or [`Adiabatic()`](@ref).
+
+The default for [`QuantumModel`](@ref) subtypes is `Diabatic()`.
+Models that provide an adiabatic Hamiltonian (such as [`AdiabaticStateSelector`](@ref))
+should override this method to return `Adiabatic()`.
+"""
+function hamiltonian_type end
 
 """
 Top-level type for models.

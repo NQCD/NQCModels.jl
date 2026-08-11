@@ -72,6 +72,8 @@ NQCModels.potential!(model, V, hcat(10))
 """
 abstract type QuantumModel <: NQCModels.Model end
 
+NQCModels.hamiltonian_type(::QuantumModel) = NQCModels.Diabatic()
+
 #= 
 function NQCModels.derivative!(model::QuantumModel, D, R::AbstractMatrix)
     if NQCModels.ndofs(model) == 1
