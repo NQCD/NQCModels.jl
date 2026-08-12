@@ -13,6 +13,19 @@ end
 
 NQCModels.ndofs(model::StateSelector) = NQCModels.ndofs(model.quantum_model)
 
+# generic out-of-place derivative, built on the in-place primitive below
+function NQCModels.derivative(model::StateSelector, r::AbstractMatrix)
+    output = zeros(eltype(r), size(r))
+    NQCModels.derivative!(model, output, r)
+    return output
+end
+
+# generic in-place potential — assumes a 1-element mutable container; see caveat above
+function NQCModels.potential!(model::StateSelector, V::AbstractMatrix, r::AbstractMatrix)
+    V .= NQCModels.potential(model, r)
+    return V
+end
+
 # --- Diabatic model, want the adiabatic-basis energy of `state` ---
 function NQCModels.potential(model::StateSelector{M,Adiabatic}, r::AbstractMatrix) where {M<:QuantumModels.QuantumModel{Diabatic}}
     V = NQCModels.potential(model.quantum_model, r)
@@ -57,6 +70,7 @@ function NQCModels.derivative!(model::StateSelector{M,Adiabatic}, output::Abstra
     return output
 end
 
+
 struct ReducedQuantumModel{M<:QuantumModels.QuantumModel,B<:State} <: QuantumModels.QuantumModel{B}
     quantum_model::M
     states::Vector{Int}
@@ -74,11 +88,31 @@ end
 NQCModels.ndofs(model::ReducedQuantumModel) = NQCModels.ndofs(model.quantum_model)
 NQCModels.nstates(model::ReducedQuantumModel) = length(model.states)
 
+# generic out-of-place wrappers, built on the in-place primitives below
+function NQCModels.potential(model::ReducedQuantumModel, r::AbstractMatrix)
+    n = NQCModels.nstates(model)
+    V = zeros(eltype(r), n, n)
+    NQCModels.potential!(model, V, r)
+    return V
+end
+
+function NQCModels.derivative(model::ReducedQuantumModel, r::AbstractMatrix)
+    D_full = NQCModels.derivative(model.quantum_model, r)  # only used to get dof-array shape/eltype structure
+    n = NQCModels.nstates(model)
+    output = similar(D_full, Matrix{eltype(r)})
+    for I in eachindex(output)
+        output[I] = zeros(eltype(r), n, n)
+    end
+    NQCModels.derivative!(model, output, r)
+    return output
+end
+
 # --- Diabatic underlying model, stay in diabatic representation ---
 # Just take the submatrix — no diagonalization needed.
-function NQCModels.potential(model::ReducedQuantumModel{M,Diabatic}, r::AbstractMatrix) where {M<:QuantumModels.QuantumModel{Diabatic}}
-    V = NQCModels.potential(model.quantum_model, r)
-    return V[model.states, model.states]
+function NQCModels.potential!(model::ReducedQuantumModel{M,Diabatic}, V::AbstractMatrix, r::AbstractMatrix) where {M<:QuantumModels.QuantumModel{Diabatic}}
+    Vfull = NQCModels.potential(model.quantum_model, r)
+    V .= Vfull[model.states, model.states]
+    return V
 end
 
 function NQCModels.derivative!(model::ReducedQuantumModel{M,Diabatic}, output::AbstractMatrix, r::AbstractMatrix) where {M<:QuantumModels.QuantumModel{Diabatic}}
@@ -92,10 +126,11 @@ end
 # --- Diabatic underlying model, truncate to a subset of adiabatic eigenstates ---
 # Diagonalize the FULL Hamiltonian (truncating states before diagonalizing would
 # corrupt the eigenbasis), then slice the requested rows/cols out of the result.
-function NQCModels.potential(model::ReducedQuantumModel{M,Adiabatic}, r::AbstractMatrix) where {M<:QuantumModels.QuantumModel{Diabatic}}
-    V = NQCModels.potential(model.quantum_model, r)
-    eigenvalues = eigen(V).values
-    return Diagonal(eigenvalues[model.states])
+function NQCModels.potential!(model::ReducedQuantumModel{M,Adiabatic}, V::AbstractMatrix, r::AbstractMatrix) where {M<:QuantumModels.QuantumModel{Diabatic}}
+    Vfull = NQCModels.potential(model.quantum_model, r)
+    eigenvalues = eigen(Vfull).values
+    V .= Diagonal(eigenvalues[model.states])
+    return V
 end
 
 function NQCModels.derivative!(model::ReducedQuantumModel{M,Adiabatic}, output::AbstractMatrix, r::AbstractMatrix) where {M<:QuantumModels.QuantumModel{Diabatic}}
@@ -109,12 +144,10 @@ function NQCModels.derivative!(model::ReducedQuantumModel{M,Adiabatic}, output::
 end
 
 # --- Adiabatic underlying model, stay in adiabatic representation ---
-# potential returns a vector of eigenvalues; derivative returns full matrices
-# (diagonal Hellmann-Feynman terms + any off-diagonal derivative-coupling terms
-# the underlying model already encodes) — both get sliced to `states`.
-function NQCModels.potential(model::ReducedQuantumModel{M,Adiabatic}, r::AbstractMatrix) where {M<:QuantumModels.QuantumModel{Adiabatic}}
-    V = NQCModels.potential(model.quantum_model, r)
-    return V[model.states]
+function NQCModels.potential!(model::ReducedQuantumModel{M,Adiabatic}, V::AbstractMatrix, r::AbstractMatrix) where {M<:QuantumModels.QuantumModel{Adiabatic}}
+    Vfull = NQCModels.potential(model.quantum_model, r)
+    V .= Diagonal(Vfull[model.states])
+    return V
 end
 
 function NQCModels.derivative!(model::ReducedQuantumModel{M,Adiabatic}, output::AbstractMatrix, r::AbstractMatrix) where {M<:QuantumModels.QuantumModel{Adiabatic}}
