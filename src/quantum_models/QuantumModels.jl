@@ -73,9 +73,9 @@ NQCModels.potential!(model, V, hcat(10))
   1  -10
 ```
 """
-abstract type QuantumModel{H} <: NQCModels.Model end
+abstract type QuantumModel{H<:NQCModels.State} <: NQCModels.Model end
 
-NQCModels.hamiltonian_type(::QuantumModel{H}) where {H} = H()
+NQCModels.hamiltonian_type(::QuantumModel{H}) where {H<:NQCModels.State} = H()
 
 #= 
 function NQCModels.derivative!(model::QuantumModel, D, R::AbstractMatrix)
