@@ -15,7 +15,6 @@ struct AdiabaticStateSelector{M} <: NQCModels.ClassicalModels.ClassicalModel
 end
 
 NQCModels.ndofs(model::AdiabaticStateSelector) = NQCModels.ndofs(model.quantum_model)
-NQCModels.hamiltonian_type(::AdiabaticStateSelector) = NQCModels.Adiabatic()
 
 function NQCModels.potential(model::AdiabaticStateSelector, r::AbstractMatrix)
     V = NQCModels.potential(model.quantum_model, r)

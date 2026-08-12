@@ -17,7 +17,9 @@ export Diabatic, Adiabatic
 """
     Diabatic
 
-Trait singleton indicating that a model's Hamiltonian is in the diabatic representation.
+Type parameter indicating that a model's Hamiltonian is in the diabatic representation.
+
+Used as a type parameter on [`QuantumModel`](@ref): `QuantumModel{Diabatic}`.
 
 See also [`Adiabatic`](@ref), [`hamiltonian_type`](@ref).
 """
@@ -26,22 +28,24 @@ struct Diabatic end
 """
     Adiabatic
 
-Trait singleton indicating that a model's Hamiltonian is in the adiabatic representation.
+Type parameter indicating that a model's Hamiltonian is in the adiabatic representation.
+
+Used as a type parameter on [`QuantumModel`](@ref): `QuantumModel{Adiabatic}`.
 
 See also [`Diabatic`](@ref), [`hamiltonian_type`](@ref).
 """
 struct Adiabatic end
 
 """
-    hamiltonian_type(model::Model)
+    hamiltonian_type(model::QuantumModel{H}) where {H}
 
 Return the representation of the Hamiltonian provided by `model`.
 
-Returns either [`Diabatic()`](@ref) or [`Adiabatic()`](@ref).
+Returns either [`Diabatic()`](@ref) or [`Adiabatic()`](@ref), derived from the
+type parameter `H` of the model.
 
-The default for [`QuantumModel`](@ref) subtypes is `Diabatic()`.
-Models that provide an adiabatic Hamiltonian (such as [`AdiabaticStateSelector`](@ref))
-should override this method to return `Adiabatic()`.
+The default for [`QuantumModel`](@ref) subtypes is `Diabatic` (i.e. `QuantumModel{Diabatic}`).
+Models that provide an adiabatic Hamiltonian should subtype `QuantumModel{Adiabatic}`.
 """
 function hamiltonian_type end
 
