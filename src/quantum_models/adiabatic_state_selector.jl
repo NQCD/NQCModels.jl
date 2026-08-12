@@ -10,6 +10,7 @@ struct AdiabaticStateSelector{M} <: NQCModels.ClassicalModels.ClassicalModel
                 "selected state must be less than the total number of states of the diabatic model",
             ),
         )
+        @warn "This is a deprecated form of StateSelector, please use that method in future"
         return new{typeof(quantum_model)}(quantum_model, state)
     end
 end

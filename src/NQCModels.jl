@@ -14,6 +14,8 @@ export ndofs
 export hamiltonian_type
 export Diabatic, Adiabatic
 
+abstract type State end
+
 """
     Diabatic
 
@@ -23,7 +25,7 @@ Used as a type parameter on [`QuantumModel`](@ref): `QuantumModel{Diabatic}`.
 
 See also [`Adiabatic`](@ref), [`hamiltonian_type`](@ref).
 """
-struct Diabatic end
+struct Diabatic <: State end
 
 """
     Adiabatic
@@ -34,7 +36,7 @@ Used as a type parameter on [`QuantumModel`](@ref): `QuantumModel{Adiabatic}`.
 
 See also [`Diabatic`](@ref), [`hamiltonian_type`](@ref).
 """
-struct Adiabatic end
+struct Adiabatic <: State end
 
 """
     hamiltonian_type(model::QuantumModel{H}) where {H}

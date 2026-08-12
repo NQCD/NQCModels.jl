@@ -191,4 +191,7 @@ export OuyangModelOne
 include("adiabatic_state_selector.jl")
 export AdiabaticStateSelector
 
+include("state_selector.jl")
+export StateSelector, ReducedQuantumModel
+
 end # module
