@@ -1,10 +1,10 @@
-using LinearAlgebra: eigen, Diagonal, diag
-
-struct StateSelector{M<:QuantumModels.QuantumModel,B<:State} <: NQCModels.ClassicalModels.ClassicalModel
+using LinearAlgebra: eigen, Diagonal, diag
+
+struct StateSelector{M<:QuantumModels.QuantumModel,B<:NQCBase.StateType} <: NQCModels.ClassicalModels.ClassicalModel
     quantum_model::M
     state::Int
 
-    function StateSelector(quantum_model::QuantumModels.QuantumModel, state::Int, ::Type{B}) where {B<:State}
+    function StateSelector(quantum_model::QuantumModels.QuantumModel, state::Int, ::Type{B}) where {B<:NQCBase.StateType}
         state < 1 && throw(DomainError(state, "selected state must be greater than 0"))
         state > NQCModels.nstates(quantum_model) && throw(
             DomainError(state, "selected state must be less than or equal to the total number of states of the model"),
@@ -39,7 +39,7 @@ function NQCModels.derivative!(model::StateSelector{M,Adiabatic}, output::Abstra
     U = eigen(V).vectors
     D = NQCModels.derivative(model.quantum_model, r)
     for I in eachindex(output, D)
-        output[I] = (U' * D[I] * U)[model.state, model.state]
+        output[I] = (U'*D[I]*U)[model.state, model.state]
     end
     return output
 end
@@ -72,12 +72,11 @@ function NQCModels.derivative!(model::StateSelector{M,Adiabatic}, output::Abstra
     return output
 end
 
-
-struct ReducedQuantumModel{M<:QuantumModels.QuantumModel,B<:State} <: QuantumModels.QuantumModel{B}
+struct ReducedQuantumModel{M<:QuantumModels.QuantumModel,B<:NQCBase.StateType} <: QuantumModels.QuantumModel{B}
     quantum_model::M
     states::Vector{Int}
 
-    function ReducedQuantumModel(quantum_model::QuantumModels.QuantumModel, states::AbstractVector{Int}, ::Type{B}) where {B<:State}
+    function ReducedQuantumModel(quantum_model::QuantumModels.QuantumModel, states::AbstractVector{Int}, ::Type{B}) where {B<:NQCBase.StateType}
         n = NQCModels.nstates(quantum_model)
         isempty(states) && throw(ArgumentError("`states` must not be empty"))
         any(s -> s < 1, states) && throw(DomainError(states, "selected states must be greater than 0"))

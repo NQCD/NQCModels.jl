@@ -6,6 +6,7 @@ These can exist as analytic models or as interfaces to other codes.
 module NQCModels
 
 using Reexport: @reexport
+using NQCBase: Adiabatic, Diabatic
 
 export potential, potential!
 export derivative, derivative!
@@ -14,41 +15,6 @@ export ndofs
 export hamiltonian_type
 export Diabatic, Adiabatic
 
-abstract type State end
-
-"""
-    Diabatic
-
-Type parameter indicating that a model's Hamiltonian is in the diabatic representation.
-
-Used as a type parameter on [`QuantumModel`](@ref): `QuantumModel{Diabatic}`.
-
-See also [`Adiabatic`](@ref), [`hamiltonian_type`](@ref).
-"""
-struct Diabatic <: State end
-
-"""
-    Adiabatic
-
-Type parameter indicating that a model's Hamiltonian is in the adiabatic representation.
-
-Used as a type parameter on [`QuantumModel`](@ref): `QuantumModel{Adiabatic}`.
-
-See also [`Diabatic`](@ref), [`hamiltonian_type`](@ref).
-"""
-struct Adiabatic <: State end
-
-"""
-    hamiltonian_type(model::QuantumModel{H}) where {H}
-
-Return the representation of the Hamiltonian provided by `model`.
-
-Returns either [`Diabatic()`](@ref) or [`Adiabatic()`](@ref), derived from the
-type parameter `H` of the model.
-
-Most `QuantumModel` subtypes should be `QuantumModel{Diabatic}`.
-Models that provide an adiabatic Hamiltonian should subtype `QuantumModel{Adiabatic}`.
-"""
 function hamiltonian_type end
 
 """
