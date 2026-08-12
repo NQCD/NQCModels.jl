@@ -1,3 +1,5 @@
+using LinearAlgebra: eigen, Diagonal, diag
+
 struct StateSelector{M<:QuantumModels.QuantumModel,B<:State} <: NQCModels.ClassicalModels.ClassicalModel
     quantum_model::M
     state::Int
