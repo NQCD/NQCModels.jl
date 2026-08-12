@@ -46,7 +46,7 @@ Return the representation of the Hamiltonian provided by `model`.
 Returns either [`Diabatic()`](@ref) or [`Adiabatic()`](@ref), derived from the
 type parameter `H` of the model.
 
-The default for [`QuantumModel`](@ref) subtypes is `Diabatic` (i.e. `QuantumModel{Diabatic}`).
+Most `QuantumModel` subtypes should be `QuantumModel{Diabatic}`.
 Models that provide an adiabatic Hamiltonian should subtype `QuantumModel{Adiabatic}`.
 """
 function hamiltonian_type end
