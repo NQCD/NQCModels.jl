@@ -99,7 +99,7 @@ function setcoupling!(out::AbstractVector, bathcoupling::AbstractVector, couplin
     end
 end
 
-
+export DiscreteBath
 export discrete_bath
 export fillbathstates!
 export fillbathcoupling!
