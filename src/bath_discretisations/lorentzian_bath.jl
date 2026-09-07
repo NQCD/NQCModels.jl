@@ -48,6 +48,6 @@ function lorentzianbath(discretisation::BathDiscretisationScheme, N::Int64; W=4.
     W_au = austrip(W*u"eV")
     bathfunction = lorentzian.(discretisation.bathstates, W_au)
     bathdegeneracy = N .* lorentzian_integral.(discretisation_energy_intervals(discretisation), W_au)
-    bathtype = :lorentzian
+    bathtype = :lorentzianbath
     return lorentzianbath(bathfunction, bathdegeneracy, bathtype, N)
 end
