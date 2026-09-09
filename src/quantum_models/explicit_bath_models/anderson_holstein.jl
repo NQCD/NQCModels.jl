@@ -15,11 +15,11 @@ end
 
 # include if statement here so that impurity_derivative always has shape Matrix{<:Hermitian} 
 # that way it can be populated in derivative!(AndersonHolstien) and the shape is certain
-function AndersonHolstein(impurity_model, bath; fermi_level=0.0, couplings_rescale=1.0) 
+function AndersonHolstein(impurity_model, bath; fermi_level=0.0, couplings_rescale=1.0, atoms=1) 
     fermi_level = austrip(fermi_level)
     nelectrons = count(bath.bathstates .≤ fermi_level)
     imp_potential = Hermitian(zeros(nstates(impurity_model),nstates(impurity_model)))
-    imp_derivative = NQCModels.zero_derivative(impurity_model, hcat([0.0 for _ in NQCModels.dofs(impurity_model)]))
+    imp_derivative = NQCModels.zero_derivative(impurity_model, hcat([0.0 for _ = 1:NQCModels.ndofs(impurity_model), _ = 1:atoms] ))
     return AndersonHolstein(impurity_model, bath, fermi_level, nelectrons, couplings_rescale, imp_potential, imp_derivative)
 end
 
