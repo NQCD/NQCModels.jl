@@ -11,6 +11,8 @@ export potential, potential!
 export derivative, derivative!
 export nstates
 export ndofs
+export set_time!
+export get_time
 
 """
 Top-level type for models.
@@ -147,6 +149,22 @@ function state_independent_derivative(model, r) end
 state_independent_derivative!(model, derivative, r) = fill!(derivative, zero(eltype(r)))
 nelectrons(::Model) = error("This should return the total number of electrons.")
 fermilevel(::Model) = 0.0
+
+"""
+    set_time!(model::Model, t)
+
+Update the internal clock of `model`. Models without explicit time-dependence
+ignore this by default.
+"""
+set_time!(::Model, t) = nothing
+
+"""
+    get_time(model::Model)
+
+Read the internal clock of `model`. Models without explicit time-dependence
+return `0.0` by default.
+"""
+get_time(::Model) = 0.0
 
 eachelectron(model::Model) = Base.OneTo(nelectrons(model))
 eachstate(model::Model) = Base.OneTo(nstates(model))

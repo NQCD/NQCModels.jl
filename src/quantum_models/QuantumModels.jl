@@ -153,6 +153,9 @@ export AndersonHolstein
 include("explicit_bath_models/widebandbath.jl")
 export WideBandBath
 
+include("explicit_bath_models/dipole_approximation.jl")
+export DipoleApproximation
+
 include("double_well.jl")
 export DoubleWell
 
