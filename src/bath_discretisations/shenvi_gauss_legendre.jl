@@ -40,7 +40,7 @@ function ShenviGaussLegendre(M::Int64, bandmin, bandmax)
         bathcoupling[i+length(weights)] = sqrt((bandmax - centre)/2  * w)
     end
 
-    discretisationtype = :TrapezoidalRule
+    discretisationtype = :ShenviGaussLegendre
 
     return ShenviGaussLegendre(bathstates, bathcoupling, discretisationtype)
 end
