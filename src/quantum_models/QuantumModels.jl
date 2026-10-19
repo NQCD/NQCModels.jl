@@ -154,7 +154,7 @@ include("explicit_bath_models/widebandbath.jl")
 export WideBandBath
 
 include("explicit_bath_models/dipole_approximation.jl")
-export DipoleApproximation
+export DipoleApproximation, field_strength
 
 include("double_well.jl")
 export DoubleWell

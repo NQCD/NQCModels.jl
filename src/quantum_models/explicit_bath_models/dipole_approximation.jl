@@ -3,12 +3,14 @@
     DipoleApproximation{M<:QuantumModel,T,E} <: QuantumModel
 
 Wraps any `QuantumModel` (e.g. [`AndersonHolstein`](@ref)) and adds the dipole-approximation
-interaction `-μ⋅E(t)` to its potential, where `μ` is a fixed dipole matrix and `E` is a
-(possibly time-dependent) external field.
+interaction `-μ⋅E(t)`, where `μ` is a fixed (diabatic) dipole matrix, real or complex Hermitian,
+and `E` is a (possibly time-dependent) external field.
 
-Everything other than the potential (number of states, degrees of freedom, derivatives,
-state-independent terms, etc.) is inherited unchanged from the wrapped `system` model, since
-`μ` and `E(t)` do not depend on the nuclear positions `r`.
+The interaction is *not* part of the potential: `potential`, `derivative` and everything else
+are those of the wrapped `system` model, so the adiabatic (eigen)basis, forces and non-adiabatic
+couplings are those of the field-free system. The field acts only on the electrons: dynamics
+methods add `-μ E(t)` (see [`field_strength`](@ref)) to the electronic Hamiltonian and, in
+IESH, use it for laser-driven hopping between the field-free adiabatic states.
 
 `field` may either be a constant `Number` or a callable `field(t)` returning the field
 strength at time `t`. The model keeps its own internal clock, updated with [`NQCModels.set_time!`](@ref)
@@ -40,11 +42,21 @@ NQCModels.fermilevel(model::DipoleApproximation) = NQCModels.fermilevel(model.sy
 NQCModels.set_time!(model::DipoleApproximation, t::Real) = (model.t[] = t; nothing)
 NQCModels.get_time(model::DipoleApproximation) = model.t[]
 
+"""
+    field_strength(model::DipoleApproximation)
+
+The field E at the model's current time (see [`NQCModels.set_time!`](@ref)).
+"""
+field_strength(model::DipoleApproximation) = evaluate_field(model.field, model.t[])
+
+# The field-free potential: -μE(t) is applied to the electrons by the dynamics methods.
 function NQCModels.potential!(model::DipoleApproximation, V::Hermitian, r::AbstractMatrix)
     NQCModels.potential!(model.system, V, r)
-    V.data .-= model.μ .* evaluate_field(model.field, model.t[])
     return nothing
 end
+
+NQCModels.potential(model::DipoleApproximation, r::AbstractMatrix) = NQCModels.potential(model.system, r)
+NQCModels.derivative(model::DipoleApproximation, r::AbstractMatrix) = NQCModels.derivative(model.system, r)
 
 function NQCModels.derivative!(model::DipoleApproximation, D::AbstractMatrix{<:Hermitian}, r::AbstractMatrix)
     NQCModels.derivative!(model.system, D, r)
