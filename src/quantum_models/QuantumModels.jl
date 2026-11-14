@@ -17,11 +17,14 @@ using LinearAlgebra: LinearAlgebra, Hermitian
 using StaticArrays: SMatrix, SVector
 
 """
-    QuantumModel <: Model
+    QuantumModel{H} <: Model
 
-`QuantumModel`s are used when a system has multiple electronic states and the dynamics
-of the system are propagated by a Hamiltonian in the diabatic representation. This is 
-the case for the majority of model systems.
+`QuantumModel`s are used when a system has multiple electronic states.
+The type parameter `H` encodes the representation of the Hamiltonian:
+either [`Diabatic`](@ref) or [`Adiabatic`](@ref).
+
+Most models are diabatic and should subtype `QuantumModel{Diabatic}`.
+Models providing an adiabatic Hamiltonian should subtype `QuantumModel{Adiabatic}`.
 
 # Implementation
 
@@ -33,9 +36,9 @@ the case for the majority of model systems.
 
 # Example
 
-In this example we create a simple 2 state, 1 dimensional quantum model `MyModel`.
+In this example we create a simple 2 state, 1 dimensional diabatic quantum model `MyModel`.
 As noted above, we implement the 4 relevant functions then evaluate the potential.
-Potential and Derivative functions take in positions as abstract matrices, since 
+Potential and Derivative functions take in positions as abstract matrices, since
 this is a 1D model the argument `R` should be a `Real` wrapped in a 1x1 matrix. It is
 recommended that you use the hcat() function to do this.
 
@@ -43,12 +46,12 @@ recommended that you use the hcat() function to do this.
 using StaticArrays: SMatrix
 using LinearAlgebra: Hermitian
 
-struct MyModel <: NQCModels.QuantumModels.QuantumModel end
+struct MyModel <: NQCModels.QuantumModels.QuantumModel{NQCModels.Diabatic} end
 
 NQCModels.nstates(::MyModel) = 2
 NQCModels.ndofs(::MyModel) = 1
 
-function NQCModels.potential!(::MyModel, V::Hermitian, R::AbstractMatrix) 
+function NQCModels.potential!(::MyModel, V::Hermitian, R::AbstractMatrix)
     V11 = R[1]
     V22 = -R[1]
     V12 = 1
@@ -70,7 +73,9 @@ NQCModels.potential!(model, V, hcat(10))
   1  -10
 ```
 """
-abstract type QuantumModel <: NQCModels.Model end
+abstract type QuantumModel{H<:NQCBase.StateType} <: NQCModels.Model end
+
+NQCModels.hamiltonian_type(::QuantumModel{H}) where {H<:NQCBase.StateType} = H()
 
 #= 
 function NQCModels.derivative!(model::QuantumModel, D, R::AbstractMatrix)
@@ -89,7 +94,7 @@ end
 =#
 
 """
-    QuantumFrictionModel <: QuantumModel
+    QuantumFrictionModel <: QuantumModel{Diabatic}
 
 These models are defined identically to a typical `QuantumModel` but
 allocate extra temporary arrays when used with `NQCDynamics.jl`.
@@ -103,7 +108,7 @@ set up in NQCDynamics, the `QuantumFrictionModel` is paired with a
 `FrictionEvaluationMethod` in order to calculate the electronic 
 friction from the potential and derivative matrices.
 """
-abstract type QuantumFrictionModel <: QuantumModel end
+abstract type QuantumFrictionModel <: QuantumModel{Diabatic} end
 
 function matrix_template(model::QuantumModel, eltype)
     return zeros(eltype, NQCModels.nstates(model), NQCModels.nstates(model))
@@ -185,5 +190,8 @@ export OuyangModelOne
 
 include("adiabatic_state_selector.jl")
 export AdiabaticStateSelector
+
+include("state_selector.jl")
+export StateSelector, ReducedQuantumModel
 
 end # module
