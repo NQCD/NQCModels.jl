@@ -1,3 +1,8 @@
+> [!NOTE]
+> NQCModels is now incorporated in the NQCDynamics.jl monorepo [HERE](https://github.com/NQCD/NQCDynamics.jl.git).
+> Any further developments will be made there. 
+
+
 # NQCModels.jl
 
 [![CI](https://github.com/NQCD/NQCModels.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/NQCD/NQCModels.jl/actions/workflows/CI.yml)
