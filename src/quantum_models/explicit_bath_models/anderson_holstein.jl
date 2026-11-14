@@ -39,7 +39,7 @@ end
 
 function NQCModels.derivative(model::AndersonHolstein, R::AbstractMatrix)
     D = [Hermitian(zero(matrix_template(model, eltype(R)))) for _=1:size(R, 1), _=1:size(R, 2)]
-    @info "AndersonHolstein generated derivative size:" size = size(D)
+    @debug "AndersonHolstein generated derivative size:" size = size(D)
     NQCModels.derivative!(model, D, R)
     return D
 end
